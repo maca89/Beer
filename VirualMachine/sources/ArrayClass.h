@@ -50,24 +50,7 @@ namespace Beer
 			mItemClass = klass;
 		}
 
-		NOINLINE void toString(std::string& out)
-		{
-			out += "[";
-			for(int32 i = 0; i < getSize(); i++)
-			{
-				Object* obj = getItem(i);
-				if(obj)
-				{
-					std::string n;
-					static_cast<Integer*>(obj)->toString(n); // TODO
-					out += n;
-				}
-				else out += "0";
-
-				if(i < getSize() - 1) out += ", ";
-			}
-			out += "]";
-		}
+		NOINLINE void toString(VirtualMachine* vm, std::string& out);
 	};
 
 	class ArrayClass : public ClassReflection

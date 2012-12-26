@@ -6,11 +6,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/stringmerging.class</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/knapsack-plain.class</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/stringmerging.class</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/knapsack-plain.class</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

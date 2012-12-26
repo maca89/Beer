@@ -95,7 +95,7 @@ void BEER_CALL BeerString_concatBoolean(VirtualMachine* vm, StackFrame* frame, S
 void BEER_CALL BeerString_concatArray(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
 {
 	std::string str;
-	arg->toString(str);
+	arg->toString(vm, str);
 
 	ret = vm->createString(receiver->size() + str.size());
 	ret->copyData(0, receiver->size(), receiver->c_str());

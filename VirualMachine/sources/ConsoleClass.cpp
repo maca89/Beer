@@ -57,7 +57,7 @@ void BEER_CALL BeerConsole_printArray(VirtualMachine* vm, StackFrame* frame, Sta
 {
 	// TODO
 	std::string str;
-	arg->toString(str);
+	arg->toString(vm, str);
 	Console::getOutput() << str;
 }
 
@@ -65,7 +65,7 @@ void BEER_CALL BeerConsole_printlnArray(VirtualMachine* vm, StackFrame* frame, S
 {
 	// TODO
 	std::string str;
-	arg->toString(str);
+	arg->toString(vm, str);
 	Console::getOutput() << str << std::endl;
 }
 

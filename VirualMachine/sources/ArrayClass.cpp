@@ -64,6 +64,29 @@ void BEER_CALL BeerArray_set(VirtualMachine* vm, StackFrame* frame, StackRef<Arr
 	receiver->setItem(index->getData(), object.get());
 }
 
+void Array::toString(VirtualMachine* vm, std::string& out)
+{
+	out += "[";
+	for(int32 i = 0; i < getSize(); i++)
+	{
+		Object* obj = getItem(i);
+		if(obj)
+		{
+			std::stringstream n;
+
+			// TODO
+			//static_cast<Integer*>(obj)->toString(n);
+			//out += n;
+
+			vm->getClassTable()->translate(obj)->dump(obj, n);
+			out += n.str();
+		}
+		else out += "0";
+
+		if(i < getSize() - 1) out += ", ";
+	}
+	out += "]";
+}
 
 
 Object* ArrayClass::createInstance(StackFrame* frame, GarbageCollector* gc)

@@ -48,7 +48,7 @@ void BEER_CALL BeerFileWriter_writeBoolean(VirtualMachine* vm, StackFrame* frame
 void BEER_CALL BeerFileWriter_writeArray(VirtualMachine* vm, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Array> arg)
 {
 	std::string str;
-	arg->toString(str);
+	arg->toString(vm, str);
 	receiver->write(str.c_str());
 }
 
