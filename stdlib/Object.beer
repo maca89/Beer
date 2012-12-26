@@ -1,0 +1,12 @@
+native class Object
+{
+  interface
+  {
+    Object();
+    
+    //String;
+    
+    Object cloneShallow();
+    Object cloneDeep();
+  }
+}

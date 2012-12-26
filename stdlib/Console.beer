@@ -1,0 +1,33 @@
+native class Console
+{
+  interface
+  {
+    Console();
+    
+    String getArg(Integer index);
+    
+    print(Integer value);
+    print(String value);
+    print(Float value);
+    print(Boolean value);
+    print(Array value);
+    
+    println(Integer value);
+    println(String value);
+    println(Float value);
+    println(Boolean value);
+    println(Array value);
+    
+    println();
+    
+    Integer readInteger();
+    Boolean readBolean();
+    Float readFloat();
+    String readLine();
+    
+    Boolean readFailed();
+    
+    timerStart();
+    Float timerStop();
+  }
+}

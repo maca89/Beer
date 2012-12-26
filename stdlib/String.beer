@@ -1,0 +1,28 @@
+native class String
+{
+  interface
+  {
+    String(Integer size);
+    
+    //Integer;
+    //Float;
+    //Boolean;
+    //String;
+    
+    Integer getLength();
+    
+    Boolean <(String value);
+    Boolean >(String value);
+    Boolean <=(String value);
+    Boolean >=(String value);
+    
+    Boolean ==(String value);
+    Boolean !=(String value);
+    
+    String +(String value);
+    String +(Integer value);
+    String +(Float value);
+    String +(Boolean value);
+    String +(Array value);
+  }
+}

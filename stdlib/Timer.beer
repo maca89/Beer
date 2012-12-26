@@ -1,0 +1,10 @@
+native class Timer
+{
+  interface
+  {
+    Timer();
+    
+    start;
+    Float stop;
+  }
+}

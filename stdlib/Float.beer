@@ -1,0 +1,25 @@
+native class Float
+{
+  interface
+  {
+    Float();
+    
+    Integer;
+    String;
+    
+    Float +(Float value);
+    Float -(Float value);
+    Float *(Float value);
+    Float /(Float value);
+    
+    Float -();
+    
+    Boolean <(Float value);
+    Boolean >(Float value);
+    Boolean <=(Float value);
+    Boolean >=(Float value);
+    
+    Boolean ==(Float value);
+    Boolean !=(Float value);
+  }
+}

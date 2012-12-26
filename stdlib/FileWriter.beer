@@ -1,0 +1,25 @@
+native class FileWriter
+{
+  interface
+  {
+    FileWriter();
+    
+    Boolean open(String filename);
+    close;
+    
+    write(Integer value);
+    write(Float value);
+    write(String value);
+    write(Boolean value);
+    write(Array value);
+    
+    //writeln(Integer value);
+    //writeln(Float value);
+    //writeln(String value);
+    //writeln(Boolean value);
+    
+    writeln();
+    
+    Boolean writeFailed;
+  }
+}

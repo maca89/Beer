@@ -1,0 +1,17 @@
+native class FileReader
+{
+  interface
+  {
+    FileReader();
+    
+    Boolean open(String filename);
+    close;
+    
+    Integer readInteger;
+    Float readFloat;
+    String readString;
+    
+    Boolean readFailed;
+    Boolean readEnded;
+  }
+}

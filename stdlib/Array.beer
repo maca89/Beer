@@ -1,0 +1,15 @@
+native class Array
+{
+  interface
+  {
+    Array(Integer length);
+    
+    Integer getLength();
+    
+    Integer get(Integer index);
+    //Integer [](Integer index);
+    
+    set(Integer index, Integer value);
+    //[](Integer index, Integer value);
+  }
+}

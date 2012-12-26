@@ -1,0 +1,17 @@
+native class Boolean
+{
+  interface
+  {
+    Boolean();
+    
+    String;
+    
+    Boolean ==(Boolean value);
+    Boolean !=(Boolean value);
+    
+    Boolean &&(Boolean value);
+    Boolean ||(Boolean value);
+    
+    Boolean !();
+  }
+}

@@ -1,0 +1,29 @@
+native class Integer
+{
+  interface
+  {
+    Integer();
+    
+    Float;
+    String;
+    
+    Integer +(Integer value);
+    Integer -(Integer value);
+    Integer *(Integer value);
+    Float /(Integer value);
+    Integer %(Integer value);
+    
+    //Integer ++();
+    //Integer --();
+    
+    Integer -();
+    
+    Boolean <(Integer value);
+    Boolean >(Integer value);
+    Boolean <=(Integer value);
+    Boolean >=(Integer value);
+    
+    Boolean ==(Integer value);
+    Boolean !=(Integer value);
+  }
+}
