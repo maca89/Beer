@@ -2,6 +2,7 @@
 ipch/
 tmp/
 bin/
+backup/
 
 # Files
 *.opensdf
