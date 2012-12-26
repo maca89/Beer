@@ -1,0 +1,206 @@
+class Fraction
+{
+  data
+  {
+    Integer num; // 0
+    Integer den; // 1
+  }
+  
+  interface
+  {
+    Fraction(Integer numerator // -1, Integer denominator // -2)
+    {
+      num = numerator;
+#     TOP      0x0B    -1
+#     TOP      0x0B     0
+#     ASSIGN   0x2B     0
+      den = denominator;
+#     TOP      0x0B    -2
+#     TOP      0x0B     0
+#     ASSIGN   0x2B     1
+    }
+#     MOVE_TOP 0x0D    -2
+#     RETURN   0x37
+
+    Float
+    {
+      return num / den;
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     INVOKE   0x32     desc_id(/)
+#     STORE    0x0C    -1
+    }
+#     MOVE_TOP 0x0D    -1
+#     RETURN   0x37
+
+    Integer getNumerator()
+    {
+      return num;
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     STORE    0x0C    -1
+    }
+#     MOVE_TOP 0x0D    -1
+#     RETURN   0x37
+    
+    Integer getDenominator()
+    {
+      return den;
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     STORE    0x0C    -1
+    }
+#     MOVE_TOP 0x0D    -1
+#     RETURN   0x37
+    
+    setNumerator(Integer numerator // -1)
+    {
+      num = numerator;
+#     TOP      0x0B    -1
+#     TOP      0x0B     0
+#     ASSIGN   0x2B     0   
+    }
+#     MOVE_TOP 0x0D    -2
+#     RETURN   0x37
+    
+    setDenominator(Integer denominator // -1)
+    {
+      den = denominator;
+#     TOP      0x0B    -1
+#     TOP      0x0B     0
+#     ASSIGN   0x2B     1  
+    }
+#     MOVE_TOP 0x0D    -2
+#     RETURN   0x37
+    
+    Fraction -
+    {
+      return new Fraction(-num, den);
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     INVOKE   0x32     desc_id(-)
+#     NEW      0x28     class_id(Fraction)
+#     INVOKE   0x32     desc_id(Fraction)
+#     STORE    0x0C    -1
+    }
+#     MOVE_TOP 0x0D    -1
+#     RETURN   0x37
+
+    Fraction +(Integer number // -1)
+    {
+      Integer tmp = number * den; // 1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     TOP      0x0B    -1
+#     INVOKE   0x32     desc_id(*)
+          
+      return new Fraction(num + tmp, den);
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     INVOKE   0x32     desc_id(+)
+#     NEW      0x28     class_id(Fraction)
+#     INVOKE   0x32     desc_id(Fraction)
+#     STORE    0x0C    -2
+    }
+#     MOVE_TOP 0x0D    -3
+#     RETURN   0x37
+    
+    Fraction -(Integer number // -1)
+    {
+      Integer tmp = number * den;
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     TOP      0x0B    -1
+#     INVOKE   0x32     desc_id(*)
+          
+      return new Fraction(num - tmp, den);
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B     1
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     INVOKE   0x32     desc_id(-)
+#     NEW      0x28     class_id(Fraction)
+#     INVOKE   0x32     desc_id(Fraction)
+#     STORE    0x0C    -2
+    }
+#     MOVE_TOP 0x0D    -3
+#     RETURN   0x37
+    
+    Fraction *(Integer number // -1)
+    {
+      return new Fraction(num * number, den);
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B    -1
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     INVOKE   0x32     desc_id(*)
+#     NEW      0x28     class_id(Fraction)
+#     INVOKE   0x32     desc_id(Fraction)
+#     STORE    0x0C    -2
+    }
+#     MOVE_TOP 0x0D    -2
+#     RETURN   0x37
+    
+    Fraction /(Integer number // -1)
+    {
+      return new Fraction(num, den * number);
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B    -1
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     INVOKE   0x32     desc_id(*)
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     NEW      0x28     class_id(Fraction)
+#     INVOKE   0x32     desc_id(Fraction)
+#     STORE    0x0C    -2
+    }
+#     MOVE_TOP 0x0D    -2
+#     RETURN   0x37
+
+    Fraction *(Fraction other // -1)
+    {
+      Integer numerator = num * other.getNumerator();
+#     MOVE_TOP 0x0D     1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B    -1
+#     INVOKE   0x32     desc_id(getNumerator)
+#     TOP      0x0B     0
+#     LOAD     0x2C     0
+#     INVOKE   0x32     desc_id(*)
+      Integer denominator = den * other.getDenominator();
+#     MOVE_TOP 0x0D     1
+#     MOVE_TOP 0x0D     1
+#     TOP      0x0B    -1
+#     INVOKE   0x32     desc_id(getDenominator)
+#     TOP      0x0B     0
+#     LOAD     0x2C     1
+#     INVOKE   0x32     desc_id(*)
+
+      return new Fraction(numerator, denominator);
+#     TOP      0x0B     2
+#     TOP      0x0B     1
+#     NEW      0x28     class_id(Fraction)
+#     INVOKE   0x32     desc_id(Fraction)
+#     STORE    0x0C    -2
+    }
+#     MOVE_TOP 0x0D    -4
+#     RETURN   0x37
+  }
+}

@@ -1,0 +1,64 @@
+#include "stdafx.h"
+#include "InlineCache.h"
+#include "ClassReflection.h"
+#include "MethodReflection.h"
+
+using namespace Beer;
+
+
+//#define BEER_INLINE_CACHE_VERBOSE
+
+#ifdef BEER_INLINE_CACHE_VERBOSE
+#	define INLINE_CACHE_DEBUG(msg) std::cout << "// InlineCache: " << msg << std::endl;
+#else
+#	define INLINE_CACHE_DEBUG(msg)
+#endif
+
+
+MethodReflection* InlineCache::find(ClassReflection* klass, const char* selector, uint16 methodsLength)
+{
+	if(klass == NULL)
+	{
+		klass = NULL;
+	}
+	NULL_ASSERT(klass);
+
+	// search the cache
+	for(uint8 i = 0; i < methodsLength; i++)
+	{
+		CachedMethod* cachedMethod = &getMethods()[i];
+		ClassReflection* cachedClass = cachedMethod->klass;
+
+		if(cachedClass == NULL)
+		{
+			// end of cached block
+			break;
+		}
+		if(cachedClass == klass)
+		{
+			// we found cached method
+			INLINE_CACHE_DEBUG("Found " << selector << " for " << cachedClass->getName() << " at " << static_cast<int32>(i));
+			return cachedMethod->method;
+		}
+	}
+
+	// we must do a lookup
+	MethodReflection* method = klass->findMethod(selector);
+					
+	// save method to cache
+	if(method && methodsLength > 0)
+	{
+		// move all cached and pop the last one
+		for(uint8 i = methodsLength - 1; i > 0; i--) // *NOT* i >= 0 !!!
+		{
+			getMethods()[i] = getMethods()[i - 1];
+		}
+
+		// save at the top
+		getMethods()[0].klass = klass;
+		getMethods()[0].method = method;
+		INLINE_CACHE_DEBUG("Saved " << selector << " for " << klass->getName() << " to 0");
+	}
+
+	return method;
+}

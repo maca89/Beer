@@ -1,0 +1,7 @@
+# Folders
+ipch/
+tmp/
+bin/
+
+# Files
+*.opensdf

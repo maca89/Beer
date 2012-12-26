@@ -1,0 +1,79 @@
+class Fraction
+{
+  data
+  {
+    Integer num;
+    Integer den;
+  }
+  
+  interface
+  {
+    Fraction(Integer numerator, Integer denominator)
+    {
+      num = numerator;
+      den = denominator;
+    }
+        
+    Float
+    {
+      return num / den;
+    }
+    
+    Integer getNumerator()
+    {
+      return num;
+    }
+    
+    Integer getDenominator()
+    {
+      return den;
+    }
+    
+    setNumerator(Integer numerator)
+    {
+      num = numerator;    
+    }
+    
+    setDenominator(Integer denominator)
+    {
+      den = denominator;    
+    }
+    
+    Fraction -
+    {
+      return new Fraction(-num, den);
+    }
+    
+    Fraction +(Integer number)
+    {
+      Integer tmp = number * den;
+    
+      return new Fraction(num + tmp, den);
+    }
+    
+    Fraction -(Integer number)
+    {
+      Integer tmp = number * den;
+          
+      return new Fraction(num - tmp, den);
+    }
+    
+    Fraction *(Integer number)
+    {
+      return new Fraction(num * number, den);
+    }
+    
+    Fraction /(Integer number)
+    {
+      return new Fraction(num, den * number);
+    }
+    
+    Fraction *(Fraction other)
+    {
+      Integer numerator = num * other.getNumerator();
+      Integer denominator = den * other.getDenominator();
+      
+      return new Fraction(numerator, denominator);
+    }
+  }
+}
