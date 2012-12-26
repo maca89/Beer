@@ -5,4 +5,5 @@ bin/
 
 # Files
 *.opensdf
-*.sdf
+/*.sdf
+
