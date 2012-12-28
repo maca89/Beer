@@ -123,10 +123,20 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mClassLoader->addClassInitializer("FileWriter", new FileWriterClassInitializer);
 	//mClassLoader->addClassInitializer("Main", new MainClassInitializer);
 
-	mIntegerClassId = getClassTable()->add(getClass("Integer"));
-	//mFloatClassId = getClassTable()->add(getClass("Float"));
-	//mBooleanClassId = getClassTable()->add(getClass("Boolean"));
-	//mCharacterClassId = getClassTable()->add(getClass("Character")); // TODO
+	// preloading of some classes
+	mObjectClass = getClass("Object");
+	mStringClass = getClass("String");
+
+	// !!! the order is important !!!
+	mIntegerClassId = getClassTable()->add(getClass("Integer")); // #1
+	mBooleanClassId = getClassTable()->add(getClass("Boolean")); // #2
+	//mFloatClassId = getClassTable()->add(getClass("Float")); // #3
+	//mCharacterClassId = getClassTable()->add(getClass("Character")); // #4
+	
+	// other
+#ifdef BEER_INLINE_OPTIMALIZATION
+	mInlineFnTable.fill();
+#endif // BEER_INLINE_OPTIMALIZATION
 }
 
 void VirtualMachine::destroy()
@@ -179,6 +189,8 @@ void VirtualMachine::run()
 		{
 			if(!getDebugger()->catchException(frame, ex)) throw ex;
 		}
+
+		Console::getOutput().flush(std::cout); // DBG ONLY
 	}
 
 	getDebugger()->ended();
@@ -194,7 +206,7 @@ Integer* VirtualMachine::createInteger(int32 value)
 		return Integer::makeInlineValue(value);
 	}
 	
-	Integer* object = getClass("Integer")->createInstance<Integer>(getStackFrame(), getHeap());
+	Integer* object = getIntegerClass()->createInstance<Integer>(getStackFrame(), getHeap());
 	object->setNonInlineValue(value);
 	return object;
 }
@@ -206,17 +218,17 @@ Float* VirtualMachine::createFloat(Float::FloatData value)
 	return object;
 }
 
-Boolean* VirtualMachine::createBoolean(Boolean::BooleanData value)
+String* VirtualMachine::createString(const char* value)
 {
-	Boolean* object = getClass("Boolean")->createInstance<Boolean>(getStackFrame(), getHeap());
-	object->setData(value);
+	String* object = createString(strlen(value));
+	object->copyData(value);
 	return object;
 }
 
-String* VirtualMachine::createString(std::string s)
+String* VirtualMachine::createString(const std::string& s)
 {
 	getStackFrame()->stackPush(createInteger(s.size())); // TODO
-	String* object = getClass("String")->createInstance<String>(getStackFrame(), getHeap());
+	String* object = getStringClass()->createInstance<String>(getStackFrame(), getHeap());
 	object->copyData(s.c_str());
 	return object;
 }
@@ -224,6 +236,6 @@ String* VirtualMachine::createString(std::string s)
 String* VirtualMachine::createString(String::LengthData length)
 {
 	getStackFrame()->stackPush(createInteger(length)); // TODO
-	String* object = getClass("String")->createInstance<String>(getStackFrame(), getHeap());
+	String* object = getStringClass()->createInstance<String>(getStackFrame(), getHeap());
 	return object;
 }

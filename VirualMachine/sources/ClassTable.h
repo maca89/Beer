@@ -30,9 +30,16 @@ namespace Beer
 
 		INLINE ClassReflection* translate(Object* object)
 		{
-			ClassReflection* klass = mTable[reinterpret_cast<Object::InlineValueId>(object)];
+			Object::InlineValueId id = object->getInlineClassId();
+			ClassReflection* klass = mTable[id];
 			if(klass == NULL) return object->getClass();
 			return klass;
+		}
+
+		INLINE ClassReflection* operator[] (uint32 index) const
+		{
+			DBG_ASSERT(index < mNext, "Unknown class id");
+			return mTable[index];
 		}
 
 		/*INLINE bool isInlineValue(Object* object) const

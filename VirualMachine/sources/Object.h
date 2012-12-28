@@ -104,12 +104,19 @@ namespace Beer
 
 		INLINE ClassReflection* getClass()
 		{
-			DBG_ASSERT(!isInlineValue(), "Tried to get class of a inline value");
+			DBG_ASSERT(!isInlineValue(), "Tried to get class of an inline value");
 			return mClass;
 		}
 
 		// inline value
 		INLINE bool isInlineValue() const { return (reinterpret_cast<InlineValueId>(this) & 1); }
+
+		INLINE InlineValueId getInlineClassId()
+		{
+			// *NO* assert !!!
+			//DBG_ASSERT(isInlineValue(), "Tried to get inline class id of a non inline value");
+			return reinterpret_cast<InlineValueId>(this) & 15;
+		}
 
 		// children
 		INLINE Object** getChildren() { return mChildren; }

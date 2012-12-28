@@ -8,7 +8,7 @@
 
 using namespace Beer;
 
-#ifdef BEER_ASSERTS_ON
+#ifdef BEER_BOUNDS_ASSERT_ON
 #	define BOUNDS_ASSERT(index, size) if(index < 0 || index >= size) throw RuntimeException(std::string("Array index out of bounds ") /*+ index + " / " + size*/);
 #else
 #	define BOUNDS_ASSERT(index, size)
@@ -73,11 +73,6 @@ void Array::toString(VirtualMachine* vm, std::string& out)
 		if(obj)
 		{
 			std::stringstream n;
-
-			// TODO
-			//static_cast<Integer*>(obj)->toString(n);
-			//out += n;
-
 			vm->getClassTable()->translate(obj)->dump(obj, n);
 			out += n.str();
 		}
@@ -119,8 +114,8 @@ ClassReflection* ArrayClassInitializer::createClass(VirtualMachine* vm, ClassLoa
 
 void ArrayClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	ClassReflection* objectClass = vm->getClass("Object");
-	ClassReflection* integerClass = vm->getClass("Integer");
+	ClassReflection* objectClass = vm->getObjectClass();
+	ClassReflection* integerClass = vm->getIntegerClass();
 
 	klass->extends(0, objectClass);
 	

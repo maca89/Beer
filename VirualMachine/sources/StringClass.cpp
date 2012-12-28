@@ -124,7 +124,7 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
 
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 
 	method = loader->createMethod<MethodReflection>("String", "String::String()", 1, 0);
 	method->setFunction(&BeerString_init);

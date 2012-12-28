@@ -1,38 +1,29 @@
 #pragma once
 #include "prereq.h"
 #include "ObjectClass.h"
-#include "GarbageCollector.h"
-#include "ClassLoader.h"
 
 
-namespace Beer
+/*namespace Beer
 {
 	class VirtualMachine;
 
-	class Boolean : public Object
+	class Character : public Object
 	{
 	public:
-		typedef bool BooleanData;
+		typedef char CharacterData;
 
 	protected:
-		//BooleanData mData;
+		CharacterData mData;
 
 	public:
-		INLINE BooleanData getData() const
+		CharacterData getData() const
 		{
-			return (reinterpret_cast<uint32>(this) >> 4) != 0;
+			return mData;
 		}
 
-		NOINLINE void toString(std::string& out)
+		void setData(CharacterData data)
 		{
-			std::stringstream ss;
-			ss << getData();
-			ss >> out;
-		}
-
-		INLINE static Boolean* makeInlineValue(BooleanData data)
-		{
-			return reinterpret_cast<Boolean*>((data << 4) | 3);
+			mData = data;
 		}
 	};
 
@@ -42,18 +33,16 @@ namespace Beer
 		// ClassReflection
 		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
 		{
-			/*Boolean* b = gc->alloc<Boolean>();
-			b->setClass(this);
-			return b;*/
-			return Boolean::makeInlineValue(false);
+			Character* c = gc->alloc<Character>();
+			c->setClass(this);
+			return c;
 		}
 
 		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
-			return object;
-			/*Boolean* b = static_cast<Boolean*>(this->ClassReflection::cloneShallow(object, frame, gc));
-			b->setData(object->getInstance<Boolean>()->getData());
-			return b;*/
+			Character* c = static_cast<Character*>(this->ClassReflection::cloneShallow(object, frame, gc));
+			c->setData(object->getInstance<Character>()->getData());
+			return b;
 		}
 
 		virtual void dump(Object* object, std::stringstream& out)
@@ -69,4 +58,4 @@ namespace Beer
 		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
-};
+};*/

@@ -24,6 +24,8 @@ struct Settings
 	bool debuggerEnabled;
 	bool debuggerStepping;
 	std::string classFileName;
+	uint32 stackSize;
+	uint32 heapSize;
 
 	INLINE Settings() :
 		printClassFile(false), 
@@ -31,7 +33,9 @@ struct Settings
 		classFileName(""), 
 		run(true), 
 		debuggerEnabled(false), 
-		debuggerStepping(false)
+		debuggerStepping(false),
+		stackSize(1*1024),
+		heapSize(5*1024)
 	{}
 };
 
@@ -58,6 +62,14 @@ bool loadFile(std::string filename, byte** out_data, uint32& out_length)
 	return true;
 }
 
+bool parseMemorySize(std::string in_value, uint32& out_value)
+{
+	std::stringstream ss(in_value);
+	ss >> out_value;
+			
+	return !ss.fail();
+}
+
 bool loadSettings(int argc, const char** argv, Settings& settings)
 {
 	if(argc < 2)
@@ -74,7 +86,7 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 
 		if(param.find("--") > 0) continue; // not a --param
 
-		std::cout << param << ":" << param.find("--") << std::endl;
+		//std::cout << param << ":" << param.find("--") << std::endl;
 
 		if(param.compare("--help") == 0)
 		{
@@ -114,6 +126,22 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 		{
 			settings.debuggerStepping = value.compare(":false") == 0 ? false : true;
 		}
+		else if(name.compare("--stacksize") == 0)
+		{
+			if(!parseMemorySize(value.substr(1), settings.stackSize))
+			{
+				std::cout << "Unable to parse stacksize value: " + value;
+				return false;
+			}
+		}
+		else if(name.compare("--heapsize") == 0)
+		{
+			if(!parseMemorySize(value.substr(1), settings.heapSize))
+			{
+				std::cout << "Unable to parse heapsize value: " + value;
+				return false;
+			}
+		}
 		else
 		{
 			std::cout << "Unknown parameter: " + name;
@@ -124,12 +152,9 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 	return true;
 }
 
-#include "DynamicStack.h"
-
 
 int __cdecl main(int argc, const char** argv)
 {
-	//test();
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
@@ -141,7 +166,7 @@ int __cdecl main(int argc, const char** argv)
 
 	try
 	{
-		vm->init(1024, 5*1024*1024);//*1024/*50*1024*1024, 750*1024*1024*/);
+		vm->init(settings.stackSize, settings.heapSize);
 		vm->getDebugger()->setEnabled(settings.debuggerEnabled);
 		vm->getDebugger()->setSteppingMode(settings.debuggerStepping);
 

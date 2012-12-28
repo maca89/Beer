@@ -6,6 +6,7 @@ namespace Beer
 #ifdef _DEBUG
 	#define INLINE
 	#define NOINLINE
+	#define BEER_DEBUG_MODE
 #else
 	#define INLINE __inline
 	#define NOINLINE
@@ -216,11 +217,24 @@ namespace Beer
 	#define IOFileException(_msg_) IOFileException((_msg_), __FILE__, __LINE__)
 
 
-	#define BEER_ASSERTS_ON
+	#ifdef BEER_DEBUG_MODE
+		#define BEER_ASSERTS_ON
+	#endif // BEER_DEBUG_MODE
+
+	#ifdef BEER_ASSERTS_ON
+		#define BEER_DEBUG_ASSERTS_ON
+	#endif // BEER_ASSERTS_ON
+
+	
+	#define BEER_RUNTIME_ASSERS_ON
+	#define BEER_NULL_ASSERTS_ON
+	#define BEER_BOUNDS_ASSERT_ON
+	#define BEER_CRITICAL_ASSERTS_ON
+
 
 	// usually bytecode/virutal-runtime related errors
 	// without these checks runtime should be faster, but less error-prone
-	#ifdef BEER_ASSERTS_ON	
+	#ifdef BEER_RUNTIME_ASSERS_ON	
 		#define RUNTIME_ASSERT(_cond_, _msg_) if(!(_cond_)) throw RuntimeAssertException((_msg_));
 	#else
 		#define RUNTIME_ASSERT(cond, msg)
@@ -228,21 +242,21 @@ namespace Beer
 
 	// virtual machine crucial errors
 	// without these checks runtime could work, but may behave unexpectedly (threads!)
-	#ifdef BEER_ASSERTS_ON	
+	#ifdef BEER_CRITICAL_ASSERTS_ON	
 		#define CRITICAL_ASSERT(_cond_, _msg_) if(!(_cond_)) throw CriticalAssertException((_msg_));
 	#else
 		#define CRITICAL_ASSERT(cond, msg)
 	#endif
 
 	// bugs => should not happen in release!
-	#ifdef BEER_ASSERTS_ON
+	#ifdef BEER_DEBUG_ASSERTS_ON
 		#define DBG_ASSERT(_cond_, _msg_) if(!(_cond_)) throw CriticalAssertException((_msg_));
 	#else
 		#define DBG_ASSERT(cond, msg)
 	#endif
 
 	// checks => should be in debug for performance reasons
-	#ifdef BEER_ASSERTS_ON
+	#ifdef BEER_NULL_ASSERTS_ON
 		#define NULL_ASSERT(var) if(!(var))														\
 		{																						\
 			throw NullReferenceException("Object is null");										\
@@ -257,6 +271,9 @@ namespace Beer
 	#else
 		#define DEBUG_INFO(_msg_)
 	#endif
+
+	// optimalizations
+	#define BEER_INLINE_OPTIMALIZATION
 
 	// static initializer
 	#define STATIC_INITIALIZER_START(_name_)												\

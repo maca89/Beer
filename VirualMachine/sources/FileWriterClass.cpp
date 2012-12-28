@@ -70,7 +70,7 @@ ClassReflection* FileWriterClassInitializer::createClass(VirtualMachine* vm, Cla
 
 void FileWriterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;

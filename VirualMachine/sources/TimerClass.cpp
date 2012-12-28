@@ -31,7 +31,7 @@ ClassReflection* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoa
 
 void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;

@@ -49,10 +49,11 @@ namespace Beer
 	protected:
 		NOINLINE void doflush(std::ostream& out)
 		{
-			mStream.flush();
-			out << mStream.str();
-			mStream = std::stringstream();
-			mChanged = false;
+			//mStream.flush(); // TODO for threads
+			out << mStream.str(); // print content
+			mStream.str(std::string()); // clear buffer
+			//mStream.clear(); // TODO: clears flags
+			mChanged = false; // set flag
 		}
 	};
 };

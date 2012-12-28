@@ -9,7 +9,7 @@ using namespace Beer;
 
 // compare operator
 
-#define BuildCompareOperatorFn(Name, Operator, Param, Return)															\
+#define BuildCompareOperatorFn(Name, Operator, Param)																	\
 struct BeerBoolean_CompareOperator##Name																				\
 {																														\
 	static void BEER_CALL fn(																							\
@@ -17,15 +17,14 @@ struct BeerBoolean_CompareOperator##Name																				\
 		StackFrame* frame, 																								\
 		StackRef<Boolean> receiver, 																					\
 		StackRef<Param> arg, 																							\
-		StackRef<Return> ret)																							\
+		StackRef<Boolean> ret)																							\
 	{																													\
-		ret = vm->getClass(#Return)->createInstance<Return>(frame, vm->getHeap());										\
-		ret->setData(static_cast<Return::Return##Data>(receiver->getData() Operator arg->getData()));					\
+		ret = Boolean::makeInlineValue(receiver->getData() Operator arg->getData());									\
 	}																													\
 };																														\
 
-#define BuildCompareOperator(Class, Name, Operator, Param, Return, Do)													\
-	BuildCompareOperatorFn(Name, Do, Param, Return);																	\
+#define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
+	BuildCompareOperatorFn(Name, Do, Param);																			\
 	MethodReflection* Name##Method																						\
 		= loader->createMethod<MethodReflection>(																		\
 			#Operator, 																									\
@@ -58,7 +57,7 @@ ClassReflection* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassL
 void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
 	klass->markAsValueType();
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 	
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
@@ -71,8 +70,8 @@ void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	method->setFunction(&BeerBoolean_Negation);
 	klass->setMethod(methodi++, method);
 
-	BuildCompareOperator(klass, Equal, ==, Boolean, Boolean, ==);
-	BuildCompareOperator(klass, NotEqual, !=, Boolean, Boolean, !=);
-	BuildCompareOperator(klass, Or, ||, Boolean, Boolean, ||);
-	BuildCompareOperator(klass, And, &&, Boolean, Boolean, &&);
+	BuildCompareOperator(klass, Equal, ==, Boolean, ==);
+	BuildCompareOperator(klass, NotEqual, !=, Boolean, !=);
+	BuildCompareOperator(klass, Or, ||, Boolean, ||);
+	BuildCompareOperator(klass, And, &&, Boolean, &&);
 }

@@ -77,7 +77,7 @@ namespace Beer
 			mOldInstr = reinterpret_cast<const Bytecode::Instruction*>(&mOldData[mOldDataIndex - sizeof(uint8)]);
 			mNewInstr = reinterpret_cast<Bytecode::Instruction*>(&mNewData[mNewDataIndex - sizeof(uint8)]);
 
-			return static_cast<Bytecode::OpCode>(mOldInstr->opcode);
+			return getOldOpcode();
 		}
 
 		NOINLINE void finish(byte** data, uint32& dataSize, uint16** dict, uint16& dictSize)
@@ -99,6 +99,13 @@ namespace Beer
 			*data = new byte[mNewDataIndex];
 			memcpy(*data, &mNewData[0], mNewDataIndex * sizeof(byte));
 		}
+
+		// opcode
+
+		INLINE Bytecode::OpCode getOldOpcode() { return static_cast<Bytecode::OpCode>(mOldInstr->opcode); }
+		INLINE Bytecode::OpCode getNewOpcode() { return static_cast<Bytecode::OpCode>(mNewInstr->opcode); }
+
+		INLINE void setNewOpcode(Bytecode::OpCode value) { mNewInstr->opcode = value; }
 
 		// get data
 	

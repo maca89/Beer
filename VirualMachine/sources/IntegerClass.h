@@ -40,7 +40,7 @@ namespace Beer
 		NOINLINE void toString(std::string& out)
 		{
 			std::stringstream ss;
-			ss << mData;
+			ss << getData();
 			ss >> out;
 		}
 

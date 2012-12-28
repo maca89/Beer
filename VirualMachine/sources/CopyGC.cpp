@@ -7,14 +7,14 @@ using namespace Beer;
 
 //#define BEER_GC_VERBOSE
 
-#ifdef _DEBUG
-//#	define BEER_GC_DEBUGGING
+#ifdef BEER_DEBUG_MODE
+	#define BEER_GC_DEBUGGING
 #endif
 
 #ifdef BEER_GC_VERBOSE
-#	define GC_DEBUG(msg) std::cout << "// CopyGC: " << msg << std::endl;
+	#define GC_DEBUG(msg) std::cout << "// CopyGC: " << msg << std::endl;
 #else
-#	define GC_DEBUG(msg)
+	#define GC_DEBUG(msg)
 #endif
 
 

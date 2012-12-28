@@ -38,7 +38,7 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	uint16 parentStart = 0;
 
 	// default class
-	ClassReflection* objectClass = vm->getClass("Object"); // class will be loaded if its not
+	ClassReflection* objectClass = vm->getObjectClass(); // class will be loaded if its not
 	mClass->extends(parentStart++, objectClass);
 	propStart += objectClass->getPropertiesCount();
 

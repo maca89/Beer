@@ -50,7 +50,7 @@ void BEER_CALL BeerConsole_init(VirtualMachine* vm, StackFrame* frame, StackRef<
 
 void BEER_CALL BeerConsole_println(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver)
 {
-	Console::getOutput() << std::endl;
+	Console::getOutput() << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
 }
 
 void BEER_CALL BeerConsole_printArray(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
@@ -66,7 +66,7 @@ void BEER_CALL BeerConsole_printlnArray(VirtualMachine* vm, StackFrame* frame, S
 	// TODO
 	std::string str;
 	arg->toString(vm, str);
-	Console::getOutput() << str << std::endl;
+	Console::getOutput() << str << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
 }
 
 void BEER_CALL BeerConsole_readInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> ret)
@@ -133,7 +133,7 @@ ClassReflection* ConsoleClassInitializer::createClass(VirtualMachine* vm, ClassL
 
 void ConsoleClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
@@ -147,16 +147,16 @@ void ConsoleClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	klass->setMethod(methodi++, method);
 
 	BuildPrintMethod(print, Integer, value->getData());
-	BuildPrintMethod(println, Integer, value->getData() << std::endl);
+	BuildPrintMethod(println, Integer, value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	BuildPrintMethod(print, Float, std::setprecision(8) << std::fixed << value->getData());
-	BuildPrintMethod(println, Float, std::setprecision(8) << std::fixed << value->getData() << std::endl);
+	BuildPrintMethod(println, Float, std::setprecision(8) << std::fixed << value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	BuildPrintMethod(print, String, value->c_str());
-	BuildPrintMethod(println, String, value->c_str() << std::endl);
+	BuildPrintMethod(println, String, value->c_str() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	BuildPrintMethod(print, Boolean, value->getData());
-	BuildPrintMethod(println, Boolean, value->getData() << std::endl);
+	BuildPrintMethod(println, Boolean, value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	method = loader->createMethod<MethodReflection>("print", std::string(klass->getName()) + "::print(Array)", 0, 1);
 	method->setFunction(&BeerConsole_printArray);

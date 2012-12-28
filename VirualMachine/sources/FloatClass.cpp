@@ -94,7 +94,7 @@ struct BinaryOperator##Name																								\
 
 // compare operator
 
-#define BuildCompareOperatorFn(Name, Operator, Param, Return)															\
+#define BuildCompareOperatorFn(Name, Operator, Param)																	\
 struct CompareOperator##Name																							\
 {																														\
 	static void BEER_CALL fn(																							\
@@ -102,15 +102,14 @@ struct CompareOperator##Name																							\
 		StackFrame* frame, 																								\
 		StackRef<Float> receiver, 																						\
 		StackRef<Param> arg, 																							\
-		StackRef<Return> ret)																							\
+		StackRef<Boolean> ret)																							\
 	{																													\
-		ret = vm->getClass(#Return)->createInstance<Return>(frame, vm->getHeap());										\
-		ret->setData(static_cast<Return::Return##Data>(receiver->getData() Operator arg->getData()));					\
+		ret = Boolean::makeInlineValue(receiver->getData() Operator arg->getData());									\
 	}																													\
 };																														\
 
-#define BuildCompareOperator(Class, Name, Operator, Param, Return, Do)													\
-	BuildCompareOperatorFn(Name, Do, Param, Return);																	\
+#define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
+	BuildCompareOperatorFn(Name, Do, Param);																			\
 	method = loader->createMethod<MethodReflection>(																	\
 			#Operator, 																									\
 			std::string(Class->getName()) + "::" + #Operator + "(" + #Param + ")", 										\
@@ -136,7 +135,7 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 {
 	klass->markAsValueType();
 	uint16 methodi = 0;
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 	
 	MethodReflection* method = loader->createMethod<MethodReflection>("Float", "Float::Float()", 1, 0);
 	method->setFunction(&BeerFloat_init);
@@ -149,12 +148,12 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	
 	BuildUnaryOperator(klass, Minus, -, Float, * (-1));
 	
-	BuildCompareOperator(klass, Smaller, <, Float, Boolean, <);
-	BuildCompareOperator(klass, Greater, >, Float, Boolean, >);
-	BuildCompareOperator(klass, SmallerEqual, <=, Float, Boolean, <=);
-	BuildCompareOperator(klass, GreaterEqual, >=, Float, Boolean, >=);
-	BuildCompareOperator(klass, Equal, ==, Float, Boolean, ==);
-	BuildCompareOperator(klass, NotEqual, !=, Float, Boolean, !=);
+	BuildCompareOperator(klass, Smaller, <, Float, <);
+	BuildCompareOperator(klass, Greater, >, Float, >);
+	BuildCompareOperator(klass, SmallerEqual, <=, Float, <=);
+	BuildCompareOperator(klass, GreaterEqual, >=, Float, >=);
+	BuildCompareOperator(klass, Equal, ==, Float, ==);
+	BuildCompareOperator(klass, NotEqual, !=, Float, !=);
 	
 	method = loader->createMethod<MethodReflection>("Integer", "Float::Integer()", 1, 0);
 	method->setFunction(&BeerFloat_toInteger);

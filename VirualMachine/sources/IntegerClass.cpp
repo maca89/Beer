@@ -108,7 +108,7 @@ struct BinaryOperator##Name																								\
 
 // compare operator
 
-#define BuildCompareOperatorFn(Name, Operator, Param, Return)															\
+#define BuildCompareOperatorFn(Name, Operator, Param)																	\
 struct CompareOperator##Name																							\
 {																														\
 	static void BEER_CALL fn(																							\
@@ -116,15 +116,14 @@ struct CompareOperator##Name																							\
 		StackFrame* frame, 																								\
 		StackRef<Integer> receiver, 																					\
 		StackRef<Param> arg, 																							\
-		StackRef<Return> ret)																							\
+		StackRef<Boolean> ret)																							\
 	{																													\
-		ret = vm->getClass(#Return)->createInstance<Return>(frame, vm->getHeap());										\
-		ret->setData(static_cast<Return::Return##Data>(receiver->getData() Operator arg->getData()));					\
+		ret = Boolean::makeInlineValue(receiver->getData() Operator arg->getData());									\
 	}																													\
 };																														\
 
-#define BuildCompareOperator(Class, Name, Operator, Param, Return, Do)													\
-	BuildCompareOperatorFn(Name, Do, Param, Return);																	\
+#define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
+	BuildCompareOperatorFn(Name, Do, Param);																			\
 	MethodReflection* Name##Method																						\
 		= loader->createMethod<MethodReflection>(																		\
 			#Operator, 																									\
@@ -151,9 +150,9 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	MethodReflection* method = NULL;
 
 	ClassReflection* integerClass = klass;
-	ClassReflection* objectClass = vm->getClass("Object");
+	ClassReflection* objectClass = vm->getObjectClass();
 	ClassReflection* floatClass = vm->getClass("Float");
-	ClassReflection* booleantClass = vm->getClass("Boolean");
+	ClassReflection* booleantClass = vm->getBooleanClass();
 
 	klass->extends(methodi++, objectClass);
 
@@ -171,12 +170,12 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	//BuildUnaryOperator(klass, Decrement, --, Integer, --);
 	BuildUnaryOperator(klass, Minus, -, Integer, * (-1));
 	
-	BuildCompareOperator(klass, Smaller, <, Integer, Boolean, <);
-	BuildCompareOperator(klass, Greater, >, Integer, Boolean, >);
-	BuildCompareOperator(klass, SmallerEqual, <=, Integer, Boolean, <=);
-	BuildCompareOperator(klass, GreaterEqual, >=, Integer, Boolean, >=);
-	BuildCompareOperator(klass, Equal, ==, Integer, Boolean, ==);
-	BuildCompareOperator(klass, NotEqual, !=, Integer, Boolean, !=);
+	BuildCompareOperator(klass, Smaller, <, Integer, <);
+	BuildCompareOperator(klass, Greater, >, Integer, >);
+	BuildCompareOperator(klass, SmallerEqual, <=, Integer, <=);
+	BuildCompareOperator(klass, GreaterEqual, >=, Integer, >=);
+	BuildCompareOperator(klass, Equal, ==, Integer, ==);
+	BuildCompareOperator(klass, NotEqual, !=, Integer, !=);
 	
 	method = loader->createMethod<MethodReflection>("Float", "Integer::Float()", 1, 0);
 	method->setFunction(&BeerInteger_toFloat);

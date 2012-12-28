@@ -302,5 +302,11 @@
     <ClInclude Include="sources\Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sources\CharacterClass.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InlineFunctionTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

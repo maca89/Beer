@@ -7,8 +7,9 @@
 //#include "IntegerClass.h"
 //#include "FloatClass.h"
 #include "StringClass.h"
-//#include "BooleanClass.h"
+#include "BooleanClass.h"
 #include "ClassTable.h"
+#include "InlineFunctionTable.h"
 
 
 namespace Beer
@@ -44,15 +45,19 @@ namespace Beer
 		ClassLoader* mClassLoader;
 		Debugger* mDebugger;
 		ClassTable mClassTable;
+		InlineFunctionTable mInlineFnTable;
 
 		uint32 mIntegerClassId;
 		uint32 mFloatClassId;
 		uint32 mBooleanClassId;
 		uint32 mCharacterClassId;
 
+		ClassReflection* mObjectClass;
+		ClassReflection* mStringClass;
+
 	public:
 		INLINE VirtualMachine()
-			: mStack(NULL), mFrames(NULL), mHeap(NULL), mClassLoader(NULL), mDebugger(NULL)//,mClassHeap(NULL)
+			: mStack(NULL), mFrames(NULL), mHeap(NULL), mClassLoader(NULL), mDebugger(NULL), mObjectClass(NULL), mStringClass(NULL)
 		{
 			mIntegerClassId = 0;
 			mFloatClassId = 0;
@@ -92,19 +97,24 @@ namespace Beer
 		INLINE WorkStack* getStack() const { return mStack; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
 		INLINE ClassTable* getClassTable() { return &mClassTable; }
+		INLINE InlineFunctionTable* getInlineFunctionTable() { return &mInlineFnTable; }
 
-		void init(uint32 stackInitSize = 1*1024, uint32 heapInitSize = 200*1024*1024);
+		void init(uint32 stackInitSize = 1*1024, uint32 heapInitSize = 2*1024*1024);
 		void run();
 		void destroy();
-
 		void invoke(StackFrame* frame);
 
 		Integer* createInteger(int32/*Integer::IntegerData*/ value);
 		Float* createFloat(float64/*Float::FloatData*/ value);
-		Boolean* createBoolean(bool/*Boolean::BooleanData*/ value);
-		//String* createString(const char* value);
+		INLINE Boolean* createBoolean(Boolean::BooleanData value) { return Boolean::makeInlineValue(value); }
+		String* createString(const char* value);
 		String* createString(String::LengthData length);
-		String* createString(std::string s);
+		String* createString(const std::string& s);
+
+		INLINE ClassReflection* getIntegerClass() const { return mClassTable[mIntegerClassId]; }
+		INLINE ClassReflection* getBooleanClass() const { return mClassTable[mBooleanClassId]; }
+		INLINE ClassReflection* getObjectClass() const { return mObjectClass; }
+		INLINE ClassReflection* getStringClass() const { return mStringClass; }
 
 	protected:
 	};

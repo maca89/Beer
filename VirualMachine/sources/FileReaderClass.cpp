@@ -65,7 +65,7 @@ ClassReflection* FileReaderClassInitializer::createClass(VirtualMachine* vm, Cla
 
 void FileReaderClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;

@@ -24,7 +24,7 @@ ClassReflection* MainClassInitializer::createClass(VirtualMachine* vm, ClassLoad
 
 void MainClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	klass->extends(0, vm->getClass("Object"));
+	klass->extends(0, vm->getObjectClass());
 
 	ClassFileDescriptor* classFile = reinterpret_cast<ClassFileDescriptor*>(new byte[2048]);
 	memset(classFile, 0, 2048 * sizeof(byte));
