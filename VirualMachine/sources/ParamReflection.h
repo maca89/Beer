@@ -14,7 +14,7 @@ namespace Beer
 		////             Initialized by ClassLoader             ////
 		////////////////////////////////////////////////////////////
 		uint16 mNameCount;
-		char* mName;
+		char_t* mName;
 		
 		ClassReflection* mType;
 		////////////////////////////////////////////////////////////
@@ -36,6 +36,6 @@ namespace Beer
 
 		// name
 
-		INLINE const char* getName() const { return mName; }
+		INLINE const char_t* getName() const { return mName; }
 	};
 };

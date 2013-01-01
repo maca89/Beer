@@ -36,7 +36,7 @@ namespace Beer
 
 		INLINE void setItem(int32 i, Object* obj)
 		{
-			//DBG_ASSERT(obj->getClass()->substituable(mItemClass), "Unexpected class"); // TODO: CLASS_ASSERT
+			//DBG_ASSERT(obj->getClass()->substituable(mItemClass), BEER_WIDEN("Unexpected class")); // TODO: CLASS_ASSERT
 			setChild(/*CHILDREN_COUNT +*/ i, obj);
 		}
 
@@ -50,7 +50,7 @@ namespace Beer
 			mItemClass = klass;
 		}
 
-		NOINLINE void toString(VirtualMachine* vm, std::string& out);
+		NOINLINE void toString(VirtualMachine* vm, string& out);
 	};
 
 	class ArrayClass : public ClassReflection
@@ -65,7 +65,7 @@ namespace Beer
 		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc);
 		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc);
 
-		/*svirtual void dump(Object* object, std::stringstream& out)
+		/*svirtual void dump(Object* object, stringstream& out)
 		{
 			out << object->getInstance<Array>()->getData();
 		};*/
@@ -75,7 +75,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

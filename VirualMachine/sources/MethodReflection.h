@@ -28,10 +28,10 @@ namespace Beer
 		uint8 mFlags;
 
 		uint16 mNameCount;
-		char* mName;
+		char_t* mName;
 		
 		uint16 mSelectorCount;
-		char* mSelector;
+		char_t* mSelector;
 
 		uint16 mReturnsCount;
 		ParamReflection** mReturns;
@@ -72,14 +72,14 @@ namespace Beer
 		// returns
 
 		INLINE uint16 getReturnsCount() const { return mReturnsCount; }
-		INLINE void setReturn(uint16 i, ParamReflection* ret) { DBG_ASSERT(i < mReturnsCount, "Unable to add more returns"); mReturns[i] = ret; }
-		INLINE ParamReflection* getReturn(uint16 i) { DBG_ASSERT(i < mReturnsCount, "Unknown return"); return mReturns[i]; }
+		INLINE void setReturn(uint16 i, ParamReflection* ret) { DBG_ASSERT(i < mReturnsCount, BEER_WIDEN("Unable to add more returns")); mReturns[i] = ret; }
+		INLINE ParamReflection* getReturn(uint16 i) { DBG_ASSERT(i < mReturnsCount, BEER_WIDEN("Unknown return")); return mReturns[i]; }
 
 		// params
 
 		INLINE uint16 getParamsCount() const { return mParamsCount; }
-		INLINE void setParam(uint16 i, ParamReflection* param) { DBG_ASSERT(i < mParamsCount, "Unable to add more params"); mParams[i] = param; }
-		INLINE ParamReflection* getParam(uint16 i) { DBG_ASSERT(i < mParamsCount, "Unknown param"); return mParams[i]; }
+		INLINE void setParam(uint16 i, ParamReflection* param) { DBG_ASSERT(i < mParamsCount, BEER_WIDEN("Unable to add more params")); mParams[i] = param; }
+		INLINE ParamReflection* getParam(uint16 i) { DBG_ASSERT(i < mParamsCount, BEER_WIDEN("Unknown param")); return mParams[i]; }
 
 		// max stack
 
@@ -88,11 +88,11 @@ namespace Beer
 
 		// name
 
-		INLINE const char* getName() const { return mName; }
+		INLINE const char_t* getName() const { return mName; }
 
 		// selector
 
-		INLINE const char* getSelector() const { return mSelector; }
+		INLINE const char_t* getSelector() const { return mSelector; }
 
 		// NativeMethod
 		

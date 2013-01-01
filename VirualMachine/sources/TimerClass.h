@@ -43,7 +43,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

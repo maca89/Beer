@@ -5,5 +5,5 @@
 
 namespace Beer
 {
-	typedef std::string Selector;
+	typedef string Selector;
 };

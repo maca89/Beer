@@ -13,26 +13,27 @@ namespace Beer
 	{
 	public:
 		typedef bool BooleanData;
+		static const int SignatureBits = 4;
 
 	protected:
-		//BooleanData mData;
+		//BooleanData mData; // not used
 
 	public:
 		INLINE BooleanData getData() const
 		{
-			return (reinterpret_cast<uint32>(this) >> 4) != 0;
+			return (reinterpret_cast<uint32>(this) >> SignatureBits) != 0;
 		}
 
-		NOINLINE void toString(std::string& out)
+		NOINLINE void toString(string& out)
 		{
-			std::stringstream ss;
+			stringstream ss;
 			ss << getData();
 			ss >> out;
 		}
 
 		INLINE static Boolean* makeInlineValue(BooleanData data)
 		{
-			return reinterpret_cast<Boolean*>((data << 4) | 3);
+			return reinterpret_cast<Boolean*>((data << SignatureBits) | 3);
 		}
 	};
 
@@ -42,21 +43,15 @@ namespace Beer
 		// ClassReflection
 		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
 		{
-			/*Boolean* b = gc->alloc<Boolean>();
-			b->setClass(this);
-			return b;*/
 			return Boolean::makeInlineValue(false);
 		}
 
 		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
 			return object;
-			/*Boolean* b = static_cast<Boolean*>(this->ClassReflection::cloneShallow(object, frame, gc));
-			b->setData(object->getInstance<Boolean>()->getData());
-			return b;*/
 		}
 
-		virtual void dump(Object* object, std::stringstream& out)
+		virtual void dump(Object* object, stringstream& out)
 		{
 			out << object->getInstance<Boolean>()->getData();
 		};
@@ -66,7 +61,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

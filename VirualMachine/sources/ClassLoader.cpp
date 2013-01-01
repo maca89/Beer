@@ -10,22 +10,20 @@
 using namespace Beer;
 
 
-ClassLoader::ClassLoader(VirtualMachine* vm) : mVM(vm), mClassHeap(NULL)
+ClassLoader::ClassLoader(VirtualMachine* vm, GarbageCollector* heap) : mVM(vm), mClassHeap(heap)
 {
-	mClassHeap = new MarkAndSweepGC();
 }
 
 ClassLoader::~ClassLoader()
 {
-	SMART_DELETE(mClassHeap);
 }
 
-void ClassLoader::addClassInitializer(std::string classname, ClassInitializer* initializer)
+void ClassLoader::addClassInitializer(string classname, ClassInitializer* initializer)
 {
 	mClassInitializers[classname] = initializer; // memory leak!
 }
 
-ClassInitializer* ClassLoader::getClassInitializer(std::string classname)
+ClassInitializer* ClassLoader::getClassInitializer(string classname)
 {
 	ClassInitializerMap::iterator it = mClassInitializers.find(classname);
 	if(it != mClassInitializers.end())
@@ -35,7 +33,7 @@ ClassInitializer* ClassLoader::getClassInitializer(std::string classname)
 	return NULL;
 }
 
-void ClassLoader::removeClassInitializer(std::string classname)
+void ClassLoader::removeClassInitializer(string classname)
 {
 	ClassInitializerMap::iterator it = mClassInitializers.find(classname);
 	if(it != mClassInitializers.end())
@@ -45,14 +43,14 @@ void ClassLoader::removeClassInitializer(std::string classname)
 	}
 }
 
-bool ClassLoader::hasClassInitializer(std::string name) const
+bool ClassLoader::hasClassInitializer(string name) const
 {
 	return mClassInitializers.find(name) != mClassInitializers.end();
 }
 
-void ClassLoader::loadClass(std::string name)
+void ClassLoader::loadClass(string name)
 {
-	//std::cout << "ClassLoader: loading " << name << std::endl;
+	//cout << "ClassLoader: loading " << name << std::endl;
 
 	for(StringList::iterator it = mBeingLoaded.begin(); it != mBeingLoaded.end(); it++)
 	{
@@ -78,22 +76,22 @@ void ClassLoader::loadClass(std::string name)
 	mClassInitializers.erase(it);
 }
 
-bool ClassLoader::canLoadClass(std::string name)
+bool ClassLoader::canLoadClass(string name)
 {
 	return hasClassInitializer(name);
 }
 
 //////////////////// ---------- classes ---------- ////////////////////
 
-uint32 ClassLoader::countClassDynamicSize(std::string name, uint16 parents, uint16 properties, uint16 methods)
+uint32 ClassLoader::countClassDynamicSize(string name, uint16 parents, uint16 properties, uint16 methods)
 {
-	return (name.size() + 1) * sizeof(char) // +1 for \0
+	return (name.size() + 1) * sizeof(char_t) // +1 for \0
 		+ parents * sizeof(ClassReflection*)
 		+ properties * sizeof(PropertyReflection*)
 		+ methods * sizeof(MethodReflection*);
 }
 
-ClassReflection* ClassLoader::createClass(std::string classname, uint32 staticSize, uint16 childrenCount, uint16 parents, uint16 properties, uint16 methods)
+ClassReflection* ClassLoader::createClass(string classname, uint32 staticSize, uint16 childrenCount, uint16 parents, uint16 properties, uint16 methods)
 {
 	uint32 dynamicSize = countClassDynamicSize(classname, parents, properties, methods);
 
@@ -108,7 +106,7 @@ ClassReflection* ClassLoader::createClass(std::string classname, uint32 staticSi
 	return klass;
 }
 
-void ClassLoader::initClass(ClassReflection* klass, std::string name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods)
+void ClassLoader::initClass(ClassReflection* klass, string name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods)
 {
 	byte* ptr = reinterpret_cast<byte*>(klass) + staticSize; // move ptr at the end of static-sized object part
 
@@ -117,10 +115,10 @@ void ClassLoader::initClass(ClassReflection* klass, std::string name, uint32 sta
 
 	// init name
 	klass->mNameCount = name.size() + 1; // +1 for \0
-	klass->mName = reinterpret_cast<char*>(ptr);
-	memcpy(klass->mName, name.c_str(), klass->mNameCount * sizeof(char)); // c_str is terminated with \0
+	klass->mName = reinterpret_cast<char_t*>(ptr);
+	memcpy(klass->mName, name.c_str(), klass->mNameCount * sizeof(char_t)); // c_str is terminated with \0
 
-	ptr += klass->mNameCount * sizeof(char); // move ptr after string
+	ptr += klass->mNameCount * sizeof(char_t); // move ptr after string
 
 	// init parents
 	klass->mParentsCount = parents;
@@ -156,15 +154,15 @@ void ClassLoader::initClass(ClassReflection* klass, std::string name, uint32 sta
 
 //////////////////// ---------- methods ---------- ////////////////////
 
-uint32 ClassLoader::countMethodDynamicSize(std::string name, std::string selector, uint16 returns, uint16 params)
+uint32 ClassLoader::countMethodDynamicSize(string name, string selector, uint16 returns, uint16 params)
 {
-	return (name.size() + 1) * sizeof(char) // +1 for \0
-		+ (selector.size() + 1) * sizeof(char) // +1 for \0
+	return (name.size() + 1) * sizeof(char_t) // +1 for \0
+		+ (selector.size() + 1) * sizeof(char_t) // +1 for \0
 		+ returns * sizeof(ParamReflection*)
 		+ params * sizeof(ParamReflection*);
 }
 
-MethodReflection* ClassLoader::createMethod(std::string name, std::string selector, uint32 staticSize, uint16 childrenCount, uint16 returns, uint16 params)
+MethodReflection* ClassLoader::createMethod(string name, string selector, uint32 staticSize, uint16 childrenCount, uint16 returns, uint16 params)
 {
 	uint32 dynamicSize = countMethodDynamicSize(name, selector, returns, params);
 
@@ -178,7 +176,7 @@ MethodReflection* ClassLoader::createMethod(std::string name, std::string select
 	return method;
 }
 
-void ClassLoader::initMethod(MethodReflection* method, std::string name, std::string selector, uint32 staticSize, uint16 returns, uint16 params)
+void ClassLoader::initMethod(MethodReflection* method, string name, string selector, uint32 staticSize, uint16 returns, uint16 params)
 {
 	byte* ptr = reinterpret_cast<byte*>(method) + staticSize; // move ptr at the end of static-sized object part
 	
@@ -187,17 +185,17 @@ void ClassLoader::initMethod(MethodReflection* method, std::string name, std::st
 
 	// init name
 	method->mNameCount = name.size() + 1; // +1 for \0
-	method->mName = reinterpret_cast<char*>(ptr);
-	memcpy(method->mName, name.c_str(), method->mNameCount * sizeof(char)); // c_str is terminated with \0
+	method->mName = reinterpret_cast<char_t*>(ptr);
+	memcpy(method->mName, name.c_str(), method->mNameCount * sizeof(char_t)); // c_str is terminated with \0
 
-	ptr += method->mNameCount * sizeof(char); // move ptr after name
+	ptr += method->mNameCount * sizeof(char_t); // move ptr after name
 
 	// init selector
 	method->mSelectorCount = selector.size() + 1; // +1 for \0
-	method->mSelector = reinterpret_cast<char*>(ptr);
-	memcpy(method->mSelector, selector.c_str(), method->mSelectorCount * sizeof(char)); // c_str is terminated with \0
+	method->mSelector = reinterpret_cast<char_t*>(ptr);
+	memcpy(method->mSelector, selector.c_str(), method->mSelectorCount * sizeof(char_t)); // c_str is terminated with \0
 
-	ptr += method->mSelectorCount * sizeof(char); // move ptr after selector
+	ptr += method->mSelectorCount * sizeof(char_t); // move ptr after selector
 
 	// init returns
 	method->mReturnsCount = returns;
@@ -222,13 +220,13 @@ void ClassLoader::initMethod(MethodReflection* method, std::string name, std::st
 
 //////////////////// ---------- params ---------- ////////////////////
 
-uint32 ClassLoader::countParamDynamicSize(std::string name)
+uint32 ClassLoader::countParamDynamicSize(string name)
 {
-	return (name.size() + 1) * sizeof(char) // +1 for \0
+	return (name.size() + 1) * sizeof(char_t) // +1 for \0
 		+ 1 * sizeof(ClassReflection*); // type
 }
 
-ParamReflection* ClassLoader::createParam(std::string name, uint32 staticSize, uint16 childrenCount)
+ParamReflection* ClassLoader::createParam(string name, uint32 staticSize, uint16 childrenCount)
 {
 	uint32 dynamicSize = countParamDynamicSize(name);
 
@@ -241,16 +239,16 @@ ParamReflection* ClassLoader::createParam(std::string name, uint32 staticSize, u
 	return param;
 }
 
-void ClassLoader::initParam(ParamReflection* param, std::string name, uint32 staticSize)
+void ClassLoader::initParam(ParamReflection* param, string name, uint32 staticSize)
 {
 	byte* ptr = reinterpret_cast<byte*>(param) + staticSize; // move ptr at the end of static-sized object part
 	
 	// init name
 	param->mNameCount = name.size() + 1; // +1 for \0
-	param->mName = reinterpret_cast<char*>(ptr);
-	memcpy(param->mName, name.c_str(), param->mNameCount * sizeof(char)); // c_str is terminated with \0
+	param->mName = reinterpret_cast<char_t*>(ptr);
+	memcpy(param->mName, name.c_str(), param->mNameCount * sizeof(char_t)); // c_str is terminated with \0
 
-	ptr += param->mNameCount * sizeof(char); // move ptr after nam
+	ptr += param->mNameCount * sizeof(char_t); // move ptr after nam
 
 	// init type
 	param->mType = NULL;

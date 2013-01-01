@@ -1,17 +1,19 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
+#include "StringClass.h"
 
 
 namespace Beer
 {
 	class ClassReflection;
+	//class String;
 
 	class PropertyReflection : public Object
 	{
 	protected:
 		ClassReflection* mType;
-		std::string mName; // TODO
+		Reference<String> mName;
 
 	public:
 
@@ -24,7 +26,7 @@ namespace Beer
 
 		// name
 
-		const char* getName() const { return mName.c_str(); }
-		void setName(std::string value) { mName = value; }
+		const char_t* getName() const { return mName->c_str(); }
+		void setName(Reference<String> value) { mName = value; }
 	};
 };

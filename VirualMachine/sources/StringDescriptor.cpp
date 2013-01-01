@@ -8,6 +8,21 @@ using namespace Beer;
 
 void StringDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor* classFile)
 {
-	// TODO: convert size and set flag!
-	//format.convert(getFlags());
+	if(isMachineEncoded())
+	{
+		return;
+	}
+
+	// no need to convert flags
+
+	// convert size
+	format.convert(mSize);
+	
+	// convert data
+	for(uint16 i = 0; i < getSize(); i++)
+	{
+		format.convert(reinterpret_cast<uint16&>((&mData)[i]));
+	}
+
+	markAsMachineEncoded();
 }

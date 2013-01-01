@@ -11,18 +11,14 @@ namespace Beer
 
 	class Float : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
 	public:
 		typedef float64 FloatData;
-		//const static int InlineClassId = 3;
 
 	protected:
-
 		FloatData mData;
 
 	public:
-		INLINE FloatData getData() const
+		 FloatData getData() const
 		{
 			return mData;
 		}
@@ -51,7 +47,7 @@ namespace Beer
 			return num;
 		}
 
-		virtual void dump(Object* object, std::stringstream& out)
+		virtual void dump(Object* object, stringstream& out)
 		{
 			out << std::setprecision(8) << std::fixed << object->getInstance<Float>()->getData();
 		}
@@ -61,7 +57,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

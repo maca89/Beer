@@ -111,9 +111,6 @@
     <ClCompile Include="sources\LoadedObject.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
-    <ClCompile Include="sources\MainClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
     <ClCompile Include="sources\MethodReflection.cpp">
       <Filter>Source Files\Reflection</Filter>
     </ClCompile>
@@ -143,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="sources\ClassTable.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CharacterClass.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -255,9 +255,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\LoadedObject.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MainClass.h">
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\ParamReflection.h">

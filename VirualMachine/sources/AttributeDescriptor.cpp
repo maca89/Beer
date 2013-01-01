@@ -18,7 +18,7 @@ void AttributeDescriptor::convert(FileFormatConverter& format, ClassFileDescript
 	//////////// convert my data
 
 	format.convert(getNameId());
-	format.convert(getFlags());
+	// no need to convert flags
 	format.convert(getTypeId());
 
 	//////////// convert referenced

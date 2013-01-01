@@ -13,9 +13,6 @@ native class Integer
     Float /(Integer value);
     Integer %(Integer value);
     
-    //Integer ++();
-    //Integer --();
-    
     Integer -();
     
     Boolean <(Integer value);

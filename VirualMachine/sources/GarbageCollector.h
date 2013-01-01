@@ -5,10 +5,9 @@
 namespace Beer
 {
 	class Object;
-	
-	//template <typename T>
-	//class Reference;
 
+	// TODO: rename to Heap
+	// TODO: get rid of interface
 	struct GarbageCollector
 	{
 		virtual ~GarbageCollector() {}

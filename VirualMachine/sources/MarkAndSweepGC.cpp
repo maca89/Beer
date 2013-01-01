@@ -9,7 +9,7 @@ using namespace Beer;
 //#define BEER_GC_DEBUGGING
 
 #ifdef BEER_GC_VERBOSE
-#	define GC_DEBUG(msg) std::cout << "// msGC: " << msg << std::endl;
+#	define GC_DEBUG(msg) cout << "// msGC: " << msg << std::endl;
 #else
 #	define GC_DEBUG(msg)
 #endif
@@ -25,7 +25,7 @@ MarkAndSweepGC::~MarkAndSweepGC()
 
 /*Reference<*/Object* /*>*/ MarkAndSweepGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 {
-	GC_DEBUG("Trying to allocate " << staticSize << " with " << childrenCount << " children and " << preOffset << " preOffset");
+	GC_DEBUG(BEER_WIDEN("Trying to allocate ") << staticSize << " with " << childrenCount << " children and " << preOffset << " preOffset");
 
 	void* mem = malloc(staticSize + (childrenCount * sizeof(Object*)));
 	mem = reinterpret_cast<byte*>(mem) + preOffset;
@@ -35,7 +35,7 @@ MarkAndSweepGC::~MarkAndSweepGC()
 	obj->setGCFlag(Object::GC_WHITE);
 	mObjects.push_back(obj);
 
-	GC_DEBUG("Alloced object " << "#" << obj);
+	GC_DEBUG(BEER_WIDEN("Alloced object ") << "#" << obj);
 
 	return obj;
 }
@@ -51,7 +51,7 @@ void MarkAndSweepGC::free(/*Reference<*/Object* /*>*/ obj)
 		}
 	}
 
-	throw GCException("Tried to free unknown object");
+	throw GCException(BEER_WIDEN("Tried to free unknown object"));
 }
 
 void MarkAndSweepGC::free(ObjectList::iterator& it)

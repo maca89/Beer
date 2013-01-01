@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <stdio.h>
 #include <map>
 #include <list>
 #include <vector>
@@ -11,6 +12,7 @@
 #include <iomanip>
 #include <typeinfo>
 #include <fstream>
+#include <tchar.h>
 
 // windows
 #include <windows.h>

@@ -6,6 +6,7 @@
 #include "IntegerClass.h"
 #include "FloatClass.h"
 #include "BooleanClass.h"
+#include "CharacterClass.h"
 
 
 namespace Beer
@@ -20,7 +21,7 @@ namespace Beer
 		std::ofstream* mFile;
 
 	public:
-		INLINE bool open(const char* name)
+		INLINE bool open(const char_t* name)
 		{
 			mFile->open(name);
 			return mFile->is_open();
@@ -47,7 +48,12 @@ namespace Beer
 			else (*mFile) << "false";
 		}
 
-		INLINE void write(const char* str)
+		/*INLINE void write(Character::CharacterData out)
+		{
+			(*mFile) << out;
+		}*/
+
+		INLINE void write(const char_t* str)
 		{
 			(*mFile) << str;
 		}
@@ -78,7 +84,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

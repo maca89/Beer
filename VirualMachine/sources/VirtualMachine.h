@@ -2,11 +2,13 @@
 #include "prereq.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
+#include "CopyGC.h"
 #include "Selector.h"
 #include "StackFrame.h"
 //#include "IntegerClass.h"
-//#include "FloatClass.h"
+#include "FloatClass.h"
 #include "StringClass.h"
+#include "CharacterClass.h"
 #include "BooleanClass.h"
 #include "ClassTable.h"
 #include "InlineFunctionTable.h"
@@ -32,37 +34,36 @@ namespace Beer
 
 	class Debugger;
 
+	typedef CopyGC Heap;
+
 	class VirtualMachine
 	{
 	public:
-		typedef std::map<std::string, ClassReflection*> ClassReflectionTable;
+		typedef std::map<string, ClassReflection*> ClassReflectionTable;
 
 		WorkStack* mStack;
 		Frames* mFrames;
-		GarbageCollector* mHeap;
-		//GarbageCollector* mClassHeap;
+		Heap* mHeap;
+		GarbageCollector* mClassHeap;
 		ClassReflectionTable mClasses;
 		ClassLoader* mClassLoader;
 		Debugger* mDebugger;
 		ClassTable mClassTable;
 		InlineFunctionTable mInlineFnTable;
 
-		uint32 mIntegerClassId;
-		uint32 mFloatClassId;
-		uint32 mBooleanClassId;
-		uint32 mCharacterClassId;
-
 		ClassReflection* mObjectClass;
 		ClassReflection* mStringClass;
+		ClassReflection* mFloatClass;
+		ClassReflection* mIntegerClass;
+		ClassReflection* mBooleanClass;
+		ClassReflection* mCharacterClass;
 
 	public:
 		INLINE VirtualMachine()
-			: mStack(NULL), mFrames(NULL), mHeap(NULL), mClassLoader(NULL), mDebugger(NULL), mObjectClass(NULL), mStringClass(NULL)
+			: mStack(NULL), mFrames(NULL), mHeap(NULL), mClassHeap(NULL),
+			mClassLoader(NULL), mDebugger(NULL), 
+			mObjectClass(NULL), mStringClass(NULL), mCharacterClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL)
 		{
-			mIntegerClassId = 0;
-			mFloatClassId = 0;
-			mBooleanClassId = 0;
-			mCharacterClassId = 0;
 		}
 
 		INLINE ~VirtualMachine()
@@ -73,27 +74,32 @@ namespace Beer
 	
 		void addClass(ClassReflection* reflection);
 		void removeClass(ClassReflection* reflection);
-		bool hasClass(std::string name) const;
-		ClassReflection* getClass(std::string name);
+		bool hasClass(string name) const;
+		ClassReflection* getClass(string name);
 		
 		template <typename T>
-		INLINE T* getClass(std::string name)
+		INLINE T* getClass(string name)
 		{
 			ClassReflection* klass = getClass(name);
 			if(klass) return static_cast<T*>(klass);
 			return NULL;
 		}
 
+		INLINE ClassReflection* getClass(String* name)
+		{
+			return getClass(name->c_str());
+		}
+
 		INLINE const Frames* getStackFrames() const { return mFrames; }
 		INLINE bool hasStackFrame() const { return mFrames->size() > 0; }
 		INLINE StackFrame* getStackFrame() const { return &mFrames->back();/*(0);*/ }
-		StackFrame* openStackFrame(Object* receiver, const char* selector);
+		StackFrame* openStackFrame(Object* receiver, const char_t* selector);
 		StackFrame* openStackFrame(MethodReflection* method);
 		StackFrame* openStackFrame();
 		void closeStackFrame();
 
 		//INLINE GarbageCollector* getClassHeap() const { return mClassHeap; }
-		INLINE GarbageCollector* getHeap() const { return mHeap; }
+		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE WorkStack* getStack() const { return mStack; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
 		INLINE ClassTable* getClassTable() { return &mClassTable; }
@@ -105,16 +111,21 @@ namespace Beer
 		void invoke(StackFrame* frame);
 
 		Integer* createInteger(int32/*Integer::IntegerData*/ value);
-		Float* createFloat(float64/*Float::FloatData*/ value);
+		Float* createFloat(Float::FloatData value);
 		INLINE Boolean* createBoolean(Boolean::BooleanData value) { return Boolean::makeInlineValue(value); }
-		String* createString(const char* value);
+		String* createString(const Character::CharacterData* value);
 		String* createString(String::LengthData length);
-		String* createString(const std::string& s);
+		String* createString(const string& s);
 
-		INLINE ClassReflection* getIntegerClass() const { return mClassTable[mIntegerClassId]; }
-		INLINE ClassReflection* getBooleanClass() const { return mClassTable[mBooleanClassId]; }
+		INLINE ClassReflection* getFloatClass() const { return mFloatClass; }
+		INLINE ClassReflection* getIntegerClass() const { return mIntegerClass; }
+		INLINE ClassReflection* getBooleanClass() const { return mBooleanClass; }
 		INLINE ClassReflection* getObjectClass() const { return mObjectClass; }
 		INLINE ClassReflection* getStringClass() const { return mStringClass; }
+		INLINE ClassReflection* getCharacterClass() const { return mCharacterClass; }
+
+		template <typename T>
+		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }
 
 	protected:
 	};

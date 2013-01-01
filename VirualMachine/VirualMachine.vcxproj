@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="sources\ArrayClass.cpp" />
     <ClCompile Include="sources\BytecodeDescriptor.cpp" />
+    <ClCompile Include="sources\CharacterClass.cpp" />
     <ClCompile Include="sources\ClassTable.cpp" />
     <ClCompile Include="sources\Debugger.cpp" />
     <ClCompile Include="sources\FileReaderClass.cpp" />
@@ -35,7 +36,6 @@
     <ClCompile Include="sources\ClassLoader.cpp" />
     <ClCompile Include="sources\CopyGC.cpp" />
     <ClCompile Include="sources\LoadedObject.cpp" />
-    <ClCompile Include="sources\MainClass.cpp" />
     <ClCompile Include="sources\MarkAndSweepGC.cpp" />
     <ClCompile Include="sources\Bytecode.cpp" />
     <ClCompile Include="sources\ClassReflection.cpp" />
@@ -88,7 +88,6 @@
     <ClInclude Include="sources\GarbageCollector.h" />
     <ClInclude Include="sources\Object.h" />
     <ClInclude Include="sources\LoadedObject.h" />
-    <ClInclude Include="sources\MainClass.h" />
     <ClInclude Include="sources\MarkAndSweepGC.h" />
     <ClInclude Include="sources\Bytecode.h" />
     <ClInclude Include="sources\ClassReflection.h" />

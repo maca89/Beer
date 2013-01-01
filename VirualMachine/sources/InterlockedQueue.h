@@ -184,7 +184,7 @@ namespace Beer
 
 		INLINE bool empty() const
 		{
-			DBG_ASSERT(mTail.node, "Queue is empty");
+			DBG_ASSERT(mTail.node, BEER_WIDEN("Queue is empty"));
 			return mHead.node == mTail.node && mHead.node->next.node == NULL;
 		}
 

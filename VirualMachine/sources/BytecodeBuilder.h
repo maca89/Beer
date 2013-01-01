@@ -69,7 +69,7 @@ namespace Beer
 
 		NOINLINE Bytecode::OpCode/*Bytecode::Instruction**/ next()
 		{
-			DBG_ASSERT(mInstri < mDictSize, "Instruction counter out of range");
+			DBG_ASSERT(mInstri < mDictSize, BEER_WIDEN("Instruction counter out of range"));
 			mDict[mInstri++] = mNewDataIndex;
 		
 			copy(sizeof(uint8)); // copy opcode

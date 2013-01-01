@@ -104,7 +104,7 @@ namespace Beer
 
 		INLINE ClassReflection* getClass()
 		{
-			DBG_ASSERT(!isInlineValue(), "Tried to get class of an inline value");
+			DBG_ASSERT(!isInlineValue(), BEER_WIDEN("Tried to get class of an inline value"));
 			return mClass;
 		}
 
@@ -114,7 +114,7 @@ namespace Beer
 		INLINE InlineValueId getInlineClassId()
 		{
 			// *NO* assert !!!
-			//DBG_ASSERT(isInlineValue(), "Tried to get inline class id of a non inline value");
+			//DBG_ASSERT(isInlineValue(), BEER_WIDEN("Tried to get inline class id of a non inline value"));
 			return reinterpret_cast<InlineValueId>(this) & 15;
 		}
 

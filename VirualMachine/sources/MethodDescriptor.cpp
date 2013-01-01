@@ -18,7 +18,7 @@ void MethodDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor*
 {
 	//////////// convert my data
 	
-	format.convert(getFlags());
+	// no need to convert flags
 	format.convert(getNameId());
 
 	format.convert(getParamsLength());

@@ -8,7 +8,7 @@
 #include "MethodDescriptor.h"
 #include "AttributeDescriptor.h"
 #include "ParamDescriptor.h"
-#include "StringDescriptor.h"
+//#include "StringDescriptor.h"
 #include "BytecodeDescriptor.h"
 
 #include "PropertyReflection.h"
@@ -20,7 +20,7 @@
 using namespace Beer;
 
 
-ClassReflection* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
 	return loader->createClass<LoadedObjectClass>(
 		name, // classDescr->getName(classFile)->c_str()
@@ -46,7 +46,7 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	// parents
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
-		ClassReflection* parent = vm->getClass(getParentClassName(i));
+		ClassReflection* parent = vm->getClass(getParentClassName(vm, i));
 		mClass->extends(parentStart + i, parent); // class will be loaded if its not
 		propStart += objectClass->getPropertiesCount();
 	}
@@ -83,28 +83,28 @@ PropertyReflection* LoadedObjectInitializer::makeProperty(VirtualMachine* vm, At
 	PropertyReflection* prop = new PropertyReflection;
 			
 	// set name
-	prop->setName(attrDescr->getName(mClassFile)->c_str());
+	prop->setName(getString(vm, attrDescr->getName(mClassFile)));
 
 	// set type
-	prop->setType(vm->getClass(mClassFile->getClassName(attrDescr->getTypeId())->c_str()));
+	prop->setType(vm->getClass(*getString(vm, mClassFile->getClassName(attrDescr->getTypeId()))));
 			
 	return prop;
 }
 
 MethodReflection* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
-	std::string name = methodDescr->getName(mClassFile)->c_str();
+	string name = vm->getStringClass<StringClass>()->translate(vm, methodDescr->getName(mClassFile)->c_str())->c_str();
 	
 	// TODO - load
-	std::string selector = std::string(mClass->getName()) + "::" + name;
-	selector += "(";
+	string selector = string(mClass->getName()) + BEER_WIDEN("::") + name;
+	selector += BEER_WIDEN("(");
 	for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
 	{
 		ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
-		selector += mClassFile->getClassName(paramDescr->getTypeId())->c_str();
-		if(parami < methodDescr->getParamsLength() - 1) selector += ",";
+		selector += vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(paramDescr->getTypeId())->c_str())->c_str();
+		if(parami < methodDescr->getParamsLength() - 1) selector += BEER_WIDEN(",");
 	}
-	selector += ")";
+	selector += BEER_WIDEN(")");
 	
 	MethodReflection* method = loader->createMethod<MethodReflection>(name, selector, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
 	
@@ -115,7 +115,7 @@ MethodReflection* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassL
 	{
 		ParamDescriptor* returnDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getReturnId(reti));
 		
-		ParamReflection* ret = loader->createParam<ParamReflection>(returnDescr->getName(mClassFile)->c_str());
+		ParamReflection* ret = loader->createParam<ParamReflection>(vm->getStringClass<StringClass>()->translate(vm, returnDescr->getName(mClassFile)->c_str())->c_str());
 		ret->setType(getType(mClassFile->getClassName(returnDescr->getTypeId()), vm));
 		
 		method->setReturn(reti, ret);
@@ -126,7 +126,7 @@ MethodReflection* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassL
 	{
 		ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
 		
-		ParamReflection* param = loader->createParam<ParamReflection>(paramDescr->getName(mClassFile)->c_str());
+		ParamReflection* param = loader->createParam<ParamReflection>(vm->getStringClass<StringClass>()->translate(vm, paramDescr->getName(mClassFile)->c_str())->c_str());
 		param->setType(getType(mClassFile->getClassName(paramDescr->getTypeId()), vm));
 
 		method->setParam(parami, param);
@@ -141,17 +141,18 @@ MethodReflection* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassL
 	return method;
 }
 
-const char* LoadedObjectInitializer::getParentClassName(uint16 i)
+const char_t* LoadedObjectInitializer::getParentClassName(VirtualMachine* vm, uint16 i)
 {
-	return mClassFile->getClassName(mClassDescr->getParentId(i))->c_str();
+	return vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(mClassDescr->getParentId(i))->c_str())->c_str();
 }
 
 ClassReflection* LoadedObjectInitializer::getType(const StringDescriptor* name, VirtualMachine* vm)
 {
-	if(strcmp(mClass->getName(), name->c_str()) == 0)
+	Reference<String> strname = getString(vm, name);
+	if(strcmp(mClass->getName(), strname->c_str()) == 0)
 	{
 		return mClass; // prevents circular reference exception
 	}
 
-	return vm->getClass(name->c_str());
+	return vm->getClass(strname->c_str());
 }

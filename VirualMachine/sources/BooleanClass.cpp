@@ -27,8 +27,8 @@ struct BeerBoolean_CompareOperator##Name																				\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
 	MethodReflection* Name##Method																						\
 		= loader->createMethod<MethodReflection>(																		\
-			#Operator, 																									\
-			std::string(Class->getName()) + "::" + #Operator + "(" + #Param + ")", 										\
+			BEER_WIDEN(#Operator), 																						\
+			string(Class->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 		\
 			1, 																											\
 			1																											\
 		);																												\
@@ -49,7 +49,7 @@ void BEER_CALL BeerBoolean_Negation(VirtualMachine* vm, StackFrame* frame, Stack
 	ret = vm->createBoolean(!receiver->getData());
 }
 
-ClassReflection* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
 	return loader->createClass<BooleanClass>(name, 1, 0, 6);
 }
@@ -62,11 +62,11 @@ void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>("Boolean", std::string(klass->getName()) + "::Boolean()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Boolean"), string(klass->getName()) + BEER_WIDEN("::Boolean()"), 1, 0);
 	method->setFunction(&BeerBoolean_init);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("Boolean", std::string(klass->getName()) + "::!()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Boolean"), string(klass->getName()) + BEER_WIDEN("::!()"), 1, 0);
 	method->setFunction(&BeerBoolean_Negation);
 	klass->setMethod(methodi++, method);
 

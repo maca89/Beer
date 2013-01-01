@@ -12,14 +12,14 @@ void BEER_CALL BeerObject_init(VirtualMachine* vm, StackFrame* frame, StackRef<O
 	ret1 = receiver;
 }
 
-ClassReflection* ObjectClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* ObjectClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
 	return loader->createClass<ObjectClass>(name, 0, 0, 1);
 }
 
 void ObjectClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
-	MethodReflection* initMethod = loader->createMethod<MethodReflection>("Object", std::string(klass->getName()) + "::Object()", 1, 0);
+	MethodReflection* initMethod = loader->createMethod<MethodReflection>(BEER_WIDEN("Object"), string(klass->getName()) + BEER_WIDEN("::Object()"), 1, 0);
 	initMethod->setFunction(&BeerObject_init);
 	klass->setMethod(0, initMethod);
 }

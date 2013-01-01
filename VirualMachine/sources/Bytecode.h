@@ -143,7 +143,7 @@ namespace Beer
 			// print
 
 			NOINLINE uint16 printRaw(const ClassFileDescriptor* classFile) const; // returns size of the whole instruction
-			NOINLINE void printTranslated() const;
+			NOINLINE void printTranslated(VirtualMachine* vm) const;
 		};
 		#pragma pack(pop)
 

@@ -23,26 +23,26 @@ struct Settings
 	bool printClassFile;
 	bool debuggerEnabled;
 	bool debuggerStepping;
-	std::string classFileName;
+	string classFileName;
 	uint32 stackSize;
 	uint32 heapSize;
 
 	INLINE Settings() :
 		printClassFile(false), 
 		loadClassFile(true), 
-		classFileName(""), 
+		classFileName(BEER_WIDEN("")), 
 		run(true), 
 		debuggerEnabled(false), 
 		debuggerStepping(false),
 		stackSize(1*1024),
-		heapSize(5*1024)
+		heapSize(5*1024*1024)
 	{}
 };
 
 
-bool loadFile(std::string filename, byte** out_data, uint32& out_length)
+bool loadFile(string filename, byte** out_data, uint32& out_length)
 {
-	std::fstream f;
+	std::ifstream f; // *NO* wide!!!
 	f.open(filename, std::ios::in|std::ios::binary);
 
 	if(!f.good()) return false;
@@ -62,9 +62,9 @@ bool loadFile(std::string filename, byte** out_data, uint32& out_length)
 	return true;
 }
 
-bool parseMemorySize(std::string in_value, uint32& out_value)
+bool parseMemorySize(string in_value, uint32& out_value)
 {
-	std::stringstream ss(in_value);
+	stringstream ss(in_value);
 	ss >> out_value;
 			
 	return !ss.fail();
@@ -74,77 +74,81 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 {
 	if(argc < 2)
 	{
-		std::cout << "error: classfile name missing" << std::endl;
+		cout << "error: classfile name missing" << std::endl;
 		return false;
 	}
 
-	settings.classFileName = argv[1];
+	stringstream ss;
+	ss << argv[1];
+	settings.classFileName = ss.str();//argv[1];
 
 	for(int parami = 2; parami < argc; parami++)
 	{
-		std::string param(argv[parami]);
+		ss.str(BEER_WIDEN(""));
+		ss << argv[parami];
+		string param(ss.str());
 
-		if(param.find("--") > 0) continue; // not a --param
+		if(param.find(BEER_WIDEN("--")) > 0) continue; // not a --param
 
-		//std::cout << param << ":" << param.find("--") << std::endl;
+		//cout << param << ":" << param.find(BEER_WIDEN("--")) << std::endl;
 
-		if(param.compare("--help") == 0)
+		if(param.compare(BEER_WIDEN("--help")) == 0)
 		{
-			std::cout << "--help" << std::endl;
-			std::cout << "--run[:false]" << std::endl;
-			std::cout << "--printclassfile[:false]" << std::endl;
-			std::cout << "--debugger[:false]" << std::endl;
-			std::cout << "--stepping[:false]" << std::endl;
-			//std::cout << "--loadclassfile[:false]" << std::endl;
+			cout << "--help" << std::endl;
+			cout << "--run[:false]" << std::endl;
+			cout << "--printclassfile[:false]" << std::endl;
+			cout << "--debugger[:false]" << std::endl;
+			cout << "--stepping[:false]" << std::endl;
+			//cout << "--loadclassfile[:false]" << std::endl;
 			exit(0);
 		}
 		
-		std::string value;
-		std::string name;
+		string value;
+		string name;
 		size_t pos = param.find(':');
 		
 		name = param.substr(0, pos <= param.size() ? pos : param.size());
 		if(name.size() > 0) value = param.substr(name.size());
 
-		if(name.compare("--run") == 0)
+		if(name.compare(BEER_WIDEN("--run")) == 0)
 		{
-			settings.run = value.compare(":false") == 0 ? false : true;
+			settings.run = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
 		}
-		else if(name.compare("--printclassfile") == 0)
+		else if(name.compare(BEER_WIDEN("--printclassfile")) == 0)
 		{
-			settings.printClassFile = value.compare(":false") == 0 ? false : true;
+			settings.printClassFile = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
 		}
-		else if(name.compare("--loadclassfile") == 0)
+		else if(name.compare(BEER_WIDEN("--loadclassfile")) == 0)
 		{
-			settings.loadClassFile = value.compare(":false") == 0 ? false : true;
+			settings.loadClassFile = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
 		}
-		else if(name.compare("--debugger") == 0)
+		else if(name.compare(BEER_WIDEN("--debugger")) == 0)
 		{
-			settings.debuggerEnabled = value.compare(":false") == 0 ? false : true;
+			settings.debuggerEnabled = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
 		}
-		else if(name.compare("--stepping") == 0)
+		else if(name.compare(BEER_WIDEN("--stepping")) == 0)
 		{
-			settings.debuggerStepping = value.compare(":false") == 0 ? false : true;
+			settings.debuggerStepping = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
 		}
-		else if(name.compare("--stacksize") == 0)
+		else if(name.compare(BEER_WIDEN("--stacksize")) == 0)
 		{
 			if(!parseMemorySize(value.substr(1), settings.stackSize))
 			{
-				std::cout << "Unable to parse stacksize value: " + value;
+				cout << BEER_WIDEN("Unable to parse stacksize value: ") << value;
 				return false;
 			}
 		}
-		else if(name.compare("--heapsize") == 0)
+		else if(name.compare(BEER_WIDEN("--heapsize")) == 0)
 		{
 			if(!parseMemorySize(value.substr(1), settings.heapSize))
 			{
-				std::cout << "Unable to parse heapsize value: " + value;
+				cout << BEER_WIDEN("Unable to parse heapsize value: ") << value;
 				return false;
 			}
 		}
 		else
 		{
-			std::cout << "Unknown parameter: " + name;
+			cout << BEER_WIDEN("Unknown parameter: ") << name;
 			return false;
 		}
 	}
@@ -162,7 +166,7 @@ int __cdecl main(int argc, const char** argv)
 	VirtualMachine* vm = new VirtualMachine;
 	ClassFileDescriptor* classFile = NULL;
 
-	Console::setArgs(&argv[2], argc - 2); // TODO
+//	Console::setArgs(&argv[2], argc - 2); // TODO
 
 	try
 	{
@@ -175,7 +179,7 @@ int __cdecl main(int argc, const char** argv)
 
 		if(!loadFile(settings.classFileName, &data, dataLength))
 		{
-			throw IOFileException(std::string("Could not open file: ") + settings.classFileName);
+			throw IOFileException(string(BEER_WIDEN("Could not open file: ")) + settings.classFileName);
 		}
 
 		classFile = classFileLoader->loadClassFile(data, dataLength);
@@ -193,11 +197,11 @@ int __cdecl main(int argc, const char** argv)
 	{
 		//vm->getDebugger()->printCallStack();
 		//vm->getDebugger()->printStack();
-		std::cout << std::endl << "Unhandled exception: " << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
+		cout << std::endl << "Unhandled exception: " << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
 	}
 
 	SMART_DELETE(vm);
 
-	//system("PAUSE");
+	//system(BEER_WIDEN("PAUSE"));
 	return 0;
 }

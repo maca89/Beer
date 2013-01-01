@@ -1,7 +1,9 @@
 #pragma once
 #include "prereq.h"
 #include "ObjectClass.h"
-
+#include "StringClass.h"
+#include "VirtualMachine.h"
+#include "StringDescriptor.h"
 //#include "ClassFileDescriptor.h"
 //#include "ClassDescriptor.h"
 
@@ -28,7 +30,7 @@ namespace Beer
 
 		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
 		{
-			//std::cout << "[LoadedObject::createInstance]";
+			//cout << "[LoadedObject::createInstance]";
 			LoadedObject* obj = gc->alloc<LoadedObject>(/*LoadedObject::CHILDREN_COUNT +*/ getPropertiesCount());
 			obj->setClass(this);
 			return obj;
@@ -49,7 +51,7 @@ namespace Beer
 		}
 
 		// interface ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 
 	protected:
@@ -59,7 +61,12 @@ namespace Beer
 		PropertyReflection* makeProperty(VirtualMachine* vm, AttributeDescriptor* attrDescr);
 		MethodReflection* makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr);
 
-		const char* getParentClassName(uint16 i);
+		const char_t* getParentClassName(VirtualMachine* vm, uint16 i);
 		ClassReflection* getType(const StringDescriptor* name, VirtualMachine* vm);
+
+		INLINE Reference<String> getString(VirtualMachine* vm, const StringDescriptor* strdescr)
+		{
+			return vm->getStringClass<StringClass>()->translate(vm, strdescr->c_str());
+		}
 	};
 };

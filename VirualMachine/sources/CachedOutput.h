@@ -7,7 +7,7 @@ namespace Beer
 	class CachedOutput
 	{
 	protected:
-		std::stringstream mStream;
+		stringstream mStream;
 		bool mChanged;
 
 	public:
@@ -19,7 +19,7 @@ namespace Beer
 		{
 		}
 
-		INLINE void flush(std::ostream& out)
+		INLINE void flush(ostream& out)
 		{
 			if(mChanged)
 			{
@@ -32,11 +32,11 @@ namespace Beer
 		INLINE CachedOutput& operator<<(uint64 n) { mStream << n; mChanged = true; return *this; }
 		INLINE CachedOutput& operator<<(float32 n) { mStream << n; mChanged = true; return *this; }
 		INLINE CachedOutput& operator<<(float64 n) { mStream << n; mChanged = true; return *this; }
-		INLINE CachedOutput& operator<<(const std::string& s) { mStream << s; mChanged = true; return *this; }
-		INLINE CachedOutput& operator<<(const char* s) { mStream << s; mChanged = true; return *this; }
+		INLINE CachedOutput& operator<<(const string& s) { mStream << s; mChanged = true; return *this; }
+		INLINE CachedOutput& operator<<(const char_t* s) { mStream << s; mChanged = true; return *this; }
 
 		// endl
-		INLINE CachedOutput& operator<<(std::ostream& (__cdecl *fn)(std::ostream&)) { fn(mStream); mChanged = true; return *this; }
+		//INLINE CachedOutput& operator<<(std::ostream& (__cdecl *fn)(std::ostream&)) { fn(mStream); mChanged = true; return *this; }
 
 		// manips
 		//INLINE CachedOutput& operator<<(std::_Smanip<streamsize> s) { mStream << s; return *this; }
@@ -44,14 +44,14 @@ namespace Beer
 		template <typename T>
 		INLINE CachedOutput& operator<<(T t) { mStream << t; mChanged = true; return *this; }
 
-		INLINE std::string dump() { return mStream.str(); }
+		INLINE string dump() { return mStream.str(); }
 
 	protected:
-		NOINLINE void doflush(std::ostream& out)
+		NOINLINE void doflush(ostream& out)
 		{
 			//mStream.flush(); // TODO for threads
 			out << mStream.str(); // print content
-			mStream.str(std::string()); // clear buffer
+			mStream.str(string()); // clear buffer
 			//mStream.clear(); // TODO: clears flags
 			mChanged = false; // set flag
 		}

@@ -3,59 +3,63 @@
 #include "ObjectClass.h"
 
 
-/*namespace Beer
+namespace Beer
 {
 	class VirtualMachine;
 
 	class Character : public Object
 	{
 	public:
-		typedef char CharacterData;
+		typedef char_t CharacterData;
+		static const int SignatureBits = 4;
 
 	protected:
-		CharacterData mData;
+		//CharacterData mData; // not used
 
 	public:
-		CharacterData getData() const
+		INLINE CharacterData getData() const
 		{
-			return mData;
+			return (reinterpret_cast<uint32>(this) >> SignatureBits) != 0;
 		}
 
-		void setData(CharacterData data)
+		/*NOINLINE void toString(string& out)
 		{
-			mData = data;
+			stringstream ss;
+			ss << getData();
+			ss >> out;
+		}*/
+
+		INLINE static Character* makeInlineValue(CharacterData data)
+		{
+			return reinterpret_cast<Character*>((data << SignatureBits) | 3);
 		}
 	};
 
-	class BooleanClass : public ClassReflection
+	class CharacterClass : public ClassReflection
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
 		{
-			Character* c = gc->alloc<Character>();
-			c->setClass(this);
-			return c;
+			return Character::makeInlineValue('\0');
 		}
 
 		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
-			Character* c = static_cast<Character*>(this->ClassReflection::cloneShallow(object, frame, gc));
-			c->setData(object->getInstance<Character>()->getData());
-			return b;
+			return object;
 		}
 
-		virtual void dump(Object* object, std::stringstream& out)
+		virtual void dump(Object* object, stringstream& out)
 		{
-			out << object->getInstance<Boolean>()->getData();
+			out << object->getInstance<Character>()->getData();
 		};
 	};
 
-	class BooleanClassInitializer : public ClassInitializer
+	class CharacterClassInitializer : public ClassInitializer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
-};*/
+};

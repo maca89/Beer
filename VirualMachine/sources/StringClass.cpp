@@ -28,8 +28,8 @@ struct CompareStringOperator##Name																						\
 #define BuildCompareStringOperator(Name, Operator, Operation)															\
 	BuildCompareStringOperatorFn(Name, Operation);																		\
 	method = loader->createMethod<MethodReflection>(																	\
-			#Operator, 																									\
-			std::string("String::") + #Operator + "(String)", 															\
+			BEER_WIDEN(#Operator), 																						\
+			string(BEER_WIDEN("String::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(String)"), 								\
 			1, 																											\
 			1																											\
 		);																												\
@@ -60,9 +60,9 @@ void BEER_CALL BeerString_concatString(VirtualMachine* vm, StackFrame* frame, St
 
 void BEER_CALL BeerString_concatInteger(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
 {
-	std::stringstream ss;
+	stringstream ss;
 	ss << arg->getData();
-	std::string argStr = ss.str();
+	string argStr = ss.str();
 
 	ret = vm->createString(receiver->size() + argStr.size());
 	ret->copyData(0, receiver->size(), receiver->c_str());
@@ -72,9 +72,9 @@ void BEER_CALL BeerString_concatInteger(VirtualMachine* vm, StackFrame* frame, S
 
 void BEER_CALL BeerString_concatFloat(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
 {
-	std::stringstream ss;
+	stringstream ss;
 	ss << std::setprecision(8) << std::fixed << arg->getData();
-	std::string argStr = ss.str();
+	string argStr = ss.str();
 
 	ret = vm->createString(receiver->size() + argStr.size());
 	ret->copyData(0, receiver->size(), receiver->c_str());
@@ -83,18 +83,26 @@ void BEER_CALL BeerString_concatFloat(VirtualMachine* vm, StackFrame* frame, Sta
 
 void BEER_CALL BeerString_concatBoolean(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
 {
-	std::string str;
-	if(arg->getData()) str = "true";
-	else str = "false";
+	string str;
+	if(arg->getData()) str = BEER_WIDEN("true");
+	else str = BEER_WIDEN("false");
 
 	ret = vm->createString(receiver->size() + str.size());
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
+void BEER_CALL BeerString_concatCharacter(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
+{
+	ret = vm->createString(receiver->size() + 1);
+	ret->copyData(0, receiver->size(), receiver->c_str());
+	Character::CharacterData c = arg->getData();
+	ret->copyData(receiver->size(), 1, &c);
+}
+
 void BEER_CALL BeerString_concatArray(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
 {
-	std::string str;
+	string str;
 	arg->toString(vm, str);
 
 	ret = vm->createString(receiver->size() + str.size());
@@ -114,9 +122,9 @@ String* StringClass::createInstance(StackFrame* frame, GarbageCollector* gc)
 	return str;
 }
 
-ClassReflection* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
-	return loader->createClass<StringClass>(name, 1, 0, 13);
+	return loader->createClass<StringClass>(name, 1, 0, 14);
 }
 
 void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
@@ -126,7 +134,7 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 
 	klass->extends(0, vm->getObjectClass());
 
-	method = loader->createMethod<MethodReflection>("String", "String::String()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::String()"), 1, 0);
 	method->setFunction(&BeerString_init);
 	klass->setMethod(methodi++, method);
 
@@ -137,27 +145,52 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 	BuildCompareStringOperator(Equal, ==, == 0);
 	BuildCompareStringOperator(NotEqual, !=, != 0);
 
-	method = loader->createMethod<MethodReflection>("String", "String::+(String)", 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(String)"), 1, 1);
 	method->setFunction(&BeerString_concatString);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("String", "String::+(Integer)", 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Integer)"), 1, 1);
 	method->setFunction(&BeerString_concatInteger);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("String", "String::+(Float)", 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Float)"), 1, 1);
 	method->setFunction(&BeerString_concatFloat);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("String", "String::+(Boolean)", 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Boolean)"), 1, 1);
 	method->setFunction(&BeerString_concatBoolean);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("String", "String::+(Array)", 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Character)"), 1, 1);
+	method->setFunction(&BeerString_concatCharacter);
+	klass->setMethod(methodi++, method);
+
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Array)"), 1, 1);
 	method->setFunction(&BeerString_concatArray);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("Integer", "String::getLength()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), BEER_WIDEN("String::getLength()"), 1, 0);
 	method->setFunction(&BeerString_getLength);
 	klass->setMethod(methodi++, method);
+}
+
+// string pool
+
+Reference<String> StringPool::translate(VirtualMachine* vm, const char16* str)
+{
+	StringMap::iterator it = mStrings.find(str);
+	if(it == mStrings.end())
+	{
+		uint32 length = strlen(str);
+		StackFrame* frame = vm->getStackFrame();
+		CopyGC* heap = static_cast<CopyGC*>(vm->getHeap());
+
+		frame->stackPush(vm->createInteger(length));
+		String* result = vm->getStringClass()->createInstance<String>(frame, heap);
+		result->copyData(str, length);
+
+		return Reference<String>(heap, result);
+	}
+
+	return it->second;
 }

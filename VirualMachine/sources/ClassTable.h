@@ -38,7 +38,7 @@ namespace Beer
 
 		INLINE ClassReflection* operator[] (uint32 index) const
 		{
-			DBG_ASSERT(index < mNext, "Unknown class id");
+			DBG_ASSERT(index < mNext, BEER_WIDEN("Unknown class id"));
 			return mTable[index];
 		}
 

@@ -9,7 +9,7 @@
 using namespace Beer;
 
 #ifdef BEER_BOUNDS_ASSERT_ON
-#	define BOUNDS_ASSERT(index, size) if(index < 0 || index >= size) throw RuntimeException(std::string("Array index out of bounds ") /*+ index + " / " + size*/);
+#	define BOUNDS_ASSERT(index, size) if(index < 0 || index >= size) throw RuntimeException(string(BEER_WIDEN("Array index out of bounds ")) /*+ index + BEER_WIDEN(" / ") + size*/);
 #else
 #	define BOUNDS_ASSERT(index, size)
 #endif
@@ -37,7 +37,7 @@ void BEER_CALL BeerArray_get(VirtualMachine* vm, StackFrame* frame, StackRef<Arr
 	/*if(object == reinterpret_cast<Object*>(0x0e))
 	{
 		Object* obj = receiver->getItem(i);
-		std::cout << "!";
+		cout << "!";
 	}*/
 
 	if(object) ret = object;
@@ -58,29 +58,29 @@ void BEER_CALL BeerArray_set(VirtualMachine* vm, StackFrame* frame, StackRef<Arr
 	Object* obj = receiver->getItem(i);
 	if(obj == reinterpret_cast<Object*>(0x0e))
 	{
-		std::cout << "!";
+		cout << "!";
 	}*/
 
 	receiver->setItem(index->getData(), object.get());
 }
 
-void Array::toString(VirtualMachine* vm, std::string& out)
+void Array::toString(VirtualMachine* vm, string& out)
 {
-	out += "[";
+	out += BEER_WIDEN("[");
 	for(int32 i = 0; i < getSize(); i++)
 	{
 		Object* obj = getItem(i);
 		if(obj)
 		{
-			std::stringstream n;
+			stringstream n;
 			vm->getClassTable()->translate(obj)->dump(obj, n);
 			out += n.str();
 		}
-		else out += "0";
+		else out += BEER_WIDEN("0");
 
-		if(i < getSize() - 1) out += ", ";
+		if(i < getSize() - 1) out += BEER_WIDEN(", ");
 	}
-	out += "]";
+	out += BEER_WIDEN("]");
 }
 
 
@@ -107,7 +107,7 @@ Object* ArrayClass::cloneShallow(Object* object, StackFrame* frame, GarbageColle
 	return arr;
 }
 
-ClassReflection* ArrayClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* ArrayClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
 	return loader->createClass<ArrayClass>(name, 1, 0, 4);
 }
@@ -115,28 +115,28 @@ ClassReflection* ArrayClassInitializer::createClass(VirtualMachine* vm, ClassLoa
 void ArrayClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
 {
 	ClassReflection* objectClass = vm->getObjectClass();
-	ClassReflection* integerClass = vm->getIntegerClass();
+	//ClassReflection* integerClass = vm->getIntegerClass();
 
 	klass->extends(0, objectClass);
 	
-	MethodReflection* initMethod = loader->createMethod<MethodReflection>("Array", std::string(klass->getName()) + "::Array(Integer)", 1, 1);
+	MethodReflection* initMethod = loader->createMethod<MethodReflection>(BEER_WIDEN("Array"), string(klass->getName()) + BEER_WIDEN("::Array(Integer)"), 1, 1);
 	//initMethod->getReturn(0)->setType(klass);
 	//initMethod->getParam(0)->setType(integerClass);
 	initMethod->setFunction(&BeerArray_init);
 	klass->setMethod(0, initMethod);
 
-	MethodReflection* getSizeMethod = loader->createMethod<MethodReflection>("getLength", std::string(klass->getName()) + "::getLength()", 1, 0);
+	MethodReflection* getSizeMethod = loader->createMethod<MethodReflection>(BEER_WIDEN("getLength"), string(klass->getName()) + BEER_WIDEN("::getLength()"), 1, 0);
 	//getSizeMethod->getReturn(0)->setType(integerClass);
 	getSizeMethod->setFunction(&BeerArray_getSize);
 	klass->setMethod(1, getSizeMethod);
 
-	MethodReflection* getItemMethod = loader->createMethod<MethodReflection>("get", std::string(klass->getName()) + "::get(Integer)", 1, 1);
+	MethodReflection* getItemMethod = loader->createMethod<MethodReflection>(BEER_WIDEN("get"), string(klass->getName()) + BEER_WIDEN("::get(Integer)"), 1, 1);
 	//getItemMethod->getReturn(0)->setType(objectClass);
 	//getItemMethod->getParam(0)->setType(integerClass);
 	getItemMethod->setFunction(&BeerArray_get);
 	klass->setMethod(2, getItemMethod);
 
-	MethodReflection* setItemMethod = loader->createMethod<MethodReflection>("set", std::string(klass->getName()) + "::set(Integer,Integer)", 0, 2);
+	MethodReflection* setItemMethod = loader->createMethod<MethodReflection>(BEER_WIDEN("set"), string(klass->getName()) + BEER_WIDEN("::set(Integer,Integer)"), 0, 2);
 	//setItemMethod->getParam(0)->setType(integerClass);
 	//setItemMethod->getParam(1)->setType(objectClass);
 	setItemMethod->setFunction(&BeerArray_set);

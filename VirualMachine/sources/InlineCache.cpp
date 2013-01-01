@@ -9,13 +9,13 @@ using namespace Beer;
 //#define BEER_INLINE_CACHE_VERBOSE
 
 #ifdef BEER_INLINE_CACHE_VERBOSE
-#	define INLINE_CACHE_DEBUG(msg) std::cout << "// InlineCache: " << msg << std::endl;
+#	define INLINE_CACHE_DEBUG(msg) cout << "// InlineCache: " << msg << std::endl;
 #else
 #	define INLINE_CACHE_DEBUG(msg)
 #endif
 
 
-MethodReflection* InlineCache::find(ClassReflection* klass, const char* selector, uint16 methodsLength)
+MethodReflection* InlineCache::find(ClassReflection* klass, const char_t* selector, uint16 methodsLength)
 {
 	if(klass == NULL)
 	{
@@ -37,7 +37,7 @@ MethodReflection* InlineCache::find(ClassReflection* klass, const char* selector
 		if(cachedClass == klass)
 		{
 			// we found cached method
-			INLINE_CACHE_DEBUG("Found " << selector << " for " << cachedClass->getName() << " at " << static_cast<int32>(i));
+			INLINE_CACHE_DEBUG(BEER_WIDEN("Found ") << selector << " for " << cachedClass->getName() << " at " << static_cast<int32>(i));
 			return cachedMethod->method;
 		}
 	}
@@ -57,7 +57,7 @@ MethodReflection* InlineCache::find(ClassReflection* klass, const char* selector
 		// save at the top
 		getMethods()[0].klass = klass;
 		getMethods()[0].method = method;
-		INLINE_CACHE_DEBUG("Saved " << selector << " for " << klass->getName() << " to 0");
+		INLINE_CACHE_DEBUG(BEER_WIDEN("Saved ") << selector << " for " << klass->getName() << " to 0");
 	}
 
 	return method;

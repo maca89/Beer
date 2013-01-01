@@ -16,10 +16,10 @@ namespace Beer
 		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
 
 	protected:
-		std::ifstream* mFile;
+		ifstream* mFile;
 
 	public:
-		INLINE bool open(const char* name)
+		INLINE bool open(const char_t* name)
 		{
 			mFile->open(name);
 			return mFile->is_open();
@@ -40,7 +40,7 @@ namespace Beer
 			(*mFile) >> out;
 		}
 
-		INLINE void read(std::string& str)
+		INLINE void read(string& str)
 		{
 			(*mFile) >> str;
 		}
@@ -67,7 +67,7 @@ namespace Beer
 			// TODO: constructor
 			FileReader* reader = gc->alloc<FileReader>();
 			reader->setClass(this);
-			reader->mFile = new std::ifstream(); // memory leak!
+			reader->mFile = new ifstream(); // memory leak!
 			return reader;
 		}
 	};
@@ -76,7 +76,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

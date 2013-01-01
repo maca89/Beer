@@ -12,7 +12,7 @@ using namespace Beer;
 #endif
 
 #ifdef BEER_GC_VERBOSE
-	#define GC_DEBUG(msg) std::cout << "// CopyGC: " << msg << std::endl;
+	#define GC_DEBUG(msg) cout << "// CopyGC: " << msg << std::endl;
 #else
 	#define GC_DEBUG(msg)
 #endif
@@ -28,6 +28,10 @@ CopyGC::CopyGC(VirtualMachine* vm, WorkStack* stack, size_t memoryLength)
 	mLiveObjects = 0;
 	mLastMoved = 0;
 	mLastCollected = 0;
+
+	// 0 => NULL
+	mReferences.push_back(NULL);
+	mReferencesNext = 1;
 }
 
 CopyGC::~CopyGC()
@@ -58,7 +62,7 @@ void CopyGC::checkGuard(Object* object)
 
 bool CopyGC::enlargeHeap(size_t desiredSize)
 {
-	std::cout << "Tried to enlarge heap" << std::endl;
+	cout << "Tried to enlarge heap" << std::endl;
 	return false;
 }
 
@@ -72,7 +76,7 @@ bool CopyGC::makeSpace(size_t size)
 Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 {
 	//TODO: preOffset
-	if(preOffset != 0) throw GCException("preOffset not yet implemented in CopyGC");
+	if(preOffset != 0) throw GCException(BEER_WIDEN("preOffset not yet implemented in CopyGC"));
 
 	size_t size = roundSize(staticSize + sizeof(Object*) * childrenCount);
 
@@ -82,7 +86,7 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 
 	if(!makeSpace(size))
 	{
-		std::stringstream ss;
+		stringstream ss;
 		ss << "Cannot allocate ";
 		ss << size;
 		ss << "bytes";
@@ -124,8 +128,8 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 	}
 
 	mLiveObjects++;
-	GC_DEBUG("Alloced object " << "#" << obj);
-	//GC_DEBUG("Used " << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
+	GC_DEBUG(BEER_WIDEN("Alloced object ") << "#" << obj);
+	//GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
 	return obj;
 }
 
@@ -157,7 +161,7 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 	if(!memory->contains(object))
 	{
 		memory->contains(object);
-		throw GCException("Object's children not in old space");
+		throw GCException(BEER_WIDEN("Object's children not in old space"));
 	}
 
 	ClassReflection* klass = mVM->getClassTable()->translate(object);
@@ -165,7 +169,7 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 	if(klass->getChildrenCount(object) > 0 && !memory->contains(object->getChildren()))
 	{
 		memory->contains(object->getChildren());
-		throw GCException("Object not in old space");
+		throw GCException(BEER_WIDEN("Object not in old space"));
 	}
 
 	for(uint16 i = 0; i < klass->getChildrenCount(object); i++)
@@ -176,8 +180,8 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 
 void CopyGC::collect()
 {
-	GC_DEBUG("Collect");
-	//GC_DEBUG("Used " << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
+	GC_DEBUG(BEER_WIDEN("Collect"));
+	//GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
 
 	//mVM->printStack();
 	
@@ -212,11 +216,27 @@ void CopyGC::collect()
 
 		if(marked(object))
 		{
-			std::cout << "marked object found when there should be none (heap)" << std::endl;
+			cout << "marked object found when there should be none (heap)" << std::endl;
 		}
 	}
 	////////////////////////////////////////////////////////////////////////////////////////
 #endif // BEER_GC_DEBUGGING
+
+	/*StringPool* pool = mVM->getStringClass<StringClass>()->getPool();
+	for(StringPool::iterator it = pool->begin(); it != pool->end(); it++)
+	{
+		String* object = it->second;
+
+		it->second = static_cast<String*>(move(object));
+	}*/
+
+	//StringPool* pool = mVM->getStringClass<StringClass>()->getPool();
+	for(ReferenceId i = 1; i < mReferences.size(); i++)
+	{
+		Object* object = mReferences[i];
+
+		mReferences[i] = move(object);
+	}
 
 	// move roots and its children
 	for(uint32 i = 0; i < mStack->size(); i++)
@@ -242,13 +262,13 @@ void CopyGC::collect()
 		{
 			if(disposed.find(object) != disposed.end())
 			{
-				std::cout << "Disposing second time" << std::endl;
+				cout << "Disposing second time" << std::endl;
 			}
 
 			//object->dispose();
 			//mLiveObjects--;
 			disposed.insert(object);
-			GC_DEBUG("Disposed object " << "#" << object << " [" << object->getClass()->getName() << "]");
+			GC_DEBUG(BEER_WIDEN("Disposed object ") << "#" << object << " [" << object->getClass()->getName() << "]");
 		}
 	}
 
@@ -318,7 +338,7 @@ Object* CopyGC::move(Object* object)
 	 size -= 2 * GuardLength;
 #endif
 
-	DBG_ASSERT(newObject != NULL, "Unable to alloc memory in other space");
+	DBG_ASSERT(newObject != NULL, BEER_WIDEN("Unable to alloc memory in other space"));
 	memcpy(newObject, object, size); // copy content
 	newObject->setChildren(reinterpret_cast<Object**>(reinterpret_cast<byte*>(static_cast<Object*>(newObject)) + childrenOffset)); // new children pointer
 	object->setChildren(reinterpret_cast<Object**>(newObject)); // save new pointer for next generations :-)
@@ -340,7 +360,7 @@ Object* CopyGC::move(Object* object)
 	check(&mMemoryNew, newObject);
 #endif // BEER_GC_DEBUGGING
 
-	GC_DEBUG("Moved #" << newObject << " [" << static_cast<Object*>(newObject)->getClass()->getName() << "]");
+	GC_DEBUG(BEER_WIDEN("Moved #") << newObject << " [" << static_cast<Object*>(newObject)->getClass()->getName() << "]");
 
 	return newObject;
 }

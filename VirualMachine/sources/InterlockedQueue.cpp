@@ -7,15 +7,15 @@ using namespace Beer;
 
 /*
 template <typename T>
-void print(const LockFreeQueue<T>& queue, const char* txt = "queue")
+void print(const LockFreeQueue<T>& queue, const char_t* txt = "queue")
 {
-	std::cout << txt << ": ";
-	if(queue.empty()) std::cout << "[empty]";
+	cout << txt << ": ";
+	if(queue.empty()) cout << "[empty]";
 	else for(LockFreeQueue<T>::iterator it = queue.begin(); it != queue.end(); it++)
 	{
-		std::cout << *it << ", ";
+		cout << *it << ", ";
 	}
-	std::cout << std::endl;
+	cout << std::endl;
 }
 
 typedef LockFreeQueue<int> IntQueue;

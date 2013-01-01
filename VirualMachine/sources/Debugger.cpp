@@ -19,50 +19,53 @@ Debugger::~Debugger()
 
 void Debugger::printLastOutput()
 {
-	std::cout << "[LastOutput]" << std::endl;
-	Console::getOutput().flush(std::cout);
-	std::cout << std::endl;
+	cout << BEER_WIDEN("[LastOutput]") << '\n';
+	Console::getOutput().flush(cout);
+	cout << std::endl;
 }
 
 void Debugger::printInstruction(const Bytecode::Instruction* instr, uint16 programCounter)
 {
-	std::cout /*<< std::endl*/ << "[Instruction]" << std::endl;
-	std::cout << std::setw(4) << std::setfill(' ') << "+" << programCounter << " ";
-	instr->printTranslated();
-	std::cout << std::endl;
+	cout /*<< std::endl*/ << BEER_WIDEN("[Instruction]") << std::endl;
+	cout << std::setw(4);
+	cout << std::setfill(BEER_WIDEN(' ')) << BEER_WIDEN("+") << programCounter << BEER_WIDEN(" ");
+	instr->printTranslated(mVM);
+	cout << std::endl;
 }
 
 void Debugger::printNativeInstruction()
 {
-	std::cout /*<< std::endl*/ << "[Instruction]" << std::endl;
-	std::cout << std::setw(4) << std::setfill(' ') << "+" << "NATIVE_CODE ";
-	std::cout << std::endl;
+	cout /*<< std::endl*/ << "[Instruction]" << std::endl;
+	cout << std::setw(4);
+	cout << std::setfill(BEER_WIDEN(' ')) << "+" << "NATIVE_CODE ";
+	cout << std::endl;
 }
 
 void Debugger::printCallStack()
 {
-	std::cout << "[CallStack]" << std::endl;
+	cout << "[CallStack]" << std::endl;
 	
 	const Frames* frames = mVM->getStackFrames();
 	uint32 i = 0;
 	for(Frames::const_iterator it = frames->begin(); it != frames->end(); it++)
 	{
 		const StackFrame& frame = *it;
-		std::cout << std::setw(4) << std::setfill(' ') << "+" << i << " ";
+		cout << std::setw(4);
+		cout << std::setfill(BEER_WIDEN(' ')) << "+" << i << " ";
 		
 		if(frame.method)
 		{
-			std::cout << frame.method << " " << frame.method->getSelector() << "@" << frame.programCounter;
+			cout << frame.method << " " << frame.method->getSelector() << "@" << frame.programCounter;
 		}
 		else
 		{
-			std::cout << "no method";
+			cout << "no method";
 		}
 		
-		std::cout << std::endl;
+		cout << std::endl;
 		i++;
 	}
-	std::cout << std::endl;
+	cout << std::endl;
 }
 
 void Debugger::printObject(Object* object)
@@ -71,52 +74,52 @@ void Debugger::printObject(Object* object)
 	{
 		if(*it == object)
 		{
-			std::cout << "...";
+			cout << "...";
 			return;
 		}
 	}
 
 	mPrintedObjects.push_back(object);
 
-	if(object == NULL) std::cout << "NULL";
+	if(object == NULL) cout << "null";
 	else
 	{
 		ClassReflection* klass = mVM->getClassTable()->translate(object);
 		if(klass)
 		{
-			if(!klass->isValueType()) std::cout << "#" << object << " ";
+			if(!klass->isValueType()) cout << "#" << object << " ";
 
-			std::stringstream ss;
+			stringstream ss;
 			klass->dump(object, ss);
-			std::cout << ss.str();
+			cout << ss.str();
 
 			if(klass->getPropertiesCount() > 0)
 			{
-				std::cout << " {";
+				cout << " {";
 				for(uint32 i = 0; i < klass->getPropertiesCount(); i++)
 				{
 					PropertyReflection* prop = klass->getProperty(i);
 					Object* child = object->getChild<Object>(i);
 				
-					if(prop) std::cout << prop->getName() << ": ";
+					if(prop) cout << prop->getName() << ": ";
 
 					if(child == NULL)
 					{
-						std::cout << "null";
+						cout << "null";
 					}
 					else
 					{
 						printObject(child);
 					}
 
-					if(i < klass->getPropertiesCount() - 1) std::cout << ", ";
+					if(i < klass->getPropertiesCount() - 1) cout << ", ";
 				}
-				std::cout << "}";
+				cout << "}";
 			}
 		}
 		else
 		{
-			std::cout << "#" << object << " has no class";
+			cout << "#" << object << " has no class";
 		}
 	}
 
@@ -144,11 +147,12 @@ void Debugger::printFrameStack(StackFrame* frame)
 	uint32 i = 0; // TODO
 	WorkStack* stack = mVM->getStack();
 
-	std::cout << "[FrameStack|offset=" << frame->frameOffset << "]" << std::endl;
+	cout << "[FrameStack|offset=" << frame->frameOffset << "]" << std::endl;
 
 	if(frame->frameOffset > 5)
 	{
-		std::cout << std::setw(4) << std::setfill(' ') << "..." << std::endl;
+		cout << std::setw(4);
+		cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
 		i = frame->frameOffset - 5;
 	}
 
@@ -156,11 +160,11 @@ void Debugger::printFrameStack(StackFrame* frame)
 	{
 		Object* obj = stack->top(i);
 		int64 index = int64(i) - frame->frameOffset + 1;
-		std::cout << "    " << (index >= 0 ? "+" : "") << index << " ";
+		cout << "    " << (index >= 0 ? "+" : "") << index << " ";
 		printObject(obj);
-		std::cout << std::endl;
+		cout << std::endl;
 	}
-	std::cout << std::endl;
+	cout << std::endl;
 }
 
 void Debugger::printStack()
@@ -168,14 +172,15 @@ void Debugger::printStack()
 	uint32 i = 0; // TODO
 	WorkStack* stack = mVM->getStack();
 
-	std::cout << "[Stack]" << std::endl;
+	cout << "[Stack]" << std::endl;
 
 	if(mVM->hasStackFrame())
 	{
 		StackFrame* frame = mVM->getStackFrame();
 		if(frame->frameOffset > 5)
 		{
-			std::cout << std::setw(4) << std::setfill(' ') << "..." << std::endl;
+			cout << std::setw(4);
+			cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
 			i = frame->frameOffset - 5;
 		}
 	}
@@ -183,22 +188,24 @@ void Debugger::printStack()
 	for(; i < stack->size(); i++)
 	{
 		Object* obj = stack->top(i);
-		std::cout << std::setw(4) << std::setfill(' ') << "+" << i << " ";
+		cout << std::setw(4);
+		cout << std::setfill(BEER_WIDEN(' ')) << "+" << i << " ";
 		printObject(obj);
-		std::cout << std::endl;
+		cout << std::endl;
 	}
-	std::cout << std::endl;
+	cout << std::endl;
 }
 
 void Debugger::printClassMethods(ClassReflection* klass)
 {
-	std::cout << "[Class " << klass->getName() << "]" << std::endl;
+	cout << "[Class " << klass->getName() << "]" << std::endl;
 	for(uint16 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
 	{
 		MethodReflection* method = klass->getMethod(methodi);
 		if(method)
 		{
-			std::cout << std::setw(4) << std::setfill(' ') << "+" << methodi << " " << method->getSelector() << std::endl;
+			cout << std::setw(4);
+			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " " << method->getSelector() << std::endl;
 		}
 	}
 }
@@ -219,35 +226,35 @@ void Debugger::step(StackFrame* frame)
 	if(!isEnabled()) return;
 	if(isStepping()) system("CLS");
 	
-	std::cout << std::endl << "--------- STEP ---------" << std::endl;
+	cout << std::endl << "--------- STEP ---------" << std::endl;
 	printLastOutput();
 	//mVM->getHeap()->collect();
 	printFrame(frame);
 
 	if(isStepping())
 	{
-		std::string input;
-		std::cout << std::endl << "\r>";
-		std::getline(std::cin, input);
-		std::cout << "\r";
+		string input;
+		cout << std::endl << "\r>";
+		std::getline(cin, input);
+		cout << "\r";
 	}
 }
 
 bool Debugger::catchException(StackFrame* frame, const Exception& ex)
 {
-	std::cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
+	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();
 	printFrame(frame);
 
-	if(ex.getName() == "MethodNotFoundException") // TODO: better
+	if(ex.getName() == BEER_WIDEN("MethodNotFoundException")) // TODO: better
 	{
-		std::cout << std::endl;
+		cout << std::endl;
 		StackRef<Object> receiver(frame, frame->stackTopIndex());
 		ClassReflection* klass = mVM->getClassTable()->translate(receiver);
 		printClassMethods(klass);
 	}
 	
-	//std::cout << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
+	//cout << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
 
 	return false; // TODO
 }

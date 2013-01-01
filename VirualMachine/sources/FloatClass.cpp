@@ -21,7 +21,7 @@ void BEER_CALL BeerFloat_toInteger(VirtualMachine* vm, StackFrame* frame, StackR
 
 void BEER_CALL BeerFloat_toString(VirtualMachine* vm, StackFrame* frame, StackRef<Float> receiver, StackRef<String> ret)
 {
-	std::stringstream ss;
+	stringstream ss;
 	ss << std::setprecision(8) << std::fixed << receiver->getData();
 	// TODO: check and throw Exception
 	ret = vm->createString(ss.str());
@@ -41,7 +41,7 @@ struct UnaryOperator##Name																								\
 		StackRef<Float> receiver, 																						\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->getClass(#Return)->createInstance<Return>(frame, vm->getHeap());										\
+		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(frame, vm->getHeap());							\
 		ret->setData(receiver->getData() Do);																			\
 	}																													\
 };																														\
@@ -49,8 +49,8 @@ struct UnaryOperator##Name																								\
 #define BuildUnaryOperator(Class, Name, Operator, Return, Do)															\
 	BuildUnaryOperatorFn(Name, Do, Return);																				\
 	method = loader->createMethod<MethodReflection>(																	\
-			#Operator, 																									\
-			std::string(Class->getName()) + "::" + #Operator + "()", 													\
+			BEER_WIDEN(#Operator), 																						\
+			string(Class->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Operator) + BEER_WIDEN("()"), 					\
 			1, 																											\
 			0																											\
 		);																												\
@@ -73,7 +73,7 @@ struct BinaryOperator##Name																								\
 		StackRef<Param> arg, 																							\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->getClass(#Return)->createInstance<Return>(frame, vm->getHeap());										\
+		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(frame, vm->getHeap());							\
 		ret->setData(static_cast<Return::Return##Data>(receiver->getData()) Operator arg->getData());					\
 	}																													\
 };																														\
@@ -81,8 +81,8 @@ struct BinaryOperator##Name																								\
 #define BuildBinaryOperator(Class, Name, Operator, Param, Return, Do)													\
 	BuildBinaryOperatorFn(Name, Do, Param, Return);																		\
 	method = loader->createMethod<MethodReflection>(																	\
-			#Operator, 																									\
-			std::string(Class->getName()) + "::" + #Operator + "(" + #Param + ")", 										\
+			BEER_WIDEN(#Operator), 																						\
+			string(Class->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 		\
 			1, 																											\
 			1																											\
 		);																												\
@@ -111,8 +111,8 @@ struct CompareOperator##Name																							\
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
 	method = loader->createMethod<MethodReflection>(																	\
-			#Operator, 																									\
-			std::string(Class->getName()) + "::" + #Operator + "(" + #Param + ")", 										\
+			BEER_WIDEN(#Operator), 																						\
+			string(Class->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 		\
 			1, 																											\
 			1																											\
 		);																												\
@@ -126,7 +126,7 @@ struct CompareOperator##Name																							\
 
 
 
-ClassReflection* FloatClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* FloatClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
 	return loader->createClass<FloatClass>(name, 1, 0, 14);
 }
@@ -137,7 +137,7 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	uint16 methodi = 0;
 	klass->extends(0, vm->getObjectClass());
 	
-	MethodReflection* method = loader->createMethod<MethodReflection>("Float", "Float::Float()", 1, 0);
+	MethodReflection* method = loader->createMethod<MethodReflection>(BEER_WIDEN("Float"), BEER_WIDEN("Float::Float()"), 1, 0);
 	method->setFunction(&BeerFloat_init);
 	klass->setMethod(methodi++, method);
 	
@@ -155,11 +155,11 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	BuildCompareOperator(klass, Equal, ==, Float, ==);
 	BuildCompareOperator(klass, NotEqual, !=, Float, !=);
 	
-	method = loader->createMethod<MethodReflection>("Integer", "Float::Integer()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), BEER_WIDEN("Float::Integer()"), 1, 0);
 	method->setFunction(&BeerFloat_toInteger);
 	klass->setMethod(methodi++, method);
 	
-	method = loader->createMethod<MethodReflection>("String", "Float::String()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("Float::String()"), 1, 0);
 	method->setFunction(&BeerFloat_toString);
 	klass->setMethod(methodi++, method);
 	

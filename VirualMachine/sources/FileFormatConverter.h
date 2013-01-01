@@ -25,7 +25,7 @@ namespace Beer
 			#endif
 		}
 
-		INLINE bool needSwap()
+		INLINE bool need()
 		{
 			return mTarget != mSource;
 		}
@@ -40,15 +40,7 @@ namespace Beer
 			mTarget = format;
 		}
 
-		INLINE void convert(int8& n)
-		{
-			// nothing
-		}
-
-		INLINE void convert(uint8& n)
-		{
-			// nothing
-		}
+		// user-check
 
 		INLINE void convert(int16& n)
 		{
@@ -57,10 +49,7 @@ namespace Beer
 
 		INLINE void convert(uint16& n)
 		{
-			if(needSwap())
-			{
-				doconvert(n);
-			}
+			n = _byteswap_ushort(n);
 		}
 
 		INLINE void convert(int32& n)
@@ -70,10 +59,7 @@ namespace Beer
 
 		INLINE void convert(uint32& n)
 		{
-			if(needSwap())
-			{
-				doconvert(n);
-			}
+			n = _byteswap_ulong(n);
 		}
 
 		INLINE void convert(int64& n)
@@ -82,25 +68,6 @@ namespace Beer
 		}
 
 		INLINE void convert(uint64& n)
-		{
-			if(needSwap())
-			{
-				doconvert(n);
-			}
-		}
-
-	protected:
-		INLINE void doconvert(uint16& n)
-		{
-			n = _byteswap_ushort(n);
-		}
-
-		INLINE void doconvert(uint32& n)
-		{
-			n = _byteswap_ulong(n);
-		}
-
-		INLINE void doconvert(uint64& n)
 		{
 			n = _byteswap_uint64(n);
 		}

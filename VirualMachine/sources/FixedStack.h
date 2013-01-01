@@ -59,7 +59,7 @@ namespace Beer
 
 		INLINE void set(T obj, uint32 absoluteIndex)
 		{
-			DBG_ASSERT(absoluteIndex < mNext, "Attempting to change value out of the stack");
+			DBG_ASSERT(absoluteIndex < mNext, BEER_WIDEN("Attempting to change value out of the stack"));
 			mItems[absoluteIndex] = obj;
 		}
 

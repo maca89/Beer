@@ -9,8 +9,8 @@ using namespace Beer;
 	//  TODO: does it really works?
 	while(size > 0)
 	{
-		*reinterpret_cast<char*>(mem) = 0;
-		mem = reinterpret_cast<char*>(mem) + 1;
+		*reinterpret_cast<char_t*>(mem) = 0;
+		mem = reinterpret_cast<char_t*>(mem) + 1;
 		size--;
 	}
 }*/

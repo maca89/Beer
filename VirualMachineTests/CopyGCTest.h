@@ -31,7 +31,7 @@ namespace Beer
 		void test3();
 		void test4();
 
-		String* createString(std::string value);
+		String* createString(string value);
 		Bar* createBar();
 		Foo* createFoo();
 	};

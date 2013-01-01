@@ -30,13 +30,13 @@ bool isSorted(int32* items, size_t length)
 
 void print(int32* items, size_t length)
 {
-	std::cout << "[";
+	cout << "[";
 	for(size_t i = 0; i < length; i++)
 	{
-		std::cout << items[i];
-		if(i + 1 < length) std::cout << ", ";
+		cout << items[i];
+		if(i + 1 < length) cout << ", BEER_WIDEN(";
 	}
-	std::cout << "]" << std::endl;
+	cout << ")]" << std::endl;
 }
 
 
@@ -165,7 +165,7 @@ void QuickSortTest::testIterativeRandomBig()
 	
 	timer.start();
 	Beer::QuickSort::iterative(items, length);
-	//std::cout << "QuickSort::nonresursive " << length << " in " << timer.stop() << std::endl;
+	//cout << "QuickSort::nonresursive " << length << " in " << timer.stop() << std::endl;
 
 	TEST_ASSERT(isSorted(items, length));
 	SMART_DELETE_ARR(items);
@@ -294,7 +294,7 @@ void QuickSortTest::testParallelBig()
 
 	timer.start();
 	QuickSort_parallel(items, length);
-	//std::cout << "QuickSort::parallel " << length << " in " << timer.stop() << std::endl;
+	//cout << "QuickSort::parallel " << length << " in " << timer.stop() << std::endl;
 	//print(items, length);
 
 	TEST_ASSERT(isSorted(items, length));
@@ -309,7 +309,7 @@ void QuickSortTest::testParallelLarge()
 
 	timer.start();
 	QuickSort_parallel(items, length);
-	//std::cout << "QuickSort::parallel " << length << " in " << timer.stop() << std::endl;
+	//cout << "QuickSort::parallel " << length << " in " << timer.stop() << std::endl;
 	//print(items, length);
 
 	TEST_ASSERT(isSorted(items, length));

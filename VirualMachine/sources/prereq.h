@@ -32,38 +32,106 @@ namespace Beer
 	typedef float float32;
 	typedef double float64;
 
+	typedef char char8;
+	typedef wchar_t char16;
+
+	#define BEER_MULTIBYTE_STRINGS
+
+#ifdef BEER_MULTIBYTE_STRINGS
+	typedef char16 char_t;
+	typedef std::wstring string;
+	typedef std::wstringstream stringstream;
+	typedef std::wostream ostream;
+	typedef std::wifstream ifstream;
+	// TODO
+	#define cout std::wcout
+	#define cin std::wcin
+
+	#define BEER_WIDEN(x) L ## x
+	#define __WFILE__ _T(__FILE__)
+#else
+	typedef char8 char_t;
+	typedef std::string string;
+	typedef std::stringstream stringstream;
+	typedef std::ostream ostream;
+	typedef std::ifstream ifstream;
+	// TODO
+	#define cout std::cout
+	#define cin std::cin
+
+	#define BEER_WIDEN(x) x
+	#define __WFILE__ __FILE__
+#endif // BEER_MULTIBYTE_STRINGS
+
+	INLINE static int16 strcmp(const char8* str1, const char8* str2)
+	{
+		return ::strcmp(str1, str2);
+	}
+
+	INLINE static int16 strcmp(const char16* str1, const char16* str2)
+	{
+		return ::lstrcmpW(str1, str2);
+	}
+
+	INLINE static size_t strlen(const char8* str)
+	{
+		return ::strlen(str);
+	}
+
+	INLINE static size_t strlen(const char16* str)
+	{
+		return ::lstrlenW(str);
+	}
+
+	INLINE static void strcpy(char8* dest, size_t maxLength, const char8* source)
+	{
+		::strcpy_s(dest, maxLength, source);
+	}
+
+	INLINE static void strcpy(char16* dest, size_t maxLength, const char16* source)
+	{
+		::lstrcpynW(dest, source, maxLength);
+	}
+
+	INLINE static std::wstring strwiden(const std::string& str)
+	{
+		return std::wstring(str.begin(), str.end());
+	}
+
 	//void ZeroMemory(void* mem, size_t size);
 
 	struct Exception : std::exception
 	{
 	protected:
-		std::string mName;
-		std::string mFilename;
+		string mWhat;
+		string mName;
+		string mFilename;
 		long mLine;
 
 	public:
-		Exception(std::string message, std::string filename = "", long line = 0) : std::exception(message.c_str()), mName("Exception")
+		NOINLINE Exception(string message, string filename = BEER_WIDEN(""), long line = 0)
+			: std::exception(std::string(message.begin(), message.end()).c_str()), mName(BEER_WIDEN("Exception")), mWhat(message)
 		{
 			mFilename = filename;
 			mLine = line;
 		}
 
-		std::string getName() const
+		INLINE const string& getName() const
 		{
 			return mName;
 		}
 
-		std::string getMessage() const
+		INLINE const string& getMessage() const
 		{
-			return what();
+			return mWhat;
 		}
 
-		std::string getFilename() const
+		INLINE const string& getFilename() const
 		{
 			return mFilename;
 		}
 
-		long getFileline() const
+		INLINE long getFileline() const
 		{
 			return mLine;
 		}
@@ -71,150 +139,150 @@ namespace Beer
 
 	struct InternalException : Exception
 	{
-		InternalException(std::string message, std::string filename = "", long line = 0) : Exception(message, filename, line)
+		InternalException(string message, string filename = BEER_WIDEN(""), long line = 0) : Exception(message, filename, line)
 		{
-			mName = "InternalException";
+			mName = BEER_WIDEN("InternalException");
 		}
 	};
 
 	struct GCException : InternalException
 	{
-		GCException(std::string message, std::string filename = "", long line = 0) : InternalException(message, filename, line)
+		GCException(string message, string filename = BEER_WIDEN(""), long line = 0) : InternalException(message, filename, line)
 		{
-			mName = "GCException";
+			mName = BEER_WIDEN("GCException");
 		}
 	};
 
 	struct NotEnoughMemoryException : GCException
 	{
-		NotEnoughMemoryException(std::string message, std::string filename = "", long line = 0) : GCException(message, filename, line)
+		NotEnoughMemoryException(string message, string filename = BEER_WIDEN(""), long line = 0) : GCException(message, filename, line)
 		{
-			mName = "NotEnoughMemoryException";
+			mName = BEER_WIDEN("NotEnoughMemoryException");
 		}
 	};
 
 	struct CriticalAssertException : Exception
 	{
-		CriticalAssertException(std::string message, std::string filename = "", long line = 0) : Exception(message, filename, line)
+		CriticalAssertException(string message, string filename = BEER_WIDEN(""), long line = 0) : Exception(message, filename, line)
 		{
-			mName = "CriticalAssertException";
+			mName = BEER_WIDEN("CriticalAssertException");
 		}
 	};
 
 	struct RuntimeException : Exception
 	{
-		RuntimeException(std::string message, std::string filename = "", long line = 0) : Exception(message, filename, line)
+		RuntimeException(string message, string filename = BEER_WIDEN(""), long line = 0) : Exception(message, filename, line)
 		{
-			mName = "RuntimeException";
+			mName = BEER_WIDEN("RuntimeException");
 		}
 	};
 
 	struct ClassFileException : RuntimeException
 	{
-		ClassFileException(std::string message, std::string filename = "", long line = 0) : RuntimeException(message, filename, line)
+		ClassFileException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
 		{
-			mName = "ClassFileException";
+			mName = BEER_WIDEN("ClassFileException");
 		}
 	};
 
 	struct RuntimeAssertException : RuntimeException
 	{
-		RuntimeAssertException(std::string message, std::string filename = "", long line = 0) : RuntimeException(message, filename, line)
+		RuntimeAssertException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
 		{
-			mName = "RuntimeAssertException";
+			mName = BEER_WIDEN("RuntimeAssertException");
 		}
 	};
 
 	struct UnexpectedClassException : RuntimeException
 	{
-		UnexpectedClassException(std::string message, std::string filename = "", long line = 0) : RuntimeException(message, filename, line)
+		UnexpectedClassException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
 		{
-			mName = "UnexpectedClassException";
+			mName = BEER_WIDEN("UnexpectedClassException");
 		}
 	};
 
 	struct MethodNotFoundException : RuntimeException
 	{
-		MethodNotFoundException(std::string message, std::string filename = "", long line = 0) : RuntimeException(message, filename, line)
+		MethodNotFoundException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
 		{
-			mName = "MethodNotFoundException";
+			mName = BEER_WIDEN("MethodNotFoundException");
 		}
 	};
 
 	struct ClassNotFoundException : RuntimeException
 	{
 	protected:
-		std::string mClassName;
+		string mClassName;
 
 	public:
-		ClassNotFoundException(std::string name, std::string filename = "", long line = 0) : RuntimeException(std::string("Class not found: ") + name, filename, line), mClassName(name)
+		ClassNotFoundException(string name, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(string(BEER_WIDEN("Class not found: ")) + name, filename, line), mClassName(name)
 		{
-			mName = "ClassNotFoundException";
+			mName = BEER_WIDEN("ClassNotFoundException");
 		}
 
-		std::string getClassName() const { return mClassName; }
+		string getClassName() const { return mClassName; }
 	};
 
 	struct CircularParentException : RuntimeException
 	{
 	protected:
-		std::string mClassName;
+		string mClassName;
 
 	public:
-		CircularParentException(std::string name, std::string filename = "", long line = 0) : RuntimeException(std::string("Class has circular refrence in parents: ") + name, filename, line), mClassName(name)
+		CircularParentException(string name, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(string(BEER_WIDEN("Class has circular refrence in parents: ")) + name, filename, line), mClassName(name)
 		{
-			mName = "CircularParentException";
+			mName = BEER_WIDEN("CircularParentException");
 		}
 
-		std::string getClassName() const { return mClassName; }
+		string getClassName() const { return mClassName; }
 	};
 
 	struct NullReferenceException : RuntimeException
 	{
-		NullReferenceException(std::string message, std::string filename = "", long line = 0) : RuntimeException(message, filename, line)
+		NullReferenceException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
 		{
-			mName = "NullReferenceException";
+			mName = BEER_WIDEN("NullReferenceException");
 		}
 	};
 
 	struct BytecodeException : RuntimeException
 	{
-		BytecodeException(std::string message, std::string filename = "", long line = 0) : RuntimeException(message, filename, line)
+		BytecodeException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
 		{
-			mName = "BytecodeException";
+			mName = BEER_WIDEN("BytecodeException");
 		}
 	};
 
 	struct IOException : RuntimeException
 	{
-		IOException(std::string msg, std::string filename = "", long line = 0) : RuntimeException(msg, filename, line)
+		IOException(string msg, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(msg, filename, line)
 		{
-			mName = "IOException";
+			mName = BEER_WIDEN("IOException");
 		}
 	};
 
 	struct IOFileException : IOException
 	{
-		IOFileException(std::string msg, std::string filename = "", long line = 0) : IOException(msg, filename, line)
+		IOFileException(string msg, string filename = BEER_WIDEN(""), long line = 0) : IOException(msg, filename, line)
 		{
-			mName = "IOFileException";
+			mName = BEER_WIDEN("IOFileException");
 		}
 	};
 
-	#define GCException(_msg_) GCException((_msg_), __FILE__, __LINE__)
-	#define NotEnoughMemoryException(_msg_) NotEnoughMemoryException((_msg_), __FILE__, __LINE__)
-	#define CriticalAssertException(_msg_) CriticalAssertException((_msg_), __FILE__, __LINE__)
-	#define RuntimeAssertException(_msg_) RuntimeAssertException((_msg_), __FILE__, __LINE__)
-	#define ClassFileException(_msg_) ClassFileException((_msg_), __FILE__, __LINE__)
-	#define BadCastException(_from_, _to_) BadCastException((_from_), (_to_), __FILE__, __LINE__)
-	#define UnexpectedClassException(_msg_) UnexpectedClassException((_msg_), __FILE__, __LINE__)
-	#define MethodNotFoundException(_msg_) MethodNotFoundException((_msg_), __FILE__, __LINE__)
-	#define ClassNotFoundException(_msg_) ClassNotFoundException((_msg_), __FILE__, __LINE__)
-	#define CircularParentException(_msg_) CircularParentException((_msg_), __FILE__, __LINE__)
-	#define NullReferenceException(_msg_) NullReferenceException((_msg_), __FILE__, __LINE__)
-	#define BytecodeException(_msg_) BytecodeException((_msg_), __FILE__, __LINE__)
-	#define IOException(_msg_) IOException((_msg_), __FILE__, __LINE__)
-	#define IOFileException(_msg_) IOFileException((_msg_), __FILE__, __LINE__)
+	#define GCException(_msg_) GCException((_msg_), __WFILE__, __LINE__)
+	#define NotEnoughMemoryException(_msg_) NotEnoughMemoryException((_msg_), __WFILE__, __LINE__)
+	#define CriticalAssertException(_msg_) CriticalAssertException((_msg_), __WFILE__, __LINE__)
+	#define RuntimeAssertException(_msg_) RuntimeAssertException((_msg_), __WFILE__, __LINE__)
+	#define ClassFileException(_msg_) ClassFileException((_msg_), __WFILE__, __LINE__)
+	#define BadCastException(_from_, _to_) BadCastException((_from_), (_to_), __WFILE__, __LINE__)
+	#define UnexpectedClassException(_msg_) UnexpectedClassException((_msg_), __WFILE__, __LINE__)
+	#define MethodNotFoundException(_msg_) MethodNotFoundException((_msg_), __WFILE__, __LINE__)
+	#define ClassNotFoundException(_msg_) ClassNotFoundException((_msg_), __WFILE__, __LINE__)
+	#define CircularParentException(_msg_) CircularParentException((_msg_), __WFILE__, __LINE__)
+	#define NullReferenceException(_msg_) NullReferenceException((_msg_), __WFILE__, __LINE__)
+	#define BytecodeException(_msg_) BytecodeException((_msg_), __WFILE__, __LINE__)
+	#define IOException(_msg_) IOException((_msg_), __WFILE__, __LINE__)
+	#define IOFileException(_msg_) IOFileException((_msg_), __WFILE__, __LINE__)
 
 
 	#ifdef BEER_DEBUG_MODE
@@ -259,7 +327,7 @@ namespace Beer
 	#ifdef BEER_NULL_ASSERTS_ON
 		#define NULL_ASSERT(var) if(!(var))														\
 		{																						\
-			throw NullReferenceException("Object is null");										\
+			throw NullReferenceException(BEER_WIDEN("Object is nulBEER_WIDEN("));										\
 		}
 	#else
 		#define NULL_ASSERT(var)
@@ -267,7 +335,7 @@ namespace Beer
 
 	// debug info
 	#ifdef _DEBUG
-		#define DEBUG_INFO(_msg_) std::cout << "Debug: " << _msg_ << std::endl;
+		#define DEBUG_INFO(_msg_) cout << ")Debug: " << _msg_ << std::endl;
 	#else
 		#define DEBUG_INFO(_msg_)
 	#endif

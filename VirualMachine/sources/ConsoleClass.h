@@ -18,9 +18,9 @@ namespace Beer
 		{
 
 			Integer::IntegerData length;
-			const char** args;
+			const char_t** args;
 
-			ConsoleArguments(Integer::IntegerData length = 0, const char** args = NULL) : length(length), args(args) {}
+			ConsoleArguments(Integer::IntegerData length = 0, const char_t** args = NULL) : length(length), args(args) {}
 		}; 
 
 		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
@@ -38,8 +38,8 @@ namespace Beer
 		INLINE static CachedOutput& getOutput() { return gOut; }
 
 		INLINE static bool hasArg(Integer::IntegerData i) { return i < gArguments.length; }
-		INLINE static const char* getArg(Integer::IntegerData i) { return gArguments.args[i]; }
-		INLINE static void setArgs(const char** args, Integer::IntegerData length) { gArguments.args = args; gArguments.length = length; }
+		INLINE static const char_t* getArg(Integer::IntegerData i) { return gArguments.args[i]; }
+		INLINE static void setArgs(const char_t** args, Integer::IntegerData length) { gArguments.args = args; gArguments.length = length; }
 
 		friend class ConsoleClass;
 	};
@@ -68,7 +68,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

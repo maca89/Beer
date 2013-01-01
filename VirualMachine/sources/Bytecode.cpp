@@ -25,238 +25,250 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 	switch (opcode)
 	{
 	case Beer::Bytecode::INSTR_NOP:
-		std::cout << "NOP";
+		cout << "NOP";
 		break;
 
 	case Beer::Bytecode::INSTR_JMP:
-		std::cout << "JMP " << getData_uint16();
+		cout << "JMP " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 
 	case Beer::Bytecode::INSTR_JMP_TRUE:
-		std::cout << "JMP_TRUE " << getData_uint16();
+		cout << "JMP_TRUE " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 
 	case Beer::Bytecode::INSTR_JMP_FALSE:
-		std::cout << "JMP_FALSE " << getData_uint16();
+		cout << "JMP_FALSE " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 
 	case Beer::Bytecode::INSTR_POP:
-		std::cout << "POP";
+		cout << "POP";
 		break;
 
 	case Beer::Bytecode::INSTR_TOP:
-		std::cout << "TOP " << getData_int16();
+		cout << "TOP " << getData_int16();
 		size += sizeof(int16);
 		break;
 
 	case Beer::Bytecode::INSTR_STORE:
-		std::cout << "STORE " << getData_int16();
+		cout << "STORE " << getData_int16();
 		size += sizeof(int16);
 		break;
 
 	case Beer::Bytecode::INSTR_MOVE_TOP:
-		std::cout << "MOVE_TOP " << getData_int16();
+		cout << "MOVE_TOP " << getData_int16();
 		size += sizeof(int16);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_INT8:
-		std::cout << "PUSH_INT8 " << static_cast<uint32>(getData_int8());
+		cout << "PUSH_INT8 " << static_cast<uint32>(getData_int8());
 		size += sizeof(int8);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_INT32:
-		std::cout << "PUSH_INT32 " << getData_int32();
+		cout << "PUSH_INT32 " << getData_int32();
 		size += sizeof(int32);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_INT64:
-		std::cout << "PUSH_INT64 " << getData_int64();
+		cout << "PUSH_INT64 " << getData_int64();
 		size += sizeof(int64);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_FLOAT:
-		std::cout << "PUSH_FLOAT " << getData_float64();
+		cout << "PUSH_FLOAT " << getData_float64();
 		size += sizeof(float64);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_STRING:
-		std::cout << "PUSH_STRING " << getData_uint32();
-		std::cout << " // \"" << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str() << "\"";
+		cout << "PUSH_STRING " << getData_uint32();
+		cout << " // \"" << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str() << "\"";
 		size += sizeof(uint32);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_CHAR:
-		std::cout << "PUSH_CHAR " << getData_uint16();
+		cout << "PUSH_CHAR " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_BOOL:
-		std::cout << "PUSH_BOOL " << static_cast<uint32>(getData_uint8());
+		cout << "PUSH_BOOL " << static_cast<uint32>(getData_uint8());
 		size += sizeof(uint8);
 		break;
 
 	case Beer::Bytecode::INSTR_NEW:
-		std::cout << "NEW " << getData_uint32();
-		std::cout << " // " << classFile->getClassName(getData_uint32())->c_str();
+		cout << "NEW " << getData_uint32();
+		cout << " // " << classFile->getClassName(getData_uint32())->c_str();
 		size += sizeof(uint32);
 		break;
 
 	case Beer::Bytecode::INSTR_CLONE:
-		std::cout << "CLONE";
+		cout << "CLONE";
 		break;
 
 	case Beer::Bytecode::INSTR_ASSIGN:
-		std::cout << "ASSIGN " << getData_uint16();
+		cout << "ASSIGN " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 
 	case Beer::Bytecode::INSTR_LOAD:
-		std::cout << "LOAD " << getData_uint16();
+		cout << "LOAD " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 
 	case Beer::Bytecode::INSTR_INVOKE:
-		std::cout << "INVOKE " << getData_uint32();
-		std::cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
+		cout << "INVOKE " << getData_uint32();
+		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
 		size += sizeof(uint32);
 		break;
 	
 	case Beer::Bytecode::INSTR_INTERFACEINVOKE:
-		std::cout << "INTERFACE_INVOKE " << getData_uint32();
-		std::cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
+		cout << "INTERFACE_INVOKE " << getData_uint32();
+		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
 		size += sizeof(uint32);
 		break;
 	
 	case Beer::Bytecode::INSTR_STATIC_INVOKE:
-		std::cout << "STATIC_INVOKE " << getData_uint32();
-		std::cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
+		cout << "STATIC_INVOKE " << getData_uint32();
+		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
 		size += sizeof(uint32);
 		break;
 	
 	case Beer::Bytecode::INSTR_SPECIALINVOKE:
-		std::cout << "SPECIALINVOKE " << getData_uint32();
-		std::cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
+		cout << "SPECIALINVOKE " << getData_uint32();
+		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData_uint32())->c_str();
 		size += sizeof(uint32);
 		break;
 	
 	case Beer::Bytecode::INSTR_RETURN:
-		std::cout << "RETURN " << getData_uint16();
+		cout << "RETURN " << getData_uint16();
 		size += sizeof(uint16);
 		break;
 	
 	default:
-		std::cout << "[UNKNOWN]";
+		cout << "[UNKNOWN]";
 		break;
 	}
 
 	return size;
 }
 
-void Bytecode::Instruction::printTranslated() const
+void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 {
 	switch (opcode)
 	{
 	case Beer::Bytecode::INSTR_NOP:
-		std::cout << "NOP";
+		cout << "NOP";
 		break;
 
 	case Beer::Bytecode::INSTR_JMP:
-		std::cout << "JMP " << getData_uint16();
+		cout << "JMP " << getData_uint16();
 		break;
 
 	case Beer::Bytecode::INSTR_JMP_TRUE:
-		std::cout << "JMP_TRUE " << getData_uint16();
+		cout << "JMP_TRUE " << getData_uint16();
 		break;
 
 	case Beer::Bytecode::INSTR_JMP_FALSE:
-		std::cout << "JMP_FALSE " << getData_uint16();
+		cout << "JMP_FALSE " << getData_uint16();
 		break;
 
 	case Beer::Bytecode::INSTR_POP:
-		std::cout << "POP";
+		cout << "POP";
 		break;
 
 	case Beer::Bytecode::INSTR_TOP:
-		std::cout << "TOP " << getData_int16();
+		cout << "TOP " << getData_int16();
 		break;
 
 	case Beer::Bytecode::INSTR_STORE:
-		std::cout << "STORE " << getData_int16();
+		cout << "STORE " << getData_int16();
 		break;
 
 	case Beer::Bytecode::INSTR_MOVE_TOP:
-		std::cout << "MOVE_TOP " << getData_int16();
+		cout << "MOVE_TOP " << getData_int16();
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_INT8:
-		std::cout << "PUSH_INT8 " << static_cast<uint32>(getData_int8());
+		cout << "PUSH_INT8 " << static_cast<uint32>(getData_int8());
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_INT32:
-		std::cout << "PUSH_INT32 " << getData_int32();
+		cout << "PUSH_INT32 " << getData_int32();
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_INT64:
-		std::cout << "PUSH_INT64 " << getData_int64();
+		cout << "PUSH_INT64 " << getData_int64();
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_FLOAT:
-		std::cout << "PUSH_FLOAT " << getData_float64();
+		cout << "PUSH_FLOAT " << getData_float64();
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_STRING:
-		std::cout << "PUSH_STRING \"" << reinterpret_cast<const char*>(getData_uint32()) << "\"";
+		cout << "PUSH_STRING \"" << reinterpret_cast<const char_t*>(getData_uint32()) << "\"";
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_CHAR:
-		std::cout << "PUSH_CHAR " << getData_uint16(); // TODO
+		cout << "PUSH_CHAR " << getData_uint16(); // TODO
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_BOOL:
-		std::cout << "PUSH_BOOL " << static_cast<uint32>(getData_uint8());
+		cout << "PUSH_BOOL " << static_cast<uint32>(getData_uint8());
 		break;
 
 	case Beer::Bytecode::INSTR_NEW:
-		std::cout << "NEW " << reinterpret_cast<ClassReflection*>(getData_uint32())->getName();
+		cout << "NEW " << reinterpret_cast<ClassReflection*>(getData_uint32())->getName();
 		break;
 
 	case Beer::Bytecode::INSTR_CLONE:
-		std::cout << "CLONE";
+		cout << "CLONE";
 		break;
 
 	case Beer::Bytecode::INSTR_ASSIGN:
-		std::cout << "ASSIGN " << getData_uint16();
+		cout << "ASSIGN " << getData_uint16();
 		break;
 
 	case Beer::Bytecode::INSTR_LOAD:
-		std::cout << "LOAD " << getData_uint16();
+		cout << "LOAD " << getData_uint16();
 		break;
 
 	case Beer::Bytecode::INSTR_INVOKE:
-		std::cout << "INVOKE \"" << reinterpret_cast<const char*>(getData_uint32()) << "\"";
+		{
+			Reference<String> selector(vm->getHeap(), getData_uint32());
+			cout << "INVOKE \"" << selector->c_str() << "\"";
+		}
 		break;
 	
 	case Beer::Bytecode::INSTR_INTERFACEINVOKE:
-		std::cout << "INTERFACE_INVOKE \"" << reinterpret_cast<const char*>(getData_uint32()) << "\"";
+		{
+			Reference<String> selector(vm->getHeap(), getData_uint32());
+			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
+		}
 		break;
 	
 	case Beer::Bytecode::INSTR_STATIC_INVOKE:
-		std::cout << "STATIC_INVOKE \"" << reinterpret_cast<const char*>(getData_uint32()) << "\"";
+		{
+			Reference<String> selector(vm->getHeap(), getData_uint32());
+			cout << "STATIC_INVOKE \"" << selector->c_str() << "\"";
+		}
 		break;
 	
 	case Beer::Bytecode::INSTR_SPECIALINVOKE:
-		std::cout << "SPECIAL_INVOKE \"" << reinterpret_cast<const char*>(getData_uint32()) << "\"";
+		{
+			Reference<String> selector(vm->getHeap(), getData_uint32());
+			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
+		}
 		break;
 	
 	case Beer::Bytecode::INSTR_RETURN:
-		std::cout << "RETURN " << getData_uint16();
+		cout << "RETURN " << getData_uint16();
 		break;
 	
 	default:
-		std::cout << "[UNKNOWN]";
+		cout << "[UNKNOWN]";
 		break;
 	}
 }
@@ -308,26 +320,33 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 				break;
 
 			case Beer::Bytecode::INSTR_PUSH_STRING:
-				// TODO!!!
-				builder.setData_int32(reinterpret_cast<int32>(classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str()));
+				{
+					// TODO!!!
+					const char16* cstring = classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str();
+					Reference<String> string = vm->getStringClass<StringClass>()->translate(vm, cstring);
+
+					builder.setData_int32(string.getId());
+				}
 				break;
 
 			case Beer::Bytecode::INSTR_NEW:
 				{
 					// TODO!!!
-					const char* name = classFile->getClassName(builder.getData_int32())->c_str();
-					ClassReflection* klass = vm->getClass(name);
+					const char16* cstring = classFile->getClassName(builder.getData_int32())->c_str();
+					const char_t* name = vm->getStringClass<StringClass>()->translate(vm, cstring)->c_str();
+					ClassReflection* klass = vm->getClass(name); // TODO: pass String*
 					NULL_ASSERT(klass);
 					
-					builder.setData_int32(reinterpret_cast<int32>(klass));
+					builder.setData_int32(reinterpret_cast<int32>(klass)); // TODO: pass Reference
 				}
 				break;
 
 			case Beer::Bytecode::INSTR_INVOKE:
 				{
-					const char* selector = classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str();
+					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str();
+					Reference<String> selector = vm->getStringClass<StringClass>()->translate(vm, cselector);
 #ifdef BEER_INLINE_OPTIMALIZATION
-					Bytecode::OpCode newOpcode = vm->getInlineFunctionTable()->find(selector);
+					Bytecode::OpCode newOpcode = vm->getInlineFunctionTable()->find(selector.get());
 					if(newOpcode != Bytecode::INSTR_NOP)
 					{
 						builder.setNewOpcode(newOpcode);
@@ -337,7 +356,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 #endif // BEER_INLINE_OPTIMALIZATION
 					{
 						// TODO!!!
-						builder.setData_int32(reinterpret_cast<int32>(selector));
+						builder.setData_int32(selector.getId());
 					
 						InlineCache* cache = InlineCache::from(builder.alloc(InlineCache::countSize(mMethodCachesLength)));
 						cache->clear(mMethodCachesLength);
@@ -349,8 +368,13 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 			case Beer::Bytecode::INSTR_INTERFACEINVOKE:
 			case Beer::Bytecode::INSTR_STATIC_INVOKE:
 			case Beer::Bytecode::INSTR_SPECIALINVOKE:
-				// TODO!!!
-				builder.setData_int32(reinterpret_cast<int32>(classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str()));
+				{
+					// TODO!!!
+					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str();
+					Reference<String> selector = vm->getStringClass<StringClass>()->translate(vm, cselector);
+
+					builder.setData_int32(selector.getId());
+				}
 				break;
 
 			// 8 bytes = 64bit
@@ -363,7 +387,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 				break;
 
 			default:
-				throw BytecodeException("Unknown opcode");
+				throw BytecodeException(BEER_WIDEN("Unknown opcode"));
 				break;
 		}
 
@@ -384,8 +408,8 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 		// important for debugging
 		if(vm->getDebugger()->isEnabled()) vm->getDebugger()->step(frame);
 		
-		DBG_ASSERT(frame->programCounter < mDictSize, "Program counter out of range");
-		DBG_ASSERT(frame->translate(frame->stackTopIndex()) == (frame->stack->size() - 1), "Broken stack");
+		DBG_ASSERT(frame->programCounter < mDictSize, BEER_WIDEN("Program counter out of range"));
+		DBG_ASSERT(frame->translate(frame->stackTopIndex()) == (frame->stack->size() - 1), BEER_WIDEN("Broken stack"));
 
 		ClassTable* classTable = vm->getClassTable();
 		Instruction* instr = &reinterpret_cast<Instruction&>(mData[mDict[frame->programCounter]]);
@@ -486,15 +510,13 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 
 		case Beer::Bytecode::INSTR_PUSH_STRING:
 			{
-				// TODO: wide string
-				const char* str = reinterpret_cast<const char*>(instr->getData_int64());
-				String* s = vm->createString(str);
-				frame->stackPush(s);
+				Reference<String> string(vm->getHeap(), instr->getData_int32());
+				frame->stackPush(string.get());
 			}
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_CHAR:
-			throw BytecodeException("Character is not implemented");
+			throw BytecodeException(BEER_WIDEN("Character is not implemented"));
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_BOOL:
@@ -507,7 +529,7 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 		case Beer::Bytecode::INSTR_NEW:
 			{
 				ClassReflection* klass = reinterpret_cast<ClassReflection*>(instr->getData_int32());
-				DBG_ASSERT(klass, "Class is NULL");
+				DBG_ASSERT(klass, BEER_WIDEN("Class is NULBEER_WIDEN("));
 				Object* obj = klass->createInstance(frame, vm->getHeap());
 				frame->stackPush(obj);
 			}
@@ -553,17 +575,17 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
-				const char* selector = reinterpret_cast<char*>(instr->getData_int32());
+				Reference<String> selector(vm->getHeap(), instr->getData_int32());
 
 				// find method using inline cache
 				InlineCache* cache = InlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
 				ClassReflection* klass = classTable->translate(object.get());
-				MethodReflection* method = cache->find(klass, selector, mMethodCachesLength);
+				MethodReflection* method = cache->find(klass, selector.get(), mMethodCachesLength);
 
 				// lookup failed
 				if(!method)
 				{
-					throw MethodNotFoundException(std::string("No method ") + selector + " for " + classTable->translate(object)->getName());
+					throw MethodNotFoundException(string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + classTable->translate(object)->getName());
 				}
 
 				// invoke method
@@ -580,10 +602,10 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
-				const char* selector = reinterpret_cast<char*>(instr->getData_int32());
+				Reference<String> selector(vm->getHeap(), instr->getData_int32());
 
 				// invoke method
-				vm->openStackFrame(object.get(), selector); // vm invokes new frame
+				vm->openStackFrame(object.get(), selector->c_str()); // vm invokes new frame
 				cont = false;
 			}
 			break;
@@ -728,7 +750,7 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 #endif // BEER_INLINE_OPTIMALIZATION
 
 		default:
-			throw BytecodeException("Unknown opcode");
+			throw BytecodeException(BEER_WIDEN("Unknown opcode"));
 			break;
 		}
 

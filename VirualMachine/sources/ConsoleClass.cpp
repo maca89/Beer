@@ -32,8 +32,8 @@ struct BeerConsole_##Name##Param																						\
 #define BuildPrintMethod(Name, Param, Operation)																		\
 	BuildPrintMethodFn(Name, Param, Operation);																			\
 	method = loader->createMethod<MethodReflection>(																	\
-			#Name, 																										\
-			std::string(klass->getName()) + "::" + #Name + "(" + #Param + ")", 											\
+			BEER_WIDEN(#Name), 																							\
+			string(klass->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Name) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 	\
 			1, 																											\
 			1																											\
 		);																												\
@@ -56,7 +56,7 @@ void BEER_CALL BeerConsole_println(VirtualMachine* vm, StackFrame* frame, StackR
 void BEER_CALL BeerConsole_printArray(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
 {
 	// TODO
-	std::string str;
+	string str;
 	arg->toString(vm, str);
 	Console::getOutput() << str;
 }
@@ -64,51 +64,51 @@ void BEER_CALL BeerConsole_printArray(VirtualMachine* vm, StackFrame* frame, Sta
 void BEER_CALL BeerConsole_printlnArray(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
 {
 	// TODO
-	std::string str;
+	string str;
 	arg->toString(vm, str);
 	Console::getOutput() << str << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
 }
 
 void BEER_CALL BeerConsole_readInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> ret)
 {
-	Console::getOutput().flush(std::cout); // important
+	Console::getOutput().flush(cout); // important
 
 	Integer::IntegerData n = 0;
-	std::cin >> n;
-	if(std::cin.fail()) { receiver->setReadFailed(true); return; }
+	cin >> n;
+	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
 	ret = vm->createInteger(n);
 }
 
 void BEER_CALL BeerConsole_readFloat(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Float> ret)
 {
-	Console::getOutput().flush(std::cout); // important
+	Console::getOutput().flush(cout); // important
 
 	Float::FloatData n = 0;
-	std::cin >> n;
-	if(std::cin.fail()) { receiver->setReadFailed(true); return; }
+	cin >> n;
+	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
 	ret = vm->createFloat(n);
 }
 
 void BEER_CALL BeerConsole_readBoolean(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> ret)
 {
-	Console::getOutput().flush(std::cout); // important
+	Console::getOutput().flush(cout); // important
 
 	Boolean::BooleanData n = 0;
-	std::cin >> n;
-	if(std::cin.fail()) { receiver->setReadFailed(true); return; }
+	cin >> n;
+	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
 	ret = vm->createFloat(n);
 }
 
 void BEER_CALL BeerConsole_readLine(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
 {
-	Console::getOutput().flush(std::cout); // important
+	Console::getOutput().flush(cout); // important
 
-	std::string str;
-	std::getline(std::cin, str);
-	if(std::cin.fail()) { receiver->setReadFailed(true); return; }
+	string str;
+	std::getline(cin, str);
+	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
 	ret = vm->createString(str);
 }
@@ -122,11 +122,11 @@ void BEER_CALL BeerConsole_getArg(VirtualMachine* vm, StackFrame* frame, StackRe
 {
 	Integer::IntegerData i = index->getData();
 	if(Console::hasArg(i)) ret = vm->createString(Console::getArg(i));
-	else ret = vm->createString("");
+	else ret = vm->createString(BEER_WIDEN(""));
 }
 
 
-ClassReflection* ConsoleClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, std::string name)
+ClassReflection* ConsoleClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
 	return loader->createClass<ConsoleClass>(name, 1, 0, 18);
 }
@@ -138,11 +138,11 @@ void ConsoleClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>("Console", std::string(klass->getName()) + "::Console()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Console"), string(klass->getName()) + BEER_WIDEN("::Console()"), 1, 0);
 	method->setFunction(&BeerConsole_init);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("println", std::string(klass->getName()) + "::println()", 0, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("println"), string(klass->getName()) + BEER_WIDEN("::println()"), 0, 0);
 	method->setFunction(&BeerConsole_println);
 	klass->setMethod(methodi++, method);
 
@@ -158,35 +158,35 @@ void ConsoleClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	BuildPrintMethod(print, Boolean, value->getData());
 	BuildPrintMethod(println, Boolean, value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
-	method = loader->createMethod<MethodReflection>("print", std::string(klass->getName()) + "::print(Array)", 0, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("print"), string(klass->getName()) + BEER_WIDEN("::print(Array)"), 0, 1);
 	method->setFunction(&BeerConsole_printArray);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("println", std::string(klass->getName()) + "::println(Array)", 0, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("println"), string(klass->getName()) + BEER_WIDEN("::println(Array)"), 0, 1);
 	method->setFunction(&BeerConsole_printlnArray);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("readInteger", std::string(klass->getName()) + "::readInteger()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("readInteger"), string(klass->getName()) + BEER_WIDEN("::readInteger()"), 1, 0);
 	method->setFunction(&BeerConsole_readInteger);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("readFloat", std::string(klass->getName()) + "::readFloat()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("readFloat"), string(klass->getName()) + BEER_WIDEN("::readFloat()"), 1, 0);
 	method->setFunction(&BeerConsole_readFloat);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("readBoolean", std::string(klass->getName()) + "::readBoolean()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("readBoolean"), string(klass->getName()) + BEER_WIDEN("::readBoolean()"), 1, 0);
 	method->setFunction(&BeerConsole_readBoolean);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("readLine", std::string(klass->getName()) + "::readLine()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("readLine"), string(klass->getName()) + BEER_WIDEN("::readLine()"), 1, 0);
 	method->setFunction(&BeerConsole_readLine);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("readFailed", std::string(klass->getName()) + "::readFailed()", 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("readFailed"), string(klass->getName()) + BEER_WIDEN("::readFailed()"), 1, 0);
 	method->setFunction(&BeerConsole_readFailed);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>("getArg", std::string(klass->getName()) + "::getArg(Integer)", 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("getArg"), string(klass->getName()) + BEER_WIDEN("::getArg(Integer)"), 1, 1);
 	method->setFunction(&BeerConsole_getArg);
 	klass->setMethod(methodi++, method);
 }

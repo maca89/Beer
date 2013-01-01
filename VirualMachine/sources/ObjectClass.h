@@ -19,13 +19,13 @@ namespace Beer
 	protected:
 		~Object() // Object and child classes can *NOT* have a destructor
 		{
-			throw GCException("Object::~Object() called!");
+			throw GCException(BEER_WIDEN("Object::~Object() called!"));
 		}
 
 	private:
 		Object() // Object and child classes can *NOT* have a constructor
 		{
-			throw GCException("Object::Object() called!");
+			throw GCException(BEER_WIDEN("Object::Object() called!"));
 		}
 	};*/
 
@@ -45,7 +45,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

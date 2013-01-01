@@ -12,14 +12,11 @@ namespace Beer
 
 	class Integer : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
 	public:
 		typedef int32 IntegerData;
-		//const static int InlineClassId = 1;
+		static const int SignatureBits = 2;
 
 	protected:
-
 		IntegerData mData;
 
 	public:
@@ -37,9 +34,9 @@ namespace Beer
 			mData = data;
 		}
 
-		NOINLINE void toString(std::string& out)
+		NOINLINE void toString(string& out)
 		{
-			std::stringstream ss;
+			stringstream ss;
 			ss << getData();
 			ss >> out;
 		}
@@ -47,17 +44,17 @@ namespace Beer
 		INLINE static bool canBeInlineValue(IntegerData data)
 		{
 			// TODO: negative numbers
-			return (data >> 30) == 0; // int32 only
+			return (data >> (sizeof(IntegerData) * 8 - SignatureBits)) == 0;
 		}
 
 		INLINE static Integer* makeInlineValue(IntegerData data)
 		{
-			return reinterpret_cast<Integer*>((data << 2) | 1);
+			return reinterpret_cast<Integer*>((data << SignatureBits) | 1);
 		}
 
 		INLINE static IntegerData getInlineValue(const Integer* data)
 		{
-			return reinterpret_cast<IntegerData>(data) >> 2;
+			return reinterpret_cast<IntegerData>(data) >> SignatureBits;
 		}
 	};
 
@@ -81,7 +78,7 @@ namespace Beer
 			return num;
 		}
 
-		virtual void dump(Object* object, std::stringstream& out)
+		virtual void dump(Object* object, stringstream& out)
 		{
 			out << object->getInstance<Integer>()->getData();
 		};
@@ -91,7 +88,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, std::string name);
+		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
 		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
 	};
 };

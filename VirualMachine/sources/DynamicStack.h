@@ -40,7 +40,7 @@ namespace Beer
 			check();
 			if(obj == reinterpret_cast<T>(0x0e))
 			{
-				std::cout << "!";
+				cout << "!";
 			}
 			mItems[mNext] = obj;
 			return mNext++;
@@ -64,10 +64,10 @@ namespace Beer
 
 		INLINE void set(T obj, uint32 absoluteIndex)
 		{
-			DBG_ASSERT(absoluteIndex < mNext, "Attempting to change value out of the stack");
+			DBG_ASSERT(absoluteIndex < mNext, BEER_WIDEN("Attempting to change value out of the stack"));
 			/*if(obj == reinterpret_cast<T>(0x0e))
 			{
-				std::cout << "!";
+				cout << "!";
 			}*/
 			mItems[absoluteIndex] = obj;
 		}
@@ -128,7 +128,7 @@ namespace Beer
 			mItems = newItems;
 			mSize = newSize;
 
-			//std::cout << "// Stack enlarged" << std::endl;
+			//cout << "// Stack enlarged" << std::endl;
 		}
 	};
 };

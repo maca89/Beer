@@ -2,6 +2,7 @@
 #include "BytecodeDescriptor.h"
 #include "FileFormatConverter.h"
 #include "ClassFileDescriptor.h"
+#include "StringDescriptor.h"
 #include "Bytecode.h"
 
 using namespace Beer;
@@ -9,7 +10,7 @@ using namespace Beer;
 
 void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor* classFile)
 {
-	format.convert(getFlags());
+	// no need to convert flags
 	format.convert(getInstrCount());
 	format.convert(getSize());
 
@@ -31,7 +32,7 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			// 1 byte = 8bit
 			case Beer::Bytecode::INSTR_PUSH_BOOL:
 			case Beer::Bytecode::INSTR_PUSH_INT8:
-				format.convert(instr->getData_uint8());
+				// no need to convert
 				bytei += sizeof(uint8);
 				break;
 
@@ -52,6 +53,11 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 
 			// 4 bytes = 32bit
 			case Beer::Bytecode::INSTR_PUSH_INT32:
+				format.convert(instr->getData_uint32());
+				bytei += sizeof(uint32);
+				break;
+
+			// 4 bytes = 32bit + referenced string
 			case Beer::Bytecode::INSTR_PUSH_STRING:
 			case Beer::Bytecode::INSTR_NEW:
 			case Beer::Bytecode::INSTR_INVOKE:
@@ -60,6 +66,7 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			case Beer::Bytecode::INSTR_SPECIALINVOKE:
 				format.convert(instr->getData_uint32());
 				bytei += sizeof(uint32);
+				classFile->getDescriptor<StringDescriptor>(instr->getData_uint32())->convert(format, classFile);
 				break;
 
 			// 8 bytes = 64bit
@@ -70,7 +77,7 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 				break;
 
 			default:
-				throw BytecodeException("Unknown opcode");
+				throw BytecodeException(BEER_WIDEN("Unknown opcode"));
 				break;
 		}
 	}

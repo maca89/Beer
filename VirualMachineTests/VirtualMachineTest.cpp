@@ -40,16 +40,16 @@ public:
 	}
 
 	// interface ClassInitializer
-	virtual void createClass(VirtualMachine* vm, ClassLoader* classLoader, std::string name)
+	virtual void createClass(VirtualMachine* vm, ClassLoader* classLoader, string name)
 	{
 	}
 	
 	virtual void initClass(VirtualMachine* vm, ClassReflection* klass)
 	{
-		klass->extends(0, vm->getClass("Object"));
+		klass->extends(0, vm->getClass(L"Object"));
 
 		BytecodeMethodReflection* methodRun = new BytecodeMethodReflection;
-		methodRun->setSelector(klass->getName() + "::run()");
+		methodRun->setSelector(klass->getName() + L"::run()");
 		methodRun->setBytecode(mBc);
 		klass->addMethod(0, methodRun);
 	}
@@ -86,17 +86,17 @@ void VirtualMachineTest::test1()
 
 			instrs[i++] = Bytecode::INSTR_PUSH_STRING;
 
-			vm->getClassLoader()->addClassInitializer("Main", new MainClassInitializer(new Bytecode(instrs, instrsLength)));
-			vm->getClassLoader()->createClass<MainClass>("Main", 1, 0, 1);
+			vm->getClassLoader()->addClassInitializer(L"Main", new MainClassInitializer(new Bytecode(instrs, instrsLength)));
+			vm->getClassLoader()->createClass<MainClass>(L"Main", 1, 0, 1);
 
-			Main* main = vm->getClass("Main")->createInstance<Main>(vm->getHeap());
+			Main* main = vm->getClass(L"Main")->createInstance<Main>(vm->getHeap());
 			
 			//main->call(vm, MainClass::Methods::RUN_VOID);
 		}
 
 		// init vars
 		/*Reference consoleInstance = getConsoleClass()->createInstance();
-		Reference textInstance = getStringClass()->createInstance("a = ");
+		Reference textInstance = getStringClass()->createInstance(L"a = ");
 		Reference aInstance = getIntegerClass()->createInstance(5);
 
 		// print text
@@ -119,32 +119,32 @@ void VirtualMachineTest::test1()
 
 	catch(RuntimeAssertException& ex)
 	{
-		std::cout << ex.getFilename() << "(" << ex.getFileline() << ") : " << ex.getMessage() << std::endl;
+		cout << ex.getFilename() << "(L" << ex.getFileline() << ") : " << ex.getMessage() << std::endl;
 		//if(!vm->getStack()->empty()) vm->printStack();
 		//if(!Instance::gPool.empty()) vm->printInstances();
-		TEST_FAIL("RuntimeAssertException");
+		TEST_FAIL(L"RuntimeAssertException");
 	}
 
 	catch(Exception& ex)
 	{
-		std::cout << ex.getFilename() << ":" << ex.getFileline() << " " << ex.getMessage() << std::endl;
+		cout << ex.getFilename() << ":" << ex.getFileline() << " " << ex.getMessage() << std::endl;
 		//if(!vm->getStack()->empty()) vm->printStack();
 		//if(!Instance::gPool.empty()) vm->printInstances();
-		TEST_FAIL("Exception");
+		TEST_FAIL(L"Exception");
 	}
 }
 
 void VirtualMachineTest::test2()
 {
-	std::cout << std::endl;
+	cout << std::endl;
 	try
 	{
 		vm->init();
 	
 		std::fstream f;
-		f.open("data/program.beer", std::ios::in|std::ios::binary);
+		f.open(L"data/program.beer", std::ios::in|std::ios::binary);
 
-		TEST_ASSERT_MSG(f.good(), "Could not open file");
+		TEST_ASSERT_MSG(f.good(), BEER_WIDEN("Could not open file"));
 
 		f.seekg(0, std::ios::end);
 	
@@ -152,7 +152,7 @@ void VirtualMachineTest::test2()
 		byte* data = new byte[dataLength];
 
 		f.seekg(0);
-		f.read(reinterpret_cast<char*>(data), dataLength);
+		f.read(reinterpret_cast<char_t*>(data), dataLength);
 		f.close();
 
 		vm->loadClassFile(data, dataLength);
@@ -165,17 +165,17 @@ void VirtualMachineTest::test2()
 
 	catch(RuntimeAssertException& ex)
 	{
-		std::cout << ex.getFilename() << "(" << ex.getFileline() << ") : " << ex.getMessage() << std::endl;
+		cout << ex.getFilename() << "(L" << ex.getFileline() << ") : " << ex.getMessage() << std::endl;
 		//if(!vm->getStack()->empty()) vm->printStack();
 		//if(!Instance::gPool.empty()) vm->printInstances();
-		TEST_FAIL("RuntimeAssertException");
+		TEST_FAIL(L"RuntimeAssertException");
 	}
 
 	catch(Exception& ex)
 	{
-		std::cout << ex.getFilename() << ":" << ex.getFileline() << " " << ex.getMessage() << std::endl;
+		cout << ex.getFilename() << ":" << ex.getFileline() << " " << ex.getMessage() << std::endl;
 		//if(!vm->getStack()->empty()) vm->printStack();
 		//if(!Instance::gPool.empty()) vm->printInstances();
-		TEST_FAIL("Exception");
+		TEST_FAIL(L"Exception");
 	}
 }

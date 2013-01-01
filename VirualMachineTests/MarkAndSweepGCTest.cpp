@@ -10,12 +10,12 @@ public:
 	bool& deleted;
 	Foo(bool& deleted) : deleted(deleted)
 	{
-		std::cout << "Foo" << std::endl;
+		cout << "Foo" << std::endl;
 	}
 
 	virtual ~Foo()
 	{
-		std::cout << "~Foo" << std::endl;
+		cout << "~Foo" << std::endl;
 		deleted = true;
 	}
 };
@@ -46,7 +46,7 @@ void MarkAndSweepGCTest::test1()
 	/*Reference<*/Foo* /*>*/ foo = new(gc) Foo(deleted);
 	gc->free(foo); // manual delete
 
-	TEST_ASSERT_MSG(deleted, "Object should be deleted");
+	TEST_ASSERT_MSG(deleted, BEER_WIDEN("Object should be deleted"));
 }
     
 void MarkAndSweepGCTest::test2()
@@ -59,7 +59,7 @@ void MarkAndSweepGCTest::test2()
 	}
 	
 	gc->collect(); // automatic delete
-	TEST_ASSERT_MSG(deleted, "Object should be deleted");
+	TEST_ASSERT_MSG(deleted, BEER_WIDEN("Object should be deleted"));
 }
     
 void MarkAndSweepGCTest::test3()
@@ -70,7 +70,7 @@ void MarkAndSweepGCTest::test3()
 	Foo* foo = new(gc) Foo(deleted);
 	gc->collect();
 	
-	TEST_ASSERT_MSG(!deleted, "Object should not be deleted - still in use");
+	TEST_ASSERT_MSG(!deleted, BEER_WIDEN("Object should not be deleted - still in use"));
 }
     
 void MarkAndSweepGCTest::test4()

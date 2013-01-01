@@ -30,7 +30,7 @@ namespace Beer
 		////////////////////////////////////////////////////////////
 		uint8 mFlags;
 		uint16 mNameCount;
-		char* mName;
+		char_t* mName;
 
 		uint16 mParentsCount;
 		ClassReflection** mParents;
@@ -73,33 +73,33 @@ namespace Beer
 		
 		// name
 
-		INLINE /*std::string*/const char* getName() const { return /*std::string*/(static_cast<const char*>(mName));/*, mNameCount);*/ }
+		INLINE const char_t* getName() const { return (static_cast<const char_t*>(mName)); }
 
 		// parents
 
 		INLINE uint16 getParentsCount() const { return mParentsCount; }
-		INLINE void setParent(uint16 i, ClassReflection* parent) { DBG_ASSERT(i < mParentsCount, "Unable to add more parents"); mParents[i] = parent; }
-		INLINE ClassReflection* getParent(uint16 i) { DBG_ASSERT(i < mParentsCount, "Unknown parent"); return mParents[i]; }
+		INLINE void setParent(uint16 i, ClassReflection* parent) { DBG_ASSERT(i < mParentsCount, BEER_WIDEN("Unable to add more parents")); mParents[i] = parent; }
+		INLINE ClassReflection* getParent(uint16 i) { DBG_ASSERT(i < mParentsCount, BEER_WIDEN("Unknown parent")); return mParents[i]; }
 
 		// properties
 
 		INLINE uint32 getPropertiesCount() const { return mPropertiesCount; }
-		INLINE void setProperty(uint32 i, PropertyReflection* prop) { DBG_ASSERT(i < mPropertiesCount, "Unable to add more properties"); mProperties[i] = prop; }
-		INLINE PropertyReflection* getProperty(uint32 i) { DBG_ASSERT(i < mPropertiesCount, "Unknown property"); return mProperties[i]; }
+		INLINE void setProperty(uint32 i, PropertyReflection* prop) { DBG_ASSERT(i < mPropertiesCount, BEER_WIDEN("Unable to add more properties")); mProperties[i] = prop; }
+		INLINE PropertyReflection* getProperty(uint32 i) { DBG_ASSERT(i < mPropertiesCount, BEER_WIDEN("Unknown property")); return mProperties[i]; }
 
 		// mehods
 
 		INLINE uint16 getMethodsCount() const { return mMethodsCount; }
-		INLINE void setMethod(uint16 i, MethodReflection* method) { DBG_ASSERT(i < mMethodsCount, "Unable to add more methods"); mMethods[i] = method; }
-		INLINE MethodReflection* getMethod(uint16 i) { DBG_ASSERT(i < mMethodsCount, "Unknown method"); return mMethods[i]; }
+		INLINE void setMethod(uint16 i, MethodReflection* method) { DBG_ASSERT(i < mMethodsCount, BEER_WIDEN("Unable to add more methods")); mMethods[i] = method; }
+		INLINE MethodReflection* getMethod(uint16 i) { DBG_ASSERT(i < mMethodsCount, BEER_WIDEN("Unknown method")); return mMethods[i]; }
 
 		// 
 
 		void extends(uint16 i, ClassReflection* klass);
-		MethodReflection* findMethod(const char* selector);
+		MethodReflection* findMethod(const char_t* selector);
 		bool substituable(ClassReflection* otherClass) const;
 
-		virtual void dump(Object* object, std::stringstream& out)
+		virtual void dump(Object* object, stringstream& out)
 		{
 			out << getName();
 		}
@@ -128,7 +128,7 @@ namespace Beer
 
 		void operator delete(void* mem, void*)
 		{
-			throw GCException("delete ClassReflection* should not happen!");
+			throw GCException(BEER_WIDEN("delete ClassReflection* should not happen!"));
 		}
 	};
 	#pragma pack(pop)

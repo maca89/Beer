@@ -1,5 +1,6 @@
 #pragma once
 #include "prereq.h"
+#include "StringClass.h"
 
 
 namespace Beer
@@ -31,7 +32,12 @@ namespace Beer
 			return &mMethods;
 		}
 
-		NOINLINE MethodReflection* find(ClassReflection* klass, const char* selector, uint16 methodsLength);
+		INLINE MethodReflection* find(ClassReflection* klass, String* selector, uint16 methodsLength)
+		{
+			return find(klass, selector->c_str(), methodsLength);
+		}
+
+		NOINLINE MethodReflection* find(ClassReflection* klass, const char_t* selector, uint16 methodsLength);
 
 		INLINE static InlineCache* from(void* ptr)
 		{

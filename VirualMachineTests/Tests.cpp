@@ -77,13 +77,13 @@ bool htmlOutput(Beer::TestSuite* ts)
 	std::auto_ptr<Test::HtmlOutput> output(new Test::HtmlOutput());
 	bool succ = ts->run(*output, false);
 
-	std::ofstream file("VirtualMachineTests.html", std::ios_base::out);
-	output->generate(file, true, "VirtualMachineTests");
+	std::ofstream file(L"VirtualMachineTests.html", std::ios_base::out);
+	output->generate(file, true, BEER_WIDEN("VirtualMachineTests"));
 	file.close();
 
-	wchar_t buffer[255];
+	char_t_t buffer[255];
 	size_t length = GetCurrentDirectory(255, reinterpret_cast<LPWSTR>(buffer));
-	std::wstring dir(buffer, length);
+	string dir(buffer, length);
 	dir += L"/VirtualMachineTests.html";
 
 	if(32 >= (int)ShellExecute(NULL, L"open", dir.c_str(), NULL, NULL, SW_SHOWNORMAL))
@@ -92,7 +92,7 @@ bool htmlOutput(Beer::TestSuite* ts)
 	}
 	else
 	{
-		//std::cout << "OK" << std::endl;
+		//cout << "OK" << std::endl;
 	}
 
 	return succ;
@@ -102,15 +102,15 @@ bool textOutput(Beer::TestSuite* ts)
 {
 	std::auto_ptr<Test::Output> output(new Test::TextOutput(Test::TextOutput::Verbose));
 	bool succ = ts->run(*output, false);
-	//system("PAUSE");
+	//system(L"PAUSE");
 	return succ;
 }
 
 bool gccOutput(Beer::TestSuite* ts)
 {
 	std::auto_ptr<Test::Output> output(new Test::CompilerOutput(Test::CompilerOutput::GCC));
-	if(ts->run(*output, false)) { std::cout << "true" << std::endl; return true; }
-	std::cout << "false" << std::endl;
+	if(ts->run(*output, false)) { cout << "true" << std::endl; return true; }
+	cout << "false" << std::endl;
 	return false;
 }
 
@@ -123,20 +123,20 @@ bool msvcOutput(Beer::TestSuite* ts)
 
 	if(ts->run(*output, false))
 	{
-		std::cout << "Tests succeded in " << t.stop() << std::endl;
+		cout << "Tests succeded in " << t.stop() << std::endl;
 		return true;
 	}
 	else
 	{
-		std::cout << "Tests failed in " << t.stop() << std::endl;
+		cout << "Tests failed in " << t.stop() << std::endl;
 		return false;
 	}
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char_t* argv[])
 {
 	typedef bool (*outputFn)(Beer::TestSuite*);
-	typedef std::map<std::string, outputFn> OuputMap;
+	typedef std::map<string, outputFn> OuputMap;
 
 	OuputMap outputs;
 	outputs["text"] = &textOutput;
@@ -147,15 +147,15 @@ int main(int argc, char* argv[])
 
 	if(argc >= 2)
 	{
-		std::string arg = argv[1];
+		string arg = argv[1];
 		
-		size_t start = arg.find("--");
-		if(start != 0) { std::cout << "Unknown parameter (doesnt start with '--')" << std::endl; return EXIT_FAILURE; }
+		size_t start = arg.find(L"--");
+		if(start != 0) { cout << "Unknown parameter (doesnt start with '--')" << std::endl; return EXIT_FAILURE; }
 		
-		std::string name = arg.substr(2);
+		string name = arg.substr(2);
 		OuputMap::iterator it = outputs.find(name);
 
-		if(it == outputs.end()) { std::cout << "Unknown parameter ('" << name << "')" << std::endl; return EXIT_FAILURE; }
+		if(it == outputs.end()) { cout << "Unknown parameter ('" << name << "')" << std::endl; return EXIT_FAILURE; }
 
 		output = it->second;
 	}
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
 
 	appendTests(Beer::TestSuite::All);
 
-	//std::cout << "Running Unit tests" << std::endl;
+	//cout << "Running Unit tests" << std::endl;
 
 	Beer::TestSuite* ts = NULL;
 	bool succ = false;
