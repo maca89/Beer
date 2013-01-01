@@ -159,6 +159,9 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 
 int __cdecl main(int argc, const char** argv)
 {
+	// TODO
+	setlocale(LC_CTYPE, "Czech");
+
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 

@@ -147,16 +147,16 @@ void ConsoleClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	klass->setMethod(methodi++, method);
 
 	BuildPrintMethod(print, Integer, value->getData());
-	BuildPrintMethod(println, Integer, value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
+	BuildPrintMethod(println, Integer, value->getData() << '\n'); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	BuildPrintMethod(print, Float, std::setprecision(8) << std::fixed << value->getData());
-	BuildPrintMethod(println, Float, std::setprecision(8) << std::fixed << value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
+	BuildPrintMethod(println, Float, std::setprecision(8) << std::fixed << value->getData() << '\n'); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
-	BuildPrintMethod(print, String, value->c_str());
-	BuildPrintMethod(println, String, value->c_str() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
+	BuildPrintMethod(print, String, value.get());
+	BuildPrintMethod(println, String, value.get() << '\n'); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	BuildPrintMethod(print, Boolean, value->getData());
-	BuildPrintMethod(println, Boolean, value->getData() << "\n"); // FOR PERFORMANCE REASONS DO NOT USE std::endl
+	BuildPrintMethod(println, Boolean, value->getData() << '\n'); // FOR PERFORMANCE REASONS DO NOT USE std::endl
 
 	method = loader->createMethod<MethodReflection>(BEER_WIDEN("print"), string(klass->getName()) + BEER_WIDEN("::print(Array)"), 0, 1);
 	method->setFunction(&BeerConsole_printArray);

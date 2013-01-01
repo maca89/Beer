@@ -115,7 +115,7 @@ String* StringClass::createInstance(StackFrame* frame, GarbageCollector* gc)
 {
 	Integer::IntegerData length = frame->stackTop<Integer>(frame->stackTopIndex())->getData();
 	frame->stackPop(); // pop size
-	String* str = gc->alloc<String>(sizeof(String) + sizeof(String::CharacterData) * (length + 1), /*String::CHILDREN_COUNT +*/ getPropertiesCount());
+	String* str = gc->alloc<String>(sizeof(String) + sizeof(String::CharacterData) * (length + 1), /*String::CHILDREN_COUNT +*/ getPropertiesCount()); // +1 for \0
 	str->size(length);
 	//str->copyData();
 	str->setClass(this);
