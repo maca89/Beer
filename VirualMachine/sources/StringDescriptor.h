@@ -27,7 +27,7 @@ namespace Beer
 
 		// size - in chars!
 
-		INLINE uint16 getSize() const { return mSize /*/ sizeof(char16)*/; } // TODO
+		INLINE uint16 getSize() const { return mSize / sizeof(char16); }
 		
 		// flags
 
