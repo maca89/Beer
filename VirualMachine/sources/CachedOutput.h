@@ -14,6 +14,8 @@ namespace Beer
 	public:
 		INLINE CachedOutput()  : mChanged(false)
 		{
+			// set UTF-16 support
+			_setmode( _fileno(stdout), _O_U16TEXT);
 		}
 
 		INLINE ~CachedOutput()

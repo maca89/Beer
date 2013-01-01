@@ -1,7 +1,10 @@
 #pragma once
 
+
 #include <iostream>
 #include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
 #include <map>
 #include <list>
 #include <vector>
