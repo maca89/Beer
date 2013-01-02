@@ -11,12 +11,14 @@ native class Console
     print(Float value);
     print(Boolean value);
     print(Array value);
+    //print(Character value);
     
     println(Integer value);
     println(String value);
     println(Float value);
     println(Boolean value);
     println(Array value);
+    //println(Character value);
     
     println();
     

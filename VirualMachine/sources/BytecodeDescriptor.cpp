@@ -32,6 +32,7 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			// 1 byte = 8bit
 			case Beer::Bytecode::INSTR_PUSH_BOOL:
 			case Beer::Bytecode::INSTR_PUSH_INT8:
+			case Beer::Bytecode::INSTR_PUSH_CHAR:
 				// no need to convert
 				bytei += sizeof(uint8);
 				break;
@@ -43,7 +44,7 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			case Beer::Bytecode::INSTR_JMP_FALSE:
 			case Beer::Bytecode::INSTR_TOP:
 			case Beer::Bytecode::INSTR_STORE:
-			case Beer::Bytecode::INSTR_PUSH_CHAR:
+			//case Beer::Bytecode::INSTR_PUSH_CHAR:
 			case Beer::Bytecode::INSTR_ASSIGN:
 			case Beer::Bytecode::INSTR_LOAD:
 			case Beer::Bytecode::INSTR_MOVE_TOP:

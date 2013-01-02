@@ -89,8 +89,10 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_CHAR:
-		cout << "PUSH_CHAR " << getData_uint16();
-		size += sizeof(uint16);
+		//cout << "PUSH_CHAR " << getData_uint16();
+		//size += sizeof(uint16);
+		cout << "PUSH_CHAR " << getData_uint8();
+		size += sizeof(uint8);
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_BOOL:
@@ -212,7 +214,8 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_CHAR:
-		cout << "PUSH_CHAR " << getData_uint16(); // TODO
+		//cout << "PUSH_CHAR " << getData_uint16(); // TODO
+		cout << "PUSH_CHAR " << getData_uint8(); // TODO
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_BOOL:
@@ -295,6 +298,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 
 			case Beer::Bytecode::INSTR_PUSH_INT8:
 			case Beer::Bytecode::INSTR_PUSH_BOOL:
+			case Beer::Bytecode::INSTR_PUSH_CHAR: //
 				builder.copy(sizeof(uint8));
 				break;
 
@@ -306,7 +310,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 			case Beer::Bytecode::INSTR_JMP_FALSE:
 			case Beer::Bytecode::INSTR_TOP:
 			case Beer::Bytecode::INSTR_STORE:
-			case Beer::Bytecode::INSTR_PUSH_CHAR:
+			//case Beer::Bytecode::INSTR_PUSH_CHAR:
 			case Beer::Bytecode::INSTR_ASSIGN:
 			case Beer::Bytecode::INSTR_LOAD:
 			case Beer::Bytecode::INSTR_MOVE_TOP:
@@ -516,7 +520,11 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_CHAR:
-			throw BytecodeException(BEER_WIDEN("Character is not implemented"));
+			//throw BytecodeException(BEER_WIDEN("Character is not implemented"));
+			{
+				char8 c = instr->getData_uint8(); // TODO: char16
+				frame->stackPush(Character::makeInlineValue(c));
+			}
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_BOOL:

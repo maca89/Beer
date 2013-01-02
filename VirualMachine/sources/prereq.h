@@ -333,6 +333,13 @@ namespace Beer
 		#define NULL_ASSERT(var)
 	#endif
 
+	// array bounds check => important
+	#ifdef BEER_BOUNDS_ASSERT_ON
+		#define BOUNDS_ASSERT(index, size) if(index < 0 || index >= size) throw RuntimeException(string(BEER_WIDEN("Array index out of bounds ")) /*+ index + BEER_WIDEN(" / ") + size*/);
+	#else
+		#define BOUNDS_ASSERT(index, size)
+	#endif
+
 	// debug info
 	#ifdef _DEBUG
 		#define DEBUG_INFO(_msg_) cout << ")Debug: " << _msg_ << std::endl;

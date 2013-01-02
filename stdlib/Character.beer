@@ -1,0 +1,13 @@
+native class Character
+{
+  interface
+  {
+    Character();
+    
+    Integer;
+    String;
+    
+    Boolean ==(Character value);
+    Boolean !=(Character value);
+  }
+}

@@ -51,6 +51,13 @@ void BEER_CALL BeerString_getLength(VirtualMachine* vm, StackFrame* frame, Stack
 	ret = vm->createInteger(receiver->size());
 }
 
+void BEER_CALL BeerString_getCharacter(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
+{
+	Integer::IntegerData indexdata = index.get()->getData();
+	BOUNDS_ASSERT(indexdata, receiver->size());
+	ret = Character::makeInlineValue(receiver->c_str()[indexdata]);
+}
+
 void BEER_CALL BeerString_concatString(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
 {
 	ret = vm->createString(receiver->size() + arg->size());
@@ -124,7 +131,7 @@ String* StringClass::createInstance(StackFrame* frame, GarbageCollector* gc)
 
 ClassReflection* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
 {
-	return loader->createClass<StringClass>(name, 1, 0, 14);
+	return loader->createClass<StringClass>(name, 1, 0, 15);
 }
 
 void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
@@ -145,32 +152,36 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 	BuildCompareStringOperator(Equal, ==, == 0);
 	BuildCompareStringOperator(NotEqual, !=, != 0);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(String)"), 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("+"), BEER_WIDEN("String::+(String)"), 1, 1);
 	method->setFunction(&BeerString_concatString);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Integer)"), 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("+"), BEER_WIDEN("String::+(Integer)"), 1, 1);
 	method->setFunction(&BeerString_concatInteger);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Float)"), 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("+"), BEER_WIDEN("String::+(Float)"), 1, 1);
 	method->setFunction(&BeerString_concatFloat);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Boolean)"), 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("+"), BEER_WIDEN("String::+(Boolean)"), 1, 1);
 	method->setFunction(&BeerString_concatBoolean);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Character)"), 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("+"), BEER_WIDEN("String::+(Character)"), 1, 1);
 	method->setFunction(&BeerString_concatCharacter);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("String::+(Array)"), 1, 1);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("+"), BEER_WIDEN("String::+(Array)"), 1, 1);
 	method->setFunction(&BeerString_concatArray);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), BEER_WIDEN("String::getLength()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("getLength"), BEER_WIDEN("String::getLength()"), 1, 0);
 	method->setFunction(&BeerString_getLength);
+	klass->setMethod(methodi++, method);
+
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("get"), BEER_WIDEN("String::get(Integer)"), 1, 1);
+	method->setFunction(&BeerString_getCharacter);
 	klass->setMethod(methodi++, method);
 }
 

@@ -19,19 +19,12 @@ namespace Beer
 	public:
 		INLINE CharacterData getData() const
 		{
-			return (reinterpret_cast<uint32>(this) >> SignatureBits) != 0;
+			return (reinterpret_cast<uint32>(this) >> SignatureBits);
 		}
-
-		/*NOINLINE void toString(string& out)
-		{
-			stringstream ss;
-			ss << getData();
-			ss >> out;
-		}*/
 
 		INLINE static Character* makeInlineValue(CharacterData data)
 		{
-			return reinterpret_cast<Character*>((data << SignatureBits) | 3);
+			return reinterpret_cast<Character*>((data << SignatureBits) | 7);
 		}
 	};
 

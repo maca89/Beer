@@ -23,6 +23,9 @@ native class String
     String +(Integer value);
     String +(Float value);
     String +(Boolean value);
+    String +(Character value);
     String +(Array value);
+    
+    Character get(Integer index); // TODO: []
   }
 }

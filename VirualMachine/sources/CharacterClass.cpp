@@ -39,17 +39,17 @@ struct BeerCharacter_CompareOperator##Name																				\
 
 
 
-void BEER_CALL BeerCharacter_init(VirtualMachine* vm, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret1)
+void BEER_CALL BeerCharacter_init(VirtualMachine* vm, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL BeerCharacter_toString(VirtualMachine* vm, StackFrame* frame, StackRef<Boolean> receiver, StackRef<String> ret)
+void BEER_CALL BeerCharacter_toString(VirtualMachine* vm, StackFrame* frame, StackRef<Character> receiver, StackRef<String> ret)
 {
 	ret = vm->createString(receiver->getData());
 }
 
-void BEER_CALL BeerCharacter_toInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Integer> ret)
+void BEER_CALL BeerCharacter_toInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Character> receiver, StackRef<Integer> ret)
 {
 	ret = vm->createInteger(receiver->getData());
 }
@@ -71,11 +71,11 @@ void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loade
 	method->setFunction(&BeerCharacter_init);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Character"), string(klass->getName()) + BEER_WIDEN("::String()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), string(klass->getName()) + BEER_WIDEN("::String()"), 1, 0);
 	method->setFunction(&BeerCharacter_toString);
 	klass->setMethod(methodi++, method);
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Character"), string(klass->getName()) + BEER_WIDEN("::Integer()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), string(klass->getName()) + BEER_WIDEN("::Integer()"), 1, 0);
 	method->setFunction(&BeerCharacter_toInteger);
 	klass->setMethod(methodi++, method);
 

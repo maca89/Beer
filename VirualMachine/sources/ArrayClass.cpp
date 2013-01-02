@@ -8,12 +8,6 @@
 
 using namespace Beer;
 
-#ifdef BEER_BOUNDS_ASSERT_ON
-#	define BOUNDS_ASSERT(index, size) if(index < 0 || index >= size) throw RuntimeException(string(BEER_WIDEN("Array index out of bounds ")) /*+ index + BEER_WIDEN(" / ") + size*/);
-#else
-#	define BOUNDS_ASSERT(index, size)
-#endif
-
 
 void BEER_CALL BeerArray_init(VirtualMachine* vm, StackFrame* frame, StackRef<Array> receiver, StackRef<Integer> size, StackRef<Array> ret)
 {
