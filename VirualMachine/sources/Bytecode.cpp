@@ -14,8 +14,34 @@
 #include "BytecodeBuilder.h"
 #include "InlineCache.h"
 #include "Debugger.h"
+#include "ArrayClass.h"
 
 using namespace Beer;
+
+
+#define BEER_FIND_CACHED_METHOD(__out__method)																						\
+	StackRef<Object> object(frame, frame->stackTopIndex());																			\
+	NULL_ASSERT(object.get());																										\
+	Reference<String> selector(vm->getHeap(), instr->getData_int32());																\
+	InlineCache* cache = InlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));							\
+	ClassReflection* klass = classTable->translate(object.get());																	\
+	__out__method = cache->find(klass, selector.get(), mMethodCachesLength);														\
+
+#ifdef BEER_MEASURE_PERFORMANCE
+	#define BEER_METHOD_PERFORMANCE_START()																								\
+		MethodReflection* method = NULL;																								\
+		BEER_FIND_CACHED_METHOD(method);																								\
+		MiliTimer timer;																												\
+		timer.start();
+#else
+	#define BEER_METHOD_PERFORMANCE_START()
+#endif // BEER_MEASURE_PERFORMANCE
+
+#ifdef BEER_MEASURE_PERFORMANCE
+	#define BEER_METHOD_PERFORMANCE_END() method->addTimeSpent(timer.stop());
+#else 
+	#define BEER_METHOD_PERFORMANCE_END()
+#endif // BEER_MEASURE_PERFORMANCE
 
 
 uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) const
@@ -357,7 +383,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 					if(newOpcode != Bytecode::INSTR_NOP)
 					{
 						builder.setNewOpcode(newOpcode);
-						//builder.setData_int32(reinterpret_cast<int32>(selector)); // selector
+						//builder.setData_int32(selector.getId()); // save selecctor
 					}
 					//else
 #endif // BEER_INLINE_OPTIMALIZATION
@@ -407,14 +433,14 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 	builder.finish(&mData, mDataSize, &mDict, mDictSize);
 }
 
-MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame* frame)
+MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 {
 	//bool cont = true;
 	while(true)
 	{
 		// important for debugging
 	#ifdef BEER_DEBUG_MODE
-		if(vm->getDebugger()->isEnabled()) vm->getDebugger()->step(frames, frame);
+		if(vm->getDebugger()->isEnabled()) vm->getDebugger()->step(frame);
 	#endif // BEER_DEBUG_MODE
 		
 		DBG_ASSERT(frame->programCounter < mDictSize, BEER_WIDEN("Program counter out of range"));
@@ -439,7 +465,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 				StackRef<Boolean> cond(frame, frame->stackTopIndex());
 				NULL_ASSERT(cond.get());
 
-				if(cond->getData() == true)
+				if(cond->getData())
 				{
 					frame->nextInstruction = instr->getData_uint16();
 				}
@@ -467,9 +493,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 			break;
 
 		case Beer::Bytecode::INSTR_TOP:
-			{
-				frame->stackPush(frame->stackTop(instr->getData_int16()));
-			}
+			frame->stackPush(frame->stackTop(instr->getData_int16()));
 			break;
 
 		case Beer::Bytecode::INSTR_STORE:
@@ -491,17 +515,11 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_INT8:
-			{
-				Integer* n = vm->createInteger(static_cast<Integer::IntegerData>(instr->getData_int8()));
-				frame->stackPush(n);
-			}
+			frame->stackPush(vm->createInteger(instr->getData_int8()));
 			break;
 		
 		case Beer::Bytecode::INSTR_PUSH_INT32:
-			{
-				Integer* n = vm->createInteger(static_cast<Integer::IntegerData>(instr->getData_int32()));
-				frame->stackPush(n);
-			}
+			frame->stackPush(vm->createInteger(instr->getData_int32()));
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_INT64:
@@ -586,6 +604,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 
 		case Beer::Bytecode::INSTR_INVOKE:
 			{
+				//MethodReflection* method = BEER_FIND_CACHED_METHOD();
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
@@ -603,7 +622,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 				}
 
 				// invoke method
-				frame->programCounter = frame->nextInstruction; // really?
+				frame->programCounter = frame->nextInstruction;
 				return method;
 			}
 			break;
@@ -635,7 +654,6 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 
 		case Beer::Bytecode::INSTR_RETURN:
 			frame->stackMoveTop(-static_cast<int32>(instr->getData_uint16()));
-			frame->done = true;
 			return NULL;
 			break;
 
@@ -643,131 +661,251 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame*
 #ifdef BEER_INLINE_OPTIMALIZATION
 		case Beer::Bytecode::INLINE_BOOLEAN_EQUAL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Boolean> receiver(frame, frame->stackTopIndex());
 				StackRef<Boolean> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
+				
 				ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_BOOLEAN_NOT_EQUAL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Boolean> receiver(frame, frame->stackTopIndex());
 				StackRef<Boolean> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() != arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_BOOLEAN_OR:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Boolean> receiver(frame, frame->stackTopIndex());
 				StackRef<Boolean> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() || arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_BOOLEAN_AND:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Boolean> receiver(frame, frame->stackTopIndex());
 				StackRef<Boolean> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() && arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
+			}
+			break;
+
+		case Beer::Bytecode::INLINE_BOOLEAN_NEGATION:
+			{
+				BEER_METHOD_PERFORMANCE_START();
+
+				StackRef<Boolean> receiver(frame, frame->stackTopIndex());
+				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 1);
+				ret = Boolean::makeInlineValue(!receiver->getData());
+				frame->stackMoveTop(-1);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_PLUS:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
 				ret = vm->createInteger(receiver->getData() + arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_MINUS:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
 				ret = vm->createInteger(receiver->getData() - arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_MUL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
 				ret = vm->createInteger(receiver->getData() * arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_EQUAL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_NOT_EQUAL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() != arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_SMALLER:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() < arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_SMALLER_EQUAL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() <= arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_GREATER:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() > arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 
 		case Beer::Bytecode::INLINE_INTEGER_GREATER_EQUAL:
 			{
+				BEER_METHOD_PERFORMANCE_START();
+
 				StackRef<Integer> receiver(frame, frame->stackTopIndex());
 				StackRef<Integer> arg(frame, frame->stackTopIndex() - 1);
 				StackRef<Boolean> ret(frame, frame->stackTopIndex() - 2);
 				ret = Boolean::makeInlineValue(receiver->getData() >= arg->getData());
 				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
+			}
+			break;
+
+		case Beer::Bytecode::INLINE_ARRAY_GET_LENGTH:
+			{
+				BEER_METHOD_PERFORMANCE_START();
+
+				StackRef<Array> receiver(frame, frame->stackTopIndex());
+				StackRef<Integer> ret(frame, frame->stackTopIndex() - 1);
+				ret = vm->createInteger(receiver->getSize());
+				frame->stackMoveTop(-1);
+
+				BEER_METHOD_PERFORMANCE_END();
+			}
+			break;
+
+		case Beer::Bytecode::INLINE_ARRAY_GET_ITEM:
+			{
+				BEER_METHOD_PERFORMANCE_START();
+
+				StackRef<Array> receiver(frame, frame->stackTopIndex());
+				StackRef<Integer> index(frame, frame->stackTopIndex() - 1);
+				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+
+				BOUNDS_ASSERT(index->getData(), receiver->getSize());
+				Integer* value = static_cast<Integer*>(receiver->getItem(index->getData()));
+
+				if(value) ret = value;
+				else
+				{
+					// just a temporary solution to missing value types
+					ret = vm->createInteger(0);
+				}
+
+				frame->stackMoveTop(-2);
+
+				BEER_METHOD_PERFORMANCE_END();
+			}
+			break;
+
+		case Beer::Bytecode::INLINE_ARRAY_SET_ITEM:
+			{
+				BEER_METHOD_PERFORMANCE_START();
+
+				StackRef<Array> receiver(frame, frame->stackTopIndex());
+				StackRef<Integer> index(frame, frame->stackTopIndex() - 1);
+				StackRef<Integer> value(frame, frame->stackTopIndex() - 2);
+
+				BOUNDS_ASSERT(index->getData(), receiver->getSize());
+				receiver->setItem(index->getData(), value.get());
+
+				frame->stackMoveTop(-3);
+
+				BEER_METHOD_PERFORMANCE_END();
 			}
 			break;
 #endif // BEER_INLINE_OPTIMALIZATION

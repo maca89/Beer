@@ -40,6 +40,7 @@ namespace Beer
 
 		INLINE void copyData(const CharacterData* data)
 		{
+			//CopyMemory(&mData, data, mLength * sizeof(CharacterData));
 			memcpy(&mData, data, mLength * sizeof(CharacterData));
 			ensureTerminating();
 		}

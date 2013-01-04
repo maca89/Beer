@@ -70,7 +70,7 @@ namespace Beer
 
 		// children count
 		INLINE void setDefaultChildrenCount(uint32 value) { mDefaultChildrenCount = value; }
-		virtual uint32 getChildrenCount(Object* object) { return mDefaultChildrenCount; }
+		virtual uint64 getChildrenCount(Object* object) { return mDefaultChildrenCount; }
 		
 		// name
 

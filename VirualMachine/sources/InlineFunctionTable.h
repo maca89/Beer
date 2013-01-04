@@ -54,7 +54,8 @@ namespace Beer
 			add(BEER_WIDEN("Boolean::!=(Boolean)"), Bytecode::INLINE_BOOLEAN_NOT_EQUAL);
 			add(BEER_WIDEN("Boolean::||(Boolean)"), Bytecode::INLINE_BOOLEAN_OR);
 			add(BEER_WIDEN("Boolean::&&(Boolean)"), Bytecode::INLINE_BOOLEAN_AND);
-			//integer
+			add(BEER_WIDEN("Boolean::!()"), Bytecode::INLINE_BOOLEAN_NEGATION);
+			// integer
 			add(BEER_WIDEN("Integer::+(Integer)"), Bytecode::INLINE_INTEGER_PLUS);
 			add(BEER_WIDEN("Integer::-(Integer)"), Bytecode::INLINE_INTEGER_MINUS);
 			add(BEER_WIDEN("Integer::*(Integer)"), Bytecode::INLINE_INTEGER_MUL);
@@ -62,6 +63,12 @@ namespace Beer
 			add(BEER_WIDEN("Integer::<=(Integer)"), Bytecode::INLINE_INTEGER_SMALLER_EQUAL);
 			add(BEER_WIDEN("Integer::>(Integer)"), Bytecode::INLINE_INTEGER_GREATER);
 			add(BEER_WIDEN("Integer::>=(Integer)"), Bytecode::INLINE_INTEGER_GREATER_EQUAL);
+			add(BEER_WIDEN("Integer::==(Integer)"), Bytecode::INLINE_INTEGER_EQUAL);
+			add(BEER_WIDEN("Integer::!=(Integer)"), Bytecode::INLINE_INTEGER_NOT_EQUAL);
+			// array
+			add(BEER_WIDEN("Array::getLength()"), Bytecode::INLINE_ARRAY_GET_LENGTH);
+			add(BEER_WIDEN("Array::set(Integer,Integer)"), Bytecode::INLINE_ARRAY_SET_ITEM);
+			add(BEER_WIDEN("Array::get(Integer)"), Bytecode::INLINE_ARRAY_GET_ITEM);
 		}
 
 		INLINE Bytecode::OpCode find(String* name)

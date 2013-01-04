@@ -20,7 +20,7 @@ namespace Beer
 			Integer::IntegerData length;
 			const char_t** args;
 
-			ConsoleArguments(Integer::IntegerData length = 0, const char_t** args = NULL) : length(length), args(args) {}
+			INLINE ConsoleArguments(Integer::IntegerData length = 0, const char_t** args = NULL) : length(length), args(args) {}
 		};
 
 	protected:

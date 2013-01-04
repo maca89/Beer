@@ -13,7 +13,7 @@ namespace Beer
 	class Integer : public Object
 	{
 	public:
-		typedef int32 IntegerData;
+		typedef int64 IntegerData;
 		static const int SignatureBits = 2;
 
 	protected:

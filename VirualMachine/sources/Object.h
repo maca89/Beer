@@ -121,11 +121,11 @@ namespace Beer
 		INLINE Object** getChildren() { return mChildren; }
 		INLINE void setChildren(Object** value) { mChildren = value; }
 
-		INLINE Object* getChild(uint32 index) { return mChildren[index]; }
-		INLINE void setChild(uint32 index, Object* obj) { mChildren[index] = obj; }
+		INLINE Object* getChild(int64 index) { return mChildren[index]; }
+		INLINE void setChild(int64 index, Object* obj) { mChildren[index] = obj; }
 
 		template <typename T>
-		INLINE T* getChild(uint32 index) { return static_cast<T*>(getChild(index)); }
+		INLINE T* getChild(int64 index) { return static_cast<T*>(getChild(index)); }
 
 		// casts
 		

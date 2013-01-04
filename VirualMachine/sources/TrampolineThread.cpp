@@ -14,9 +14,10 @@ void TrampolineThread::work()
 	while(hasStackFrame())
 	{
 		StackFrame* frame = getStackFrame();
+		MethodReflection* method = frame->method;
 		
 		// return
-		if(frame->method == NULL)
+		if(method == NULL)
 		{
 			closeStackFrame();
 			continue;
@@ -32,16 +33,25 @@ void TrampolineThread::work()
 			mVM->getHeap()->collect();
 		#endif // BEER_DEBUG_MODE
 
-			MethodReflection* method = frame->method->call(mVM, &mFrames, frame);
-			
-			if(frame->done)
-			{
-				closeStackFrame();
-			}
+		#ifdef BEER_MEASURE_PERFORMANCE
+			MiliTimer timer;
+			timer.start();
+			MethodReflection* oldMethod = method;
+		#endif // BEER_MEASURE_PERFORMANCE
+
+			method = method->call(mVM, frame);
+
+		#ifdef BEER_MEASURE_PERFORMANCE
+			oldMethod->addTimeSpent(timer.stop());
+		#endif // BEER_MEASURE_PERFORMANCE
 			
 			if(method)
 			{
 				openStackFrame()->method = method;
+			}
+			else
+			{
+				closeStackFrame();
 			}
 
 		#ifdef BEER_DEBUG_MODE

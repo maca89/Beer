@@ -28,6 +28,11 @@ void BEER_CALL BeerInteger_toString(VirtualMachine* vm, StackFrame* frame, Stack
 	ret = vm->createString(ss.str());
 }
 
+/*void BEER_CALL BeerInteger_equalInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
+}*/
+
 /*void BEER_CALL BeerInteger_operatorIncrement(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> ret)
 {
 	Integer::IntegerData data = receiver->getData();
@@ -87,7 +92,7 @@ struct BinaryOperator##Name																								\
 		StackRef<Param> arg, 																							\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->create##Return(receiver->getData() Operator arg->getData());									\
+		ret = vm->create##Return(static_cast<Return::Return##Data>(receiver->getData() Operator arg->getData()));		\
 	}																													\
 };																														\
 
@@ -184,6 +189,10 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("Integer::String()"), 1, 0);
 	method->setFunction(&BeerInteger_toString);
 	klass->setMethod(methodi++, method);
+	
+	/*method = loader->createMethod<MethodReflection>(BEER_WIDEN("=="), BEER_WIDEN("Integer::==(Integer)"), 1, 1);
+	method->setFunction(&BeerInteger_equalInteger);
+	klass->setMethod(methodi++, method);*/
 	
 	/*method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), BEER_WIDEN("Integer::++()"), 1, 0);
 	method->setFunction(&BeerInteger_operatorIncrement);

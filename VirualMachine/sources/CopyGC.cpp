@@ -67,7 +67,7 @@ bool CopyGC::enlargeHeap(size_t desiredSize)
 	return false;
 }
 
-bool CopyGC::makeSpace(size_t size)
+bool CopyGC::makeSpace(uint32 size)
 {
 	if(!canAllocate(size)) collect();
 	if(!canAllocate(size)) enlargeHeap(size);
@@ -79,7 +79,7 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 	//TODO: preOffset
 	if(preOffset != 0) throw GCException(BEER_WIDEN("preOffset not yet implemented in CopyGC"));
 
-	size_t size = roundSize(staticSize + sizeof(Object*) * childrenCount);
+	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount);
 
 #ifdef BEER_GC_DEBUGGING
 	size += 2 * GuardLength;

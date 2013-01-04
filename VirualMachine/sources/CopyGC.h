@@ -84,12 +84,12 @@ namespace Beer
 		Object* move(Object* object);
 		void check(SimpleMemoryAllocator* memory, Object* object);
 
-		INLINE size_t roundSize(size_t size)
+		INLINE uint32 roundSize(uint32 size)
 		{
 			return size + (size & 1); // rounds size to the closest bigger even number
 		}
 	
-		INLINE bool canAllocate(size_t size) const
+		INLINE bool canAllocate(uint32 size) const
 		{
 			return mMemoryOld.canMalloc(size);
 		}

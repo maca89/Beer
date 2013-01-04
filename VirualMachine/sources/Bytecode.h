@@ -60,20 +60,25 @@ namespace Beer
 
 			// 100: inlined functions - the numbers may be changed!
 			// Boolean
-			INLINE_BOOLEAN_EQUAL = 128,
-			INLINE_BOOLEAN_NOT_EQUAL = 129,
-			INLINE_BOOLEAN_OR = 130,
-			INLINE_BOOLEAN_AND = 131,
+			INLINE_BOOLEAN_EQUAL = _INSTR_SIZE + 1,
+			INLINE_BOOLEAN_NOT_EQUAL,
+			INLINE_BOOLEAN_OR,
+			INLINE_BOOLEAN_AND,
+			INLINE_BOOLEAN_NEGATION,
 			// Integer
-			INLINE_INTEGER_PLUS = 132,
-			INLINE_INTEGER_MINUS = 133,
-			INLINE_INTEGER_MUL = 134,
-			INLINE_INTEGER_EQUAL = 135,
-			INLINE_INTEGER_NOT_EQUAL = 136,
-			INLINE_INTEGER_SMALLER = 137,
-			INLINE_INTEGER_SMALLER_EQUAL = 138,
-			INLINE_INTEGER_GREATER = 139,
-			INLINE_INTEGER_GREATER_EQUAL = 140,
+			INLINE_INTEGER_PLUS,
+			INLINE_INTEGER_MINUS,
+			INLINE_INTEGER_MUL,
+			INLINE_INTEGER_EQUAL,
+			INLINE_INTEGER_NOT_EQUAL,
+			INLINE_INTEGER_SMALLER,
+			INLINE_INTEGER_SMALLER_EQUAL,
+			INLINE_INTEGER_GREATER,
+			INLINE_INTEGER_GREATER_EQUAL,
+			// Array
+			INLINE_ARRAY_GET_LENGTH,
+			INLINE_ARRAY_GET_ITEM,
+			INLINE_ARRAY_SET_ITEM,
 		};
 
 		#pragma pack(push, 1)
@@ -173,7 +178,7 @@ namespace Beer
 			SMART_DELETE_ARR(mDict);
 		}
 
-		MethodReflection* call(VirtualMachine* vm, Frames* frames, StackFrame* frame);
+		MethodReflection* call(VirtualMachine* vm, StackFrame* frame);
 		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }

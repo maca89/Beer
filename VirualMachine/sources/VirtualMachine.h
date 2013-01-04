@@ -37,12 +37,11 @@ namespace Beer
 
 	typedef CopyGC Heap;
 	typedef std::set<Thread*> ThreadSet;
+	typedef std::map<string, ClassReflection*> ClassReflectionTable;
 
 	class VirtualMachine
 	{
-	public:
-		typedef std::map<string, ClassReflection*> ClassReflectionTable;
-
+	protected:
 		WorkStack* mStack; // get rid of this
 
 		Heap* mHeap;
@@ -99,6 +98,7 @@ namespace Beer
 		INLINE InlineFunctionTable* getInlineFunctionTable() { return &mInlineFnTable; }
 		INLINE ThreadSet& getThreads() { return mThreads; }
 		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
+		INLINE ClassReflectionTable& getClasses() { return mClasses; }
 
 		void init(uint32 stackInitSize = 1*1024, uint32 heapInitSize = 2*1024*1024);
 		void run();

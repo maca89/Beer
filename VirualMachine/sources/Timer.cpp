@@ -10,9 +10,9 @@ void MiliTimer::start()
 	QueryPerformanceCounter((LARGE_INTEGER *)&startTime);
 }
 
-double MiliTimer::stop()
+float64 MiliTimer::stop()
 {
 	unsigned __int64 ticks = 0;
 	QueryPerformanceCounter((LARGE_INTEGER *)&ticks);
-	return (double) (ticks - startTime) / frequency;
+	return (float64) (ticks - startTime) / frequency;
 }

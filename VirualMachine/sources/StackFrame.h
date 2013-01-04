@@ -22,21 +22,23 @@ namespace Beer
 		MethodReflection* method;
 		uint16 programCounter;
 		uint16 nextInstruction;
-		bool done;
 
-		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0), nextInstruction(0), done(false) {}
+		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0), nextInstruction(0)
+		{
+		}
 
 		INLINE StackFrame(const StackFrame& f) 
-			: prev(f.prev), stack(f.stack), frameOffset(f.frameOffset), method(f.method), programCounter(f.programCounter), nextInstruction(f.nextInstruction), done(f.done)
-		{}
+			: prev(f.prev), stack(f.stack), frameOffset(f.frameOffset), method(f.method), programCounter(f.programCounter), nextInstruction(f.nextInstruction)
+		{
+		}
 
 		INLINE StackFrame(WorkStack* stack)
-			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), programCounter(0), nextInstruction(0), done(false)
+			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), programCounter(0), nextInstruction(0)
 		{
 		}
 		
 		INLINE StackFrame(StackFrame* prev)
-			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), programCounter(0), nextInstruction(0), done(false)
+			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), programCounter(0), nextInstruction(0)
 		{
 		}
 
@@ -121,7 +123,7 @@ namespace Beer
 		{
 		}
 
-		NOINLINE void operator= (Object* obj)
+		INLINE void operator= (Object* obj)
 		{
 			mFrame->stackStore(mIndex, obj);
 		}

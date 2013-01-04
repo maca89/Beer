@@ -139,7 +139,7 @@ void VirtualMachine::run()
 	RUNTIME_ASSERT(main->getClass()->substituable(getTaskClass()), BEER_WIDEN("Main is not instance of Task"));
 	frame->method = main->getClass()->findMethod(BEER_WIDEN("Task::dorun()"));
 	NULL_ASSERT(frame->method);
-	frame->method->call(this, &frames, frame);
+	frame->method->call(this, frame);
 }
 
 Integer* VirtualMachine::createInteger(Integer::IntegerData value)

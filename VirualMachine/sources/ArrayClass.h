@@ -12,28 +12,32 @@ namespace Beer
 
 	class Array : public Object
 	{
+	public:
+		//typedef Integer::IntegerData ValueData;
+		typedef Integer::IntegerData LengthData;
+
 	protected:
-		int32 mSize;
+		LengthData mSize;
 		ClassReflection* mItemClass;
 	
 	public:
-		INLINE int32 getSize() const
+		INLINE LengthData getSize() const
 		{
 			DBG_ASSERT(mSize >= 0, BEER_WIDEN("Array size is smaller than zero"));
 			return mSize;//mHeader.childrenCount - CHILDREN_COUNT;
 		}
 
-		INLINE void setSize(int32 value)
+		INLINE void setSize(LengthData value)
 		{
 			mSize = value;
 		}
 
-		INLINE Object* getItem(int32 i)
+		INLINE Object* getItem(LengthData i)
 		{
 			return getChild<Object>(i);
 		}
 
-		INLINE void setItem(int32 i, Object* obj)
+		INLINE void setItem(LengthData i, Object* obj)
 		{
 			//DBG_ASSERT(obj->getClass()->substituable(mItemClass), BEER_WIDEN("Unexpected class")); // TODO: CLASS_ASSERT
 			setChild(i, obj);
@@ -56,7 +60,7 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual uint32 getChildrenCount(Object* object)
+		virtual uint64 getChildrenCount(Object* object)
 		{
 			return static_cast<Array*>(object)->getSize();
 		}

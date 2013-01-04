@@ -122,7 +122,7 @@ String* StringClass::createInstance(VirtualMachine* vm, StackFrame* frame, Garba
 {
 	Integer::IntegerData length = frame->stackTop<Integer>(frame->stackTopIndex())->getData();
 	frame->stackPop(); // pop size
-	String* str = gc->alloc<String>(sizeof(String) + sizeof(String::CharacterData) * (length + 1), /*String::CHILDREN_COUNT +*/ getPropertiesCount()); // +1 for \0
+	String* str = gc->alloc<String>(static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (length + 1)), getPropertiesCount()); // +1 for \0
 	str->size(length);
 	//str->copyData();
 	str->setClass(this);

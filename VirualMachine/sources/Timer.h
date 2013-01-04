@@ -10,11 +10,11 @@ namespace Beer
 		unsigned __int64 startTime;
 
 	public:	
-		INLINE MiliTimer()  {}
+		INLINE MiliTimer()  { /*start();*/ }
 		INLINE ~MiliTimer() {}
 
 		void start();
-		double stop();
+		float64 stop();
 
 	protected:
 	};

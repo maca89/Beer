@@ -63,6 +63,11 @@ namespace Beer
 	#define __WFILE__ __FILE__
 #endif // BEER_MULTIBYTE_STRINGS
 
+	static void* memcpy(void* dest, const void* source, uint64 length)
+	{
+		return ::memcpy(dest, source, static_cast<uint32>(length)); //TODO: custom function
+	}
+
 	INLINE static int16 strcmp(const char8* str1, const char8* str2)
 	{
 		return ::strcmp(str1, str2);
@@ -350,6 +355,9 @@ namespace Beer
 
 	// optimalizations
 	#define BEER_INLINE_OPTIMALIZATION
+
+	// measure performance
+	//#define BEER_MEASURE_PERFORMANCE
 
 	// static initializer
 	#define STATIC_INITIALIZER_START(_name_)												\

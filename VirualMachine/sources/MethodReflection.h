@@ -4,6 +4,7 @@
 #include "Selector.h"
 #include "StackFrame.h"
 #include "Bytecode.h"
+#include "Timer.h"
 
 
 namespace Beer
@@ -17,7 +18,6 @@ namespace Beer
 	{
 	public:
 		typedef void(*Cb)();
-		typedef MethodReflection*(*CallFunction)(MethodReflection*, VirtualMachine*, Frames*, StackFrame*);
 
 		enum
 		{
@@ -47,9 +47,10 @@ namespace Beer
 
 		Cb mFunction;
 		Bytecode* mBytecode;
+		float64 mTimeSpent;
 
 	public:
-		INLINE MethodReflection() : mFunction(NULL), mBytecode(NULL)
+		INLINE MethodReflection() : mFunction(NULL), mBytecode(NULL), mTimeSpent(NULL)
 		{
 		}
 
@@ -57,6 +58,11 @@ namespace Beer
 		{
 			// is never called!
 		}
+
+		// time spent
+		INLINE void addTimeSpent(float64 value) { mTimeSpent += value; }
+		INLINE void setTimeSpent(float64 value) { mTimeSpent = value; }
+		INLINE float64 getTimeSpent() const { return mTimeSpent; }
 
 		// flags
 		
@@ -123,11 +129,11 @@ namespace Beer
 
 		// calls
 
-		INLINE MethodReflection* call(VirtualMachine* vm, Frames* frames, StackFrame* frame)
+		INLINE MethodReflection* call(VirtualMachine* vm, StackFrame* frame)
 		{
 			if(isBytecode())
 			{
-				return mBytecode->call(vm, frames, frame);
+				return mBytecode->call(vm, frame);
 			}
 			else
 			{
