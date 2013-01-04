@@ -22,7 +22,7 @@ namespace Beer
 		uint32 mLiveObjects;
 		uint32 mLastMoved;
 		uint32 mLastCollected;
-		WorkStack* mStack;
+		uint32 mCollects;
 		VirtualMachine* mVM;
 		ReferenceVector mReferences;
 		ReferenceId mReferencesNext;
@@ -33,7 +33,7 @@ namespace Beer
 		static const int DbgDeletedValue = 0xfeeefeee;
 
 	public:
-		CopyGC(VirtualMachine* vm, WorkStack* stack, size_t memoryLength = 1024*1); // 1KB
+		CopyGC(VirtualMachine* vm, size_t memoryLength = 1024*1); // 1KB
 		virtual ~CopyGC();
 
 		INLINE uint32 countLiveObjects()

@@ -24,7 +24,7 @@ ClassReflection* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassL
 {
 	return loader->createClass<LoadedObjectClass>(
 		name, // classDescr->getName(classFile)->c_str()
-		mClassDescr->getParentsLength() + 1, // + 1 for Object
+		mClassDescr->getParentsLength() + 1 + (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0), // + 1 for Object, TODO: Main in classfile
 		mClassDescr->getAttributesLength(), 
 		mClassDescr->getMethodsLength()
 	);
@@ -36,19 +36,29 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 
 	uint16 propStart = 0;
 	uint16 parentStart = 0;
+	
+	// Task class, TODO: in classfile
+	if(strcmp(klass->getName(), BEER_WIDEN("Main")) == 0)
+	{
+		ClassReflection* taskClass = vm->getClass(BEER_WIDEN("Task"));
+		mClass->extends(parentStart++, taskClass); // class will be loaded if its not
+		propStart += taskClass->getPropertiesCount();
+	}
 
-	// default class
-	ClassReflection* objectClass = vm->getObjectClass(); // class will be loaded if its not
-	mClass->extends(parentStart++, objectClass);
-	propStart += objectClass->getPropertiesCount();
-
+	// default Object class, TODO: in classfile
+	else
+	{
+		ClassReflection* objectClass = vm->getObjectClass(); // class will be loaded if its not
+		mClass->extends(parentStart++, objectClass);
+		propStart += objectClass->getPropertiesCount();
+	}
 
 	// parents
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
 		ClassReflection* parent = vm->getClass(getParentClassName(vm, i));
 		mClass->extends(parentStart + i, parent); // class will be loaded if its not
-		propStart += objectClass->getPropertiesCount();
+		propStart += parent->getPropertiesCount();
 	}
 			
 	// attributes

@@ -24,15 +24,7 @@ void BEER_CALL BeerArray_get(VirtualMachine* vm, StackFrame* frame, StackRef<Arr
 {
 	BOUNDS_ASSERT(index->getData(), receiver->getSize());
 
-	/*Array* arr = receiver.get();
-	Integer::IntegerData i = index->getData();*/
 	Integer* object = static_cast<Integer*>(receiver->getItem(index->getData()));
-	
-	/*if(object == reinterpret_cast<Object*>(0x0e))
-	{
-		Object* obj = receiver->getItem(i);
-		cout << "!";
-	}*/
 
 	if(object) ret = object;
 	else
@@ -45,15 +37,6 @@ void BEER_CALL BeerArray_get(VirtualMachine* vm, StackFrame* frame, StackRef<Arr
 void BEER_CALL BeerArray_set(VirtualMachine* vm, StackFrame* frame, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> object)
 {
 	BOUNDS_ASSERT(index->getData(), receiver->getSize());
-
-	/*Array* arr = receiver.get();
-	Integer::IntegerData i = index->getData();
-
-	Object* obj = receiver->getItem(i);
-	if(obj == reinterpret_cast<Object*>(0x0e))
-	{
-		cout << "!";
-	}*/
 
 	receiver->setItem(index->getData(), object.get());
 }
@@ -78,17 +61,17 @@ void Array::toString(VirtualMachine* vm, string& out)
 }
 
 
-Object* ArrayClass::createInstance(StackFrame* frame, GarbageCollector* gc)
+Object* ArrayClass::createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 {
 	Integer* size = static_cast<Integer*>(frame->stackTop());
 	Array* arr = gc->alloc<Array>(static_cast<int32>(size->getData()));
-	//arr->mSize
+	arr->setSize(size->getData());
 	arr->setClass(this);
-	//arr->setItemClass(...);
+	arr->setItemClass(NULL); // TODO
 	return arr;
 }
 
-Object* ArrayClass::cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
+Object* ArrayClass::cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 {
 	Array* arr = gc->alloc<Array>(static_cast<int32>(object->getInstance<Array>()->getSize()));
 	arr->setClass(this);

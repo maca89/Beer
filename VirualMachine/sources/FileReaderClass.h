@@ -13,8 +13,6 @@ namespace Beer
 
 	class FileReader : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
 	protected:
 		ifstream* mFile;
 
@@ -62,7 +60,7 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			// TODO: constructor
 			FileReader* reader = gc->alloc<FileReader>();

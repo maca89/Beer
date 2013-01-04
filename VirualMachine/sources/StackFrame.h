@@ -17,21 +17,28 @@ namespace Beer
 	{
 	public:
 		uint32 frameOffset;
+		StackFrame* prev;
 		WorkStack* stack;
 		MethodReflection* method;
 		uint16 programCounter;
 		uint16 nextInstruction;
 		bool done;
 
-		INLINE StackFrame() : stack(NULL), frameOffset(0), method(NULL), programCounter(0), nextInstruction(0), done(false) {}
+		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0), nextInstruction(0), done(false) {}
 
 		INLINE StackFrame(const StackFrame& f) 
-			: stack(f.stack), frameOffset(f.frameOffset), method(f.method), programCounter(f.programCounter), nextInstruction(f.nextInstruction), done(f.done)
+			: prev(f.prev), stack(f.stack), frameOffset(f.frameOffset), method(f.method), programCounter(f.programCounter), nextInstruction(f.nextInstruction), done(f.done)
 		{}
+
+		INLINE StackFrame(WorkStack* stack)
+			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), programCounter(0), nextInstruction(0), done(false)
+		{
+		}
 		
-		INLINE StackFrame(WorkStack* stack, uint32 stackOffset)
-			: stack(stack), frameOffset(stackOffset), method(NULL), programCounter(0), nextInstruction(0), done(false)
-		{}
+		INLINE StackFrame(StackFrame* prev)
+			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), programCounter(0), nextInstruction(0), done(false)
+		{
+		}
 
 		INLINE ~StackFrame() {}
 
@@ -47,7 +54,7 @@ namespace Beer
 
 		INLINE Object* stackTop()
 		{
-			return stack->top(0);//translate(stackTopIndex()));
+			return stack->top(0);
 		}
 
 		INLINE int32 stackTopIndex()
@@ -86,16 +93,15 @@ namespace Beer
 			return stack->size();
 		}
 
-		INLINE uint32 translate(int32 index)
+		INLINE uint32 translate(int32 index) // index <= 0
 		{
-			if(frameOffset == 0) return index;
-			return frameOffset + index - 1;
+			DBG_ASSERT(static_cast<int64>(frameOffset) + index > 0, BEER_WIDEN("Stack index out of bounds"));
+			return static_cast<int64>(frameOffset) + index - 1;
 		}
 
 		INLINE int32 translate(uint32 index)
 		{
-			if(frameOffset == 0) return index;
-			return index - frameOffset + 1;
+			return static_cast<int64>(index) - frameOffset + 1;
 		}
 	};
 	
@@ -114,12 +120,6 @@ namespace Beer
 		INLINE StackRef(StackFrame* frame, int32 index) : mFrame(frame), mIndex(index)
 		{
 		}
-		
-		/*template <typename U>
-		INLINE StackRef(const StackRef<U>& ref) : mFrame(frame), mIndex(index)
-		{
-			mFrame->stackStore(mIndex, ref.get());
-		}*/
 
 		NOINLINE void operator= (Object* obj)
 		{
@@ -149,11 +149,13 @@ namespace Beer
 
 		INLINE const T* operator-> () const
 		{
+			DBG_ASSERT(get() != NULL, "Null pointer");
 			return get();
 		}
 
 		INLINE T* operator-> ()
 		{
+			DBG_ASSERT(get() != NULL, "Null pointer");
 			return get();
 		}
 

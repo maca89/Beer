@@ -17,7 +17,7 @@ void BEER_CALL BeerFileWriter_init(VirtualMachine* vm, StackFrame* frame, StackR
 
 void BEER_CALL BeerFileWriter_open(VirtualMachine* vm, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<String> filename, StackRef<Boolean> ret)
 {
-	ret = vm->createBoolean(receiver->open(filename->c_str()));
+	ret = Boolean::makeInlineValue(receiver->open(filename->c_str()));
 }
 
 void BEER_CALL BeerFileWriter_close(VirtualMachine* vm, StackFrame* frame, StackRef<FileWriter> receiver)
@@ -59,7 +59,7 @@ void BEER_CALL BeerFileWriter_writeLn(VirtualMachine* vm, StackFrame* frame, Sta
 
 void BEER_CALL BeerFileWriter_writeFailed(VirtualMachine* vm, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Boolean> ret)
 {
-	ret = vm->createBoolean(receiver->failed());
+	ret = Boolean::makeInlineValue(receiver->failed());
 }
 
 

@@ -18,7 +18,7 @@ void BEER_CALL BeerFileReader_init(VirtualMachine* vm, StackFrame* frame, StackR
 
 void BEER_CALL BeerFileReader_open(VirtualMachine* vm, StackFrame* frame, StackRef<FileReader> receiver, StackRef<String> filename, StackRef<Boolean> ret)
 {
-	ret = vm->createBoolean(receiver->open(filename->c_str()));
+	ret = Boolean::makeInlineValue(receiver->open(filename->c_str()));
 }
 
 void BEER_CALL BeerFileReader_close(VirtualMachine* vm, StackFrame* frame, StackRef<FileReader> receiver)
@@ -49,12 +49,12 @@ void BEER_CALL BeerFileReader_readString(VirtualMachine* vm, StackFrame* frame, 
 
 void BEER_CALL BeerFileReader_readFailed(VirtualMachine* vm, StackFrame* frame, StackRef<FileReader> receiver, StackRef<Boolean> ret)
 {
-	ret = vm->createBoolean(receiver->failed());
+	ret = Boolean::makeInlineValue(receiver->failed());
 }
 
 void BEER_CALL BeerFileReader_readEnded(VirtualMachine* vm, StackFrame* frame, StackRef<FileReader> receiver, StackRef<Boolean> ret)
 {
-	ret = vm->createBoolean(receiver->atEnd());
+	ret = Boolean::makeInlineValue(receiver->atEnd());
 }
 
 

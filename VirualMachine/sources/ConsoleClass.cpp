@@ -115,7 +115,7 @@ void BEER_CALL BeerConsole_readLine(VirtualMachine* vm, StackFrame* frame, Stack
 
 void BEER_CALL BeerConsole_readFailed(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
 {
-	ret = vm->createBoolean(receiver->getReadFailed());
+	ret = Boolean::makeInlineValue(receiver->getReadFailed());
 }
 
 void BEER_CALL BeerConsole_getArg(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> index, StackRef<String> ret)

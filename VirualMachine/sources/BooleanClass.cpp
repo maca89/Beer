@@ -46,7 +46,7 @@ void BEER_CALL BeerBoolean_init(VirtualMachine* vm, StackFrame* frame, StackRef<
 
 void BEER_CALL BeerBoolean_Negation(VirtualMachine* vm, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret)
 {
-	ret = vm->createBoolean(!receiver->getData());
+	ret = Boolean::makeInlineValue(!receiver->getData());
 }
 
 ClassReflection* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)

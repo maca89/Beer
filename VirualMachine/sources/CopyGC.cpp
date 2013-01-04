@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "CopyGC.h"
 #include "VirtualMachine.h"
+#include "Thread.h"
 
 using namespace Beer;
 
@@ -19,15 +20,15 @@ using namespace Beer;
 
 
 
-CopyGC::CopyGC(VirtualMachine* vm, WorkStack* stack, size_t memoryLength)
+CopyGC::CopyGC(VirtualMachine* vm, size_t memoryLength)
 {
 	mVM = vm;
-	mStack = stack;
 	mMemoryOld.init(memoryLength);
 	mMemoryNew.init(memoryLength);
 	mLiveObjects = 0;
 	mLastMoved = 0;
 	mLastCollected = 0;
+	mCollects = 0;
 
 	// 0 => NULL
 	mReferences.push_back(NULL);
@@ -110,10 +111,6 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 	obj->setGCFlag(Object::GC_WHITE);
 	obj->setTypeFlag(Object::TYPE_REF);
 	obj->setClass(NULL);
-	//obj->getHeader().childrenCount = childrenCount;
-		
-	// children array starts at obj->children
-	//obj->children = reinterpret_cast<Object**>(reinterpret_cast<int8*>(obj) + offsetof(Object, children));
 		
 	// children array is at the end of object
 	if(childrenCount > 0)
@@ -122,27 +119,28 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 		memset(children, 0, childrenCount * sizeof(void*));
 		obj->setChildren(children);
 	}
+#ifdef BEER_GC_DEBUGGING
 	else
 	{
 		obj->setChildren(NULL);
 	}
+#endif // BEER_GC_DEBUGGING
 
 	mLiveObjects++;
 	GC_DEBUG(BEER_WIDEN("Alloced object ") << "#" << obj);
-	//GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
 	return obj;
 }
 
 void CopyGC::collectAll()
 {
-	/*Object* object = static_cast<Object*>(mMemoryOld.getHead());
-		
-	while(object != NULL)
+	// clear roots
+	for(ThreadSet::iterator it = mVM->getThreads().begin(); it != mVM->getThreads().end(); it++)
 	{
-		object = static_cast<Object*>(mMemoryOld.getNext(object));
-	}*/
-
-	mStack->clear(); // clear roots
+		Thread* thread = *it;
+		WorkStack* stack = thread->getStack();
+		stack->clear();
+	}
+	
 	mMemoryOld.reset();
 }
 
@@ -160,7 +158,7 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 
 	if(!memory->contains(object))
 	{
-		memory->contains(object);
+		//memory->contains(object);
 		throw GCException(BEER_WIDEN("Object's children not in old space"));
 	}
 
@@ -168,7 +166,7 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 
 	if(klass->getChildrenCount(object) > 0 && !memory->contains(object->getChildren()))
 	{
-		memory->contains(object->getChildren());
+		//memory->contains(object->getChildren());
 		throw GCException(BEER_WIDEN("Object not in old space"));
 	}
 
@@ -181,9 +179,7 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 void CopyGC::collect()
 {
 	GC_DEBUG(BEER_WIDEN("Collect"));
-	//GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
-
-	//mVM->printStack();
+	GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
 	
 	mLastMoved = 0;
 	mLastCollected = 0;
@@ -192,60 +188,38 @@ void CopyGC::collect()
 	////////////////////////////////////////////////////////////////////////////////////////
 	// debug - check for marked
 	////////////////////////////////////////////////////////////////////////////////////////
-	for(uint32 i = 0; i < mStack->size(); i++)
+	for(ThreadSet::iterator it = mVM->getThreads().begin(); it != mVM->getThreads().end(); it++)
 	{
-		Object* object = mStack->top(i);
-		check(&mMemoryOld, object);
-	}
+		Thread* thread = *it;
+		WorkStack* stack = thread->getStack();
 
-	mMemoryNew.clear();
-	
-	for(void* mem = mMemoryOld.getHead();
-		mem != NULL;
-		mem = mMemoryOld.getNext(mem))
-	{
-		Object* object = reinterpret_cast<Object*>(
-#ifdef BEER_GC_DEBUGGING
-			reinterpret_cast<byte*>(mem) + GuardLength
-#else
-			mem
-#endif
-		);
-
-		checkGuard(object);
-
-		if(marked(object))
+		for(uint32 i = 0; i < stack->size(); i++)
 		{
-			cout << "marked object found when there should be none (heap)" << std::endl;
+			Object* object = stack->top(i);
+			check(&mMemoryOld, object);
 		}
 	}
 	////////////////////////////////////////////////////////////////////////////////////////
 #endif // BEER_GC_DEBUGGING
-
-	/*StringPool* pool = mVM->getStringClass<StringClass>()->getPool();
-	for(StringPool::iterator it = pool->begin(); it != pool->end(); it++)
-	{
-		String* object = it->second;
-
-		it->second = static_cast<String*>(move(object));
-	}*/
 
 	//StringPool* pool = mVM->getStringClass<StringClass>()->getPool();
 	for(ReferenceId i = 1; i < mReferences.size(); i++)
 	{
 		Object* object = mReferences[i];
 
-		mReferences[i] = move(object);
+		if(object && !object->isInlineValue()) mReferences[i] = move(object);
 	}
 
 	// move roots and its children
-	for(uint32 i = 0; i < mStack->size(); i++)
+	for(ThreadSet::iterator it = mVM->getThreads().begin(); it != mVM->getThreads().end(); it++)
 	{
-		Object* object = mStack->top(i);
-			
-		if(object != NULL)
+		Thread* thread = *it;
+		WorkStack* stack = thread->getStack();
+
+		for(uint32 i = 0; i < stack->size(); i++)
 		{
-			mStack->set(move(object), i);
+			Object* object = stack->top(i);
+			if(object && !object->isInlineValue()) stack->set(move(object), i);
 		}
 	}
 
@@ -287,25 +261,31 @@ void CopyGC::collect()
 
 	SimpleMemoryAllocator::swap(mMemoryNew, mMemoryOld);
 
-	//mVM->printStack();
+#ifdef BEER_GC_DEBUGGING
+	for(ThreadSet::iterator it = mVM->getThreads().begin(); it != mVM->getThreads().end(); it++)
+	{
+		Thread* thread = *it;
+		WorkStack* stack = thread->getStack();
+
+		for(uint32 i = 0; i < stack->size(); i++)
+		{
+			Object* object = stack->top(i);
+			check(&mMemoryOld, object);
+		}
+	}
+#endif // BEER_GC_DEBUGGING
+
+	mCollects++;
 }
 
 Object* CopyGC::move(Object* object)
 {
-	if(object == NULL)
-	{
-		return NULL;
-	}
-
-	if(object->isInlineValue())
-	{
-		return object;
-	}
+	DBG_ASSERT(object, "Object is NULL");
+	DBG_ASSERT(!object->isInlineValue(), "Object is inline value");
 
 	if(marked(object)) // already moved
 	{
 		Object* newObject = reinterpret_cast<Object*>(object->getChildren()); // read saved pointer
-		//check(&mMemoryNew, object);
 		return newObject;
 	}
 
@@ -353,7 +333,7 @@ Object* CopyGC::move(Object* object)
 		Object* child = static_cast<Object*>(children[i]);//object->getChild<Object>(i);
 			
 		// move and adjust pointer
-		newObject->setChild(i, move(child));
+		if(child && !child->isInlineValue()) newObject->setChild(i, move(child));
 	}
 
 #ifdef BEER_GC_DEBUGGING

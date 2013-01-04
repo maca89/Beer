@@ -21,9 +21,7 @@ namespace Beer
 			const char_t** args;
 
 			ConsoleArguments(Integer::IntegerData length = 0, const char_t** args = NULL) : length(length), args(args) {}
-		}; 
-
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
+		};
 
 	protected:
 		bool mReadFailed;
@@ -48,7 +46,7 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			Console* cons = gc->alloc<Console>();
 			cons->setClass(this);
@@ -56,9 +54,9 @@ namespace Beer
 			return cons;
 		}
 
-		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
+		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
-			Console* cons = static_cast<Console*>(this->ClassReflection::cloneShallow(object, frame, gc));
+			Console* cons = static_cast<Console*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
 			cons->setReadFailed(object->getInstance<Console>()->getReadFailed());
 			return cons;
 		}

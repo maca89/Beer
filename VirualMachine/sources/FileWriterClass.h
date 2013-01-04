@@ -15,8 +15,6 @@ namespace Beer
 
 	class FileWriter : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
 	protected:
 		std::ofstream* mFile;
 
@@ -70,7 +68,7 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			// TODO: constructor
 			FileWriter* writer = gc->alloc<FileWriter>();

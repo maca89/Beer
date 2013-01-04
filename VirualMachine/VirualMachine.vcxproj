@@ -57,9 +57,11 @@
     </ClCompile>
     <ClCompile Include="sources\StringClass.cpp" />
     <ClCompile Include="sources\StringDescriptor.cpp" />
-    <ClCompile Include="sources\Thread.cpp" />
+    <ClCompile Include="sources\TaskClass.cpp" />
+    <ClCompile Include="sources\NativeThread.cpp" />
     <ClCompile Include="sources\Timer.cpp" />
     <ClCompile Include="sources\TimerClass.cpp" />
+    <ClCompile Include="sources\TrampolineThread.cpp" />
     <ClCompile Include="sources\VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -111,9 +113,12 @@
     <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\StringClass.h" />
     <ClInclude Include="sources\StringDescriptor.h" />
+    <ClInclude Include="sources\TaskClass.h" />
+    <ClInclude Include="sources\NativeThread.h" />
     <ClInclude Include="sources\Thread.h" />
     <ClInclude Include="sources\Timer.h" />
     <ClInclude Include="sources\TimerClass.h" />
+    <ClInclude Include="sources\TrampolineThread.h" />
     <ClInclude Include="sources\VirtualMachine.h" />
     <ClInclude Include="sources\FixedStack.h" />
   </ItemGroup>

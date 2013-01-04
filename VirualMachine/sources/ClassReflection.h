@@ -14,6 +14,7 @@ namespace Beer
 	struct GarbageCollector;
 	class StackFrame;
 	class Object;
+	class VirtualMachine;
 
 	#pragma pack(push, 1)
 	class ClassReflection : public Object
@@ -106,12 +107,12 @@ namespace Beer
 
 		// instance creation
 
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc) = 0 { return NULL; }
-		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc);
-		/*virtual*/ Object* cloneDeep(Object* object, StackFrame* frame, GarbageCollector* gc);
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc) = 0 { return NULL; }
+		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc);
+		virtual Object* cloneDeep(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc);
 
 		template <typename T>
-		INLINE T* createInstance(StackFrame* frame, GarbageCollector* gc) { return static_cast<T*>(createInstance(frame, gc));}
+		INLINE T* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc) { return static_cast<T*>(createInstance(vm,  frame, gc));}
 		
 		//template <typename T>
 		//INLINE T* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc) { return static_cast<T*>(cloneShallow(object, frame, gc)); }

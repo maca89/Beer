@@ -6,6 +6,7 @@
 #include "StringDescriptor.h"
 //#include "ClassFileDescriptor.h"
 //#include "ClassDescriptor.h"
+#include "TrampolineThread.h"
 
 
 namespace Beer
@@ -20,7 +21,6 @@ namespace Beer
 
 	class LoadedObject : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
 	};
 
 	class LoadedObjectClass : public ClassReflection
@@ -28,11 +28,11 @@ namespace Beer
 	public:
 		// ClassReflection
 
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
-			//cout << "[LoadedObject::createInstance]";
-			LoadedObject* obj = gc->alloc<LoadedObject>(/*LoadedObject::CHILDREN_COUNT +*/ getPropertiesCount());
+			LoadedObject* obj = gc->alloc<LoadedObject>(getPropertiesCount());
 			obj->setClass(this);
+
 			return obj;
 		}
 	};

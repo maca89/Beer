@@ -8,11 +8,11 @@
 using namespace Beer;
 
 
-Object* ClassReflection::cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
+Object* ClassReflection::cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 {
 	DBG_ASSERT(!object->isInlineValue(), BEER_WIDEN("Cannot clone an inline value"));
 
-	Object* copy = createInstance(frame, gc);
+	Object* copy = createInstance(vm, frame, gc);
 	for(uint32 i = 0; i < getPropertiesCount(); i++)
 	{
 		copy->setChild(i, object->getChild(i));
@@ -20,7 +20,7 @@ Object* ClassReflection::cloneShallow(Object* object, StackFrame* frame, Garbage
 	return copy;
 }
 
-Object* ClassReflection::cloneDeep(Object* object, StackFrame* frame, GarbageCollector* gc)
+Object* ClassReflection::cloneDeep(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 {
 	throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
 }
@@ -51,6 +51,12 @@ MethodReflection* ClassReflection::findMethod(const char_t* selector)
 	for(uint16 i = 0; i < mMethodsCount; i++)
 	{
 		if(mMethods[i] && strcmp(mMethods[i]->getSelector(), selector) == 0) return mMethods[i];
+	}
+
+	for(uint16 i = 0; i < mParentsCount; i++)
+	{
+		MethodReflection* method = mParents[i]->findMethod(selector);
+		if(method) return method;
 	}
 
 	return NULL;

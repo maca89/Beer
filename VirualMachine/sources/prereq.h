@@ -294,6 +294,7 @@ namespace Beer
 	#endif // BEER_ASSERTS_ON
 
 	
+	//#define BEER_DEBUG_ASSERTS_ON
 	#define BEER_RUNTIME_ASSERS_ON
 	#define BEER_NULL_ASSERTS_ON
 	#define BEER_BOUNDS_ASSERT_ON
@@ -327,7 +328,7 @@ namespace Beer
 	#ifdef BEER_NULL_ASSERTS_ON
 		#define NULL_ASSERT(var) if(!(var))														\
 		{																						\
-			throw NullReferenceException(BEER_WIDEN("Object is nulBEER_WIDEN("));										\
+			throw NullReferenceException(BEER_WIDEN("Object is null"));							\
 		}
 	#else
 		#define NULL_ASSERT(var)

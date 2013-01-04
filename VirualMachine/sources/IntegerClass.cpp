@@ -55,7 +55,7 @@ struct UnaryOperator##Name																								\
 		StackRef<Integer> receiver, 																					\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->create##Return(receiver->getData() Do);																\
+		ret = vm->create##Return(receiver->getData() Do);														\
 	}																													\
 };																														\
 
@@ -64,7 +64,7 @@ struct UnaryOperator##Name																								\
 	MethodReflection* Name##Method																						\
 		= loader->createMethod<MethodReflection>(																		\
 			BEER_WIDEN(#Operator), 																						\
-			string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("()"), 											\
+			string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("()"), 								\
 			1, 																											\
 			0																											\
 		);																												\
@@ -87,7 +87,7 @@ struct BinaryOperator##Name																								\
 		StackRef<Param> arg, 																							\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->create##Return(receiver->getData() Operator arg->getData());											\
+		ret = vm->create##Return(receiver->getData() Operator arg->getData());									\
 	}																													\
 };																														\
 

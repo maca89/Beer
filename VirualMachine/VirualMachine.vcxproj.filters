@@ -45,9 +45,6 @@
     <ClCompile Include="sources\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\Thread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sources\VirtualMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,6 +141,15 @@
     <ClCompile Include="sources\CharacterClass.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
+    <ClCompile Include="sources\TaskClass.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\TrampolineThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\NativeThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\Bytecode.h">
@@ -156,9 +162,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\VirtualMachine.h">
@@ -303,6 +306,18 @@
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\InlineFunctionTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\TaskClass.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\TrampolineThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\NativeThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

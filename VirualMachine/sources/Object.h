@@ -82,9 +82,8 @@ namespace Beer
 
 		typedef uint8 InlineValueId;
 
-		//COLLECTED_OBJECT_SET_CHILDREN_COUNT(0);
 
-	protected:
+	//protected:
 		uint8 mGCFlag;
 		uint8 mTypeFlag;
 		ClassReflection* mClass;

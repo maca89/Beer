@@ -2,21 +2,13 @@
 #include "MethodReflection.h"
 #include "ObjectClass.h"
 #include "GarbageCollector.h"
-#include "Bytecode.h"
 #include "StackFrame.h"
 
 using namespace Beer;
 
 
-void MethodReflection::runBytecode(VirtualMachine* vm, StackFrame* frame)
+MethodReflection* MethodReflection::runFunction(VirtualMachine* vm, StackFrame* frame)
 {
-	mBytecode->call(vm, frame);
-}
-
-void MethodReflection::runFunction(VirtualMachine* vm, StackFrame* frame)
-{
-	//vm->printStack();
-
 	Cb fn = mFunction;
 	uint16 i = 0;
 	int32 elemi = 0;
@@ -76,10 +68,8 @@ void MethodReflection::runFunction(VirtualMachine* vm, StackFrame* frame)
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 	frame->stackMoveTop(-(paramsCount + 1));
 	frame->done = true;
 
-	//vm->printStack();
+	return NULL; // TODO
 }

@@ -18,7 +18,7 @@ namespace Beer
 		FloatData mData;
 
 	public:
-		 FloatData getData() const
+		INLINE FloatData getData() const
 		{
 			return mData;
 		}
@@ -33,16 +33,16 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			Float* num = gc->alloc<Float>();
 			num->setClass(this);
 			return num;
 		}
 
-		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
+		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
-			Float* num = static_cast<Float*>(this->ClassReflection::cloneShallow(object, frame, gc));
+			Float* num = static_cast<Float*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
 			num->setData(object->getInstance<Float>()->getData());
 			return num;
 		}

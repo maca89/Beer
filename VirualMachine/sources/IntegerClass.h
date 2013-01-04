@@ -62,18 +62,18 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			Integer* num = gc->alloc<Integer>();
 			num->setClass(this);
 			return num;
 		}
 
-		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
+		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
 			if(object->isInlineValue()) return object;
 
-			Integer* num = static_cast<Integer*>(this->ClassReflection::cloneShallow(object, frame, gc));
+			Integer* num = static_cast<Integer*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
 			num->setNonInlineValue(object->getInstance<Integer>()->getData());
 			return num;
 		}

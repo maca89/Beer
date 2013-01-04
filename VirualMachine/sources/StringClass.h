@@ -14,7 +14,6 @@ namespace Beer
 
 	class String : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
 	public:
 		typedef Character::CharacterData CharacterData;
 		typedef Integer::IntegerData LengthData;
@@ -142,7 +141,7 @@ namespace Beer
 		}
 
 		// ClassReflection
-		virtual String* createInstance(StackFrame* frame, GarbageCollector* gc);
+		virtual String* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc);
 
 		/*virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
 		{

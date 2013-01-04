@@ -210,7 +210,10 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_STRING:
-		cout << "PUSH_STRING \"" << reinterpret_cast<const char_t*>(getData_uint32()) << "\"";
+		{
+			Reference<String> str(vm->getHeap(), getData_uint32());
+			cout << "PUSH_STRING \"" << str->c_str() << "\"";
+		}
 		break;
 
 	case Beer::Bytecode::INSTR_PUSH_CHAR:
@@ -404,13 +407,15 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 	builder.finish(&mData, mDataSize, &mDict, mDictSize);
 }
 
-void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
+MethodReflection* Bytecode::call(VirtualMachine* vm, Frames* frames, StackFrame* frame)
 {
-	bool cont = true;
-	while(cont)
+	//bool cont = true;
+	while(true)
 	{
 		// important for debugging
-		if(vm->getDebugger()->isEnabled()) vm->getDebugger()->step(frame);
+	#ifdef BEER_DEBUG_MODE
+		if(vm->getDebugger()->isEnabled()) vm->getDebugger()->step(frames, frame);
+	#endif // BEER_DEBUG_MODE
 		
 		DBG_ASSERT(frame->programCounter < mDictSize, BEER_WIDEN("Program counter out of range"));
 		DBG_ASSERT(frame->translate(frame->stackTopIndex()) == (frame->stack->size() - 1), BEER_WIDEN("Broken stack"));
@@ -471,7 +476,8 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				StackRef<Object> obj(frame, frame->stackTopIndex());
 				// *NO* null checking!
-				frame->stackStore(instr->getData_int16(), obj.get());
+				int16 index = instr->getData_int16();
+				frame->stackStore(index, obj.get());
 				frame->stackPop();
 			}
 			break;
@@ -538,7 +544,7 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				ClassReflection* klass = reinterpret_cast<ClassReflection*>(instr->getData_int32());
 				DBG_ASSERT(klass, BEER_WIDEN("Class is NULBEER_WIDEN("));
-				Object* obj = klass->createInstance(frame, vm->getHeap());
+				Object* obj = klass->createInstance(vm, frame, vm->getHeap());
 				frame->stackPush(obj);
 			}
 			break;
@@ -547,7 +553,7 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				Object* object = frame->stackTop();
 				NULL_ASSERT(object);
-				object = classTable->translate(object)->cloneShallow(object, frame, vm->getHeap());
+				object = classTable->translate(object)->cloneShallow(vm, object, frame, vm->getHeap());
 				frame->stackPush(object);
 			}
 			break;
@@ -597,8 +603,8 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				}
 
 				// invoke method
-				vm->openStackFrame(method); // vm invokes new frame
-				cont = false;
+				frame->programCounter = frame->nextInstruction; // really?
+				return method;
 			}
 			break;
 		
@@ -611,17 +617,26 @@ void Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				NULL_ASSERT(object.get());
 
 				Reference<String> selector(vm->getHeap(), instr->getData_int32());
+				
+				ClassReflection* klass = classTable->translate(object.get());
+				MethodReflection* method = klass->findMethod(selector->c_str());
+				
+				// lookup failed
+				if(!method)
+				{
+					throw MethodNotFoundException(string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + classTable->translate(object)->getName());
+				}
 
 				// invoke method
-				vm->openStackFrame(object.get(), selector->c_str()); // vm invokes new frame
-				cont = false;
+				frame->programCounter = frame->nextInstruction; // really?
+				return method;
 			}
 			break;
 
 		case Beer::Bytecode::INSTR_RETURN:
 			frame->stackMoveTop(-static_cast<int32>(instr->getData_uint16()));
 			frame->done = true;
-			cont = false;
+			return NULL;
 			break;
 
 		// optimalizations

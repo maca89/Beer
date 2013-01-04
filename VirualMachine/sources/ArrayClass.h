@@ -12,8 +12,6 @@ namespace Beer
 
 	class Array : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
 	protected:
 		int32 mSize;
 		ClassReflection* mItemClass;
@@ -21,6 +19,7 @@ namespace Beer
 	public:
 		INLINE int32 getSize() const
 		{
+			DBG_ASSERT(mSize >= 0, BEER_WIDEN("Array size is smaller than zero"));
 			return mSize;//mHeader.childrenCount - CHILDREN_COUNT;
 		}
 
@@ -31,13 +30,13 @@ namespace Beer
 
 		INLINE Object* getItem(int32 i)
 		{
-			return getChild<Object>(/*CHILDREN_COUNT +*/ i);
+			return getChild<Object>(i);
 		}
 
 		INLINE void setItem(int32 i, Object* obj)
 		{
 			//DBG_ASSERT(obj->getClass()->substituable(mItemClass), BEER_WIDEN("Unexpected class")); // TODO: CLASS_ASSERT
-			setChild(/*CHILDREN_COUNT +*/ i, obj);
+			setChild(i, obj);
 		}
 
 		INLINE ClassReflection* getItemClass()
@@ -62,8 +61,8 @@ namespace Beer
 			return static_cast<Array*>(object)->getSize();
 		}
 
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc);
-		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc);
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc);
+		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc);
 
 		/*svirtual void dump(Object* object, stringstream& out)
 		{

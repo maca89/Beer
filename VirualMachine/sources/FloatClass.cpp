@@ -41,7 +41,7 @@ struct UnaryOperator##Name																								\
 		StackRef<Float> receiver, 																						\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(frame, vm->getHeap());							\
+		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(vm, frame, vm->getHeap());						\
 		ret->setData(receiver->getData() Do);																			\
 	}																													\
 };																														\
@@ -73,7 +73,7 @@ struct BinaryOperator##Name																								\
 		StackRef<Param> arg, 																							\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(frame, vm->getHeap());							\
+		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(vm, frame, vm->getHeap());						\
 		ret->setData(static_cast<Return::Return##Data>(receiver->getData()) Operator arg->getData());					\
 	}																													\
 };																														\

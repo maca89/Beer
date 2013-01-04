@@ -1,5 +1,6 @@
 #pragma once
 #include "prereq.h"
+#include "StackFrame.h"
 
 
 namespace Beer
@@ -7,6 +8,7 @@ namespace Beer
 	class VirtualMachine;
 	class StackFrame;
 	class ClassFileDescriptor;
+	class MethodReflection;
 
 	class Bytecode
 	{
@@ -171,7 +173,7 @@ namespace Beer
 			SMART_DELETE_ARR(mDict);
 		}
 
-		void call(VirtualMachine* vm, StackFrame* frame);
+		MethodReflection* call(VirtualMachine* vm, Frames* frames, StackFrame* frame);
 		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }

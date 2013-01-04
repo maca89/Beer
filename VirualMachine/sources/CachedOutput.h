@@ -36,19 +36,19 @@ namespace Beer
 		INLINE CachedOutput& operator<<(float32 n) { mStream << n; mChanged = true; return *this; }
 		INLINE CachedOutput& operator<<(float64 n) { mStream << n; mChanged = true; return *this; }
 
-		NOINLINE /*INLINE*/ CachedOutput& operator<<(const string& s) {
+		INLINE CachedOutput& operator<<(const string& s) {
 			mStream << s;
 			mChanged = true;
 			return *this;
 		}
 
-		NOINLINE /*INLINE*/ CachedOutput& operator<<(String* str) {
+		INLINE CachedOutput& operator<<(String* str) {
 			mStream << str->c_str();
 			mChanged = true;
 			return *this;
 		}
 
-		NOINLINE CachedOutput& operator<<(const char_t* s){
+		INLINE CachedOutput& operator<<(const char_t* s){
 			mStream << s;
 			mChanged = true;
 			return *this;

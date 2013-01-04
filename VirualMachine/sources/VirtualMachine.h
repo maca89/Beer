@@ -21,7 +21,7 @@ namespace Beer
 	class StringClass;
 	class BooleanClass;
 	class IntegerClass;
-	//class ConsoleClass;
+	//class ConsoleClass
 
 	class Integer;
 	class Float;
@@ -31,18 +31,20 @@ namespace Beer
 	struct GarbageCollector;
 	class ClassFileLoader;
 	class ClassLoader;
+	class Thread;
 
 	class Debugger;
 
 	typedef CopyGC Heap;
+	typedef std::set<Thread*> ThreadSet;
 
 	class VirtualMachine
 	{
 	public:
 		typedef std::map<string, ClassReflection*> ClassReflectionTable;
 
-		WorkStack* mStack;
-		Frames* mFrames;
+		WorkStack* mStack; // get rid of this
+
 		Heap* mHeap;
 		GarbageCollector* mClassHeap;
 		ClassReflectionTable mClasses;
@@ -50,6 +52,7 @@ namespace Beer
 		Debugger* mDebugger;
 		ClassTable mClassTable;
 		InlineFunctionTable mInlineFnTable;
+		ThreadSet mThreads;
 
 		ClassReflection* mObjectClass;
 		ClassReflection* mStringClass;
@@ -57,10 +60,11 @@ namespace Beer
 		ClassReflection* mIntegerClass;
 		ClassReflection* mBooleanClass;
 		ClassReflection* mCharacterClass;
+		ClassReflection* mTaskClass;
 
 	public:
 		INLINE VirtualMachine()
-			: mStack(NULL), mFrames(NULL), mHeap(NULL), mClassHeap(NULL),
+			: mStack(NULL), /*mFrames(NULL),*/ mHeap(NULL), mClassHeap(NULL),
 			mClassLoader(NULL), mDebugger(NULL), 
 			mObjectClass(NULL), mStringClass(NULL), mCharacterClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL)
 		{
@@ -69,8 +73,6 @@ namespace Beer
 		INLINE ~VirtualMachine()
 		{
 		}
-
-		ClassLoader* getClassLoader() const { return mClassLoader; }
 	
 		void addClass(ClassReflection* reflection);
 		void removeClass(ClassReflection* reflection);
@@ -90,29 +92,20 @@ namespace Beer
 			return getClass(name->c_str());
 		}
 
-		INLINE const Frames* getStackFrames() const { return mFrames; }
-		INLINE bool hasStackFrame() const { return mFrames->size() > 0; }
-		INLINE StackFrame* getStackFrame() const { return &mFrames->back();/*(0);*/ }
-		StackFrame* openStackFrame(Object* receiver, const char_t* selector);
-		StackFrame* openStackFrame(MethodReflection* method);
-		StackFrame* openStackFrame();
-		void closeStackFrame();
-
-		//INLINE GarbageCollector* getClassHeap() const { return mClassHeap; }
 		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE WorkStack* getStack() const { return mStack; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
 		INLINE ClassTable* getClassTable() { return &mClassTable; }
 		INLINE InlineFunctionTable* getInlineFunctionTable() { return &mInlineFnTable; }
+		INLINE ThreadSet& getThreads() { return mThreads; }
+		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
 
 		void init(uint32 stackInitSize = 1*1024, uint32 heapInitSize = 2*1024*1024);
 		void run();
 		void destroy();
-		void invoke(StackFrame* frame);
 
-		Integer* createInteger(int32/*Integer::IntegerData*/ value);
+		Integer* createInteger(Integer::IntegerData value);
 		Float* createFloat(Float::FloatData value);
-		INLINE Boolean* createBoolean(Boolean::BooleanData value) { return Boolean::makeInlineValue(value); }
 		String* createString(const Character::CharacterData* value);
 		String* createString(String::LengthData length);
 		String* createString(const string& s);
@@ -123,6 +116,7 @@ namespace Beer
 		INLINE ClassReflection* getObjectClass() const { return mObjectClass; }
 		INLINE ClassReflection* getStringClass() const { return mStringClass; }
 		INLINE ClassReflection* getCharacterClass() const { return mCharacterClass; }
+		INLINE ClassReflection* getTaskClass() const { return mTaskClass; }
 
 		template <typename T>
 		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }

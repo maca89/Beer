@@ -21,7 +21,7 @@ struct CompareStringOperator##Name																						\
 		StackRef<String> arg, 																							\
 		StackRef<Boolean> ret)																							\
 	{																													\
-		ret = vm->createBoolean(receiver->compare(arg.get()) Operation);												\
+		ret = Boolean::makeInlineValue(receiver->compare(arg.get()) Operation);											\
 	}																													\
 };																														\
 
@@ -29,7 +29,7 @@ struct CompareStringOperator##Name																						\
 	BuildCompareStringOperatorFn(Name, Operation);																		\
 	method = loader->createMethod<MethodReflection>(																	\
 			BEER_WIDEN(#Operator), 																						\
-			string(BEER_WIDEN("String::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(String)"), 								\
+			string(BEER_WIDEN("String::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(String)"), 							\
 			1, 																											\
 			1																											\
 		);																												\
@@ -118,7 +118,7 @@ void BEER_CALL BeerString_concatArray(VirtualMachine* vm, StackFrame* frame, Sta
 }
 
 
-String* StringClass::createInstance(StackFrame* frame, GarbageCollector* gc)
+String* StringClass::createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 {
 	Integer::IntegerData length = frame->stackTop<Integer>(frame->stackTopIndex())->getData();
 	frame->stackPop(); // pop size
@@ -193,11 +193,12 @@ Reference<String> StringPool::translate(VirtualMachine* vm, const char16* str)
 	if(it == mStrings.end())
 	{
 		uint32 length = strlen(str);
-		StackFrame* frame = vm->getStackFrame();
 		CopyGC* heap = static_cast<CopyGC*>(vm->getHeap());
+		
+		StackFrame frame(vm->getStack());
+		frame.stackPush(vm->createInteger(length));
 
-		frame->stackPush(vm->createInteger(length));
-		String* result = vm->getStringClass()->createInstance<String>(frame, heap);
+		String* result = vm->getStringClass()->createInstance<String>(vm, &frame, heap);
 		result->copyData(str, length);
 
 		return Reference<String>(heap, result);

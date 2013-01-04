@@ -41,11 +41,10 @@ void Debugger::printNativeInstruction()
 	cout << std::endl;
 }
 
-void Debugger::printCallStack()
+void Debugger::printCallStack(Frames* frames)
 {
 	cout << "[CallStack]" << std::endl;
 	
-	const Frames* frames = mVM->getStackFrames();
 	uint32 i = 0;
 	for(Frames::const_iterator it = frames->begin(); it != frames->end(); it++)
 	{
@@ -126,9 +125,9 @@ void Debugger::printObject(Object* object)
 	mPrintedObjects.pop_back();
 }
 
-void Debugger::printFrame(StackFrame* frame)
+void Debugger::printFrame(Frames* frames, StackFrame* frame)
 {
-	printCallStack();
+	printCallStack(frames);
 	printFrameStack(frame);
 
 	if(frame->method->isBytecode())
@@ -145,7 +144,7 @@ void Debugger::printFrame(StackFrame* frame)
 void Debugger::printFrameStack(StackFrame* frame)
 {
 	uint32 i = 0; // TODO
-	WorkStack* stack = mVM->getStack();
+	WorkStack* stack = frame->stack;//mVM->getStack();
 
 	cout << "[FrameStack|offset=" << frame->frameOffset << "]" << std::endl;
 
@@ -174,9 +173,10 @@ void Debugger::printStack()
 
 	cout << "[Stack]" << std::endl;
 
-	if(mVM->hasStackFrame())
+	// TODO
+	if(false)//mVM->hasStackFrame())
 	{
-		StackFrame* frame = mVM->getStackFrame();
+		StackFrame* frame = NULL;//mVM->getStackFrame();
 		if(frame->frameOffset > 5)
 		{
 			cout << std::setw(4);
@@ -221,7 +221,7 @@ void Debugger::ended()
 	if(!isEnabled()) return;
 }
 
-void Debugger::step(StackFrame* frame)
+void Debugger::step(Frames* frames, StackFrame* frame)
 {
 	if(!isEnabled()) return;
 	if(isStepping()) system("CLS");
@@ -229,7 +229,7 @@ void Debugger::step(StackFrame* frame)
 	cout << std::endl << "--------- STEP ---------" << std::endl;
 	printLastOutput();
 	//mVM->getHeap()->collect();
-	printFrame(frame);
+	printFrame(frames, frame);
 
 	if(isStepping())
 	{
@@ -240,11 +240,11 @@ void Debugger::step(StackFrame* frame)
 	}
 }
 
-bool Debugger::catchException(StackFrame* frame, const Exception& ex)
+bool Debugger::catchException(Frames* frames, StackFrame* frame, const Exception& ex)
 {
 	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();
-	printFrame(frame);
+	printFrame(frames, frame);
 
 	if(ex.getName() == BEER_WIDEN("MethodNotFoundException")) // TODO: better
 	{
@@ -254,7 +254,7 @@ bool Debugger::catchException(StackFrame* frame, const Exception& ex)
 		printClassMethods(klass);
 	}
 	
-	//cout << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
+	cout << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
 
 	return false; // TODO
 }

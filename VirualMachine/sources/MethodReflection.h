@@ -2,6 +2,8 @@
 #include "prereq.h"
 #include "Object.h"
 #include "Selector.h"
+#include "StackFrame.h"
+#include "Bytecode.h"
 
 
 namespace Beer
@@ -9,12 +11,13 @@ namespace Beer
 	class VirtualMachine;
 	class StackFrame;
 	class ParamReflection;
-	class Bytecode;
+	//class Bytecode;
 
 	class MethodReflection : public Object
 	{
 	public:
 		typedef void(*Cb)();
+		typedef MethodReflection*(*CallFunction)(MethodReflection*, VirtualMachine*, Frames*, StackFrame*);
 
 		enum
 		{
@@ -46,7 +49,7 @@ namespace Beer
 		Bytecode* mBytecode;
 
 	public:
-		INLINE MethodReflection() : mFunction(NULL),mBytecode(NULL)
+		INLINE MethodReflection() : mFunction(NULL), mBytecode(NULL)
 		{
 		}
 
@@ -120,22 +123,19 @@ namespace Beer
 
 		// calls
 
-		INLINE void call(VirtualMachine* vm, StackFrame* frame)
+		INLINE MethodReflection* call(VirtualMachine* vm, Frames* frames, StackFrame* frame)
 		{
-			// TODO
-
 			if(isBytecode())
 			{
-				runBytecode(vm, frame);
+				return mBytecode->call(vm, frames, frame);
 			}
 			else
 			{
-				runFunction(vm, frame);
+				return runFunction(vm, frame);
 			}
 		}
 
 	protected:
-		void runBytecode(VirtualMachine* vm, StackFrame* frame);
-		void runFunction(VirtualMachine* vm, StackFrame* frame);
+		MethodReflection* runFunction(VirtualMachine* vm, StackFrame* frame);
 	};
 };

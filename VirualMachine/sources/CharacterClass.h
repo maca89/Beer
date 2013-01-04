@@ -32,12 +32,12 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			return Character::makeInlineValue('\0');
 		}
 
-		virtual Object* cloneShallow(Object* object, StackFrame* frame, GarbageCollector* gc)
+		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
 			return object;
 		}

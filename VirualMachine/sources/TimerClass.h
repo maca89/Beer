@@ -12,8 +12,6 @@ namespace Beer
 
 	class Timer : public Object
 	{
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
 	protected:
 		MiliTimer mTimer;
 
@@ -28,7 +26,7 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			// TODO: constructor
 			Timer* timer = gc->alloc<Timer>();

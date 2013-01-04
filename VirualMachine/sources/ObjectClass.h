@@ -11,29 +11,11 @@ namespace Beer
 {
 	class VirtualMachine;
 
-	/*class Object : public CollectedObject
-	{
-	public:
-		//EXTENDING_COLLECTED_OBJECT_ADDING_0();
-
-	protected:
-		~Object() // Object and child classes can *NOT* have a destructor
-		{
-			throw GCException(BEER_WIDEN("Object::~Object() called!"));
-		}
-
-	private:
-		Object() // Object and child classes can *NOT* have a constructor
-		{
-			throw GCException(BEER_WIDEN("Object::Object() called!"));
-		}
-	};*/
-
 	class ObjectClass : public ClassReflection
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(StackFrame* frame, GarbageCollector* gc)
+		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			Object* obj = gc->alloc<Object>();
 			obj->setClass(this);

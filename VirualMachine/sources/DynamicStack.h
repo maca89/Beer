@@ -38,10 +38,6 @@ namespace Beer
 		INLINE uint32 push(T obj)
 		{
 			check();
-			if(obj == reinterpret_cast<T>(0x0e))
-			{
-				cout << "!";
-			}
 			mItems[mNext] = obj;
 			return mNext++;
 		}
@@ -53,8 +49,9 @@ namespace Beer
 
 		INLINE T top(uint32 index)
 		{
-			T t = mItems[index];
-			return t;
+			DBG_ASSERT(index < mNext, BEER_WIDEN("Stack index out of bounds"));
+			T obj = mItems[index];
+			return obj;
 		}
 
 		INLINE T top(int32 index)
@@ -65,10 +62,6 @@ namespace Beer
 		INLINE void set(T obj, uint32 absoluteIndex)
 		{
 			DBG_ASSERT(absoluteIndex < mNext, BEER_WIDEN("Attempting to change value out of the stack"));
-			/*if(obj == reinterpret_cast<T>(0x0e))
-			{
-				cout << "!";
-			}*/
 			mItems[absoluteIndex] = obj;
 		}
 
@@ -127,8 +120,6 @@ namespace Beer
 			SMART_DELETE_ARR(mItems);
 			mItems = newItems;
 			mSize = newSize;
-
-			//cout << "// Stack enlarged" << std::endl;
 		}
 	};
 };

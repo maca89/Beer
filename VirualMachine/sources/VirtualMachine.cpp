@@ -17,6 +17,8 @@
 #include "TimerClass.h"
 #include "FileReaderClass.h"
 #include "FileWriterClass.h"
+#include "TaskClass.h"
+#include "LoadedObject.h"
 
 using namespace Beer;
 
@@ -28,41 +30,6 @@ using namespace Beer;
 #else
 #	define VM_DEBUG(msg)
 #endif
-
-StackFrame* VirtualMachine::openStackFrame()
-{
-	StackFrame frame(mStack, mStack->size());
-	mFrames->push_back(frame);
-	return getStackFrame();
-}
-
-StackFrame* VirtualMachine::openStackFrame(MethodReflection* method)
-{
-	NULL_ASSERT(method);
-	StackFrame* frame = openStackFrame();
-	frame->method = method;
-	return frame;
-}
-
-StackFrame* VirtualMachine::openStackFrame(Object* receiver, const char_t* selector)
-{
-	NULL_ASSERT(receiver);
-
-	ClassReflection* klass = getClassTable()->translate(receiver);
-	MethodReflection* method = klass->findMethod(selector);
-	
-	if(method == NULL)
-	{
-		throw MethodNotFoundException(string(klass->getName()) + BEER_WIDEN(" has no method ") + selector);
-	}
-
-	return openStackFrame(method);
-}
-
-void VirtualMachine::closeStackFrame()
-{
-	mFrames->pop_back();
-}
 
 void VirtualMachine::addClass(ClassReflection* reflection)
 {
@@ -100,14 +67,12 @@ ClassReflection* VirtualMachine::getClass(string name)
 
 void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 {
-	mClassHeap = new MarkAndSweepGC();
-
+	mClassHeap = new MarkAndSweepGC(); // TODO: get rid of this
 	mDebugger = new Debugger(this);
 	mClassLoader = new ClassLoader(this, mClassHeap);
 	mStack = new WorkStack(stackInitSize);
-	mFrames = new Frames();
 
-	mHeap = new CopyGC(this, mStack, heapInitSize);
+	mHeap = new CopyGC(this, heapInitSize);
 
 	mClassLoader->addClassInitializer(BEER_WIDEN("Object"), new ObjectClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("String"), new StringClassInitializer);
@@ -120,6 +85,7 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mClassLoader->addClassInitializer(BEER_WIDEN("Timer"), new TimerClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("FileReader"), new FileReaderClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("FileWriter"), new FileWriterClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskClassInitializer);
 	//mClassLoader->addClassInitializer(BEER_WIDEN("Main"), new MainClassInitializer);
 
 	// preloading of some classes
@@ -129,6 +95,7 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mCharacterClass = getClass(BEER_WIDEN("Character"));
 	mBooleanClass = getClass(BEER_WIDEN("Boolean"));
 	mIntegerClass = getClass(BEER_WIDEN("Integer"));
+	mTaskClass = getClass(BEER_WIDEN("Task"));
 
 	// !!! the order is important !!!
 	////////////////////////////////////////////// xxxxxxx0 // Object
@@ -140,89 +107,56 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 #ifdef BEER_INLINE_OPTIMALIZATION
 	mInlineFnTable.fill();
 #endif // BEER_INLINE_OPTIMALIZATION
-	
-	// prepares stack
-	//Object* main = getClass(BEER_WIDEN("Main"))->createInstance(NULL, getHeap());
-	//mStack->push(main);
-	openStackFrame()->done = true;
 }
 
 void VirtualMachine::destroy()
 {
-	//RUNTIME_ASSERT(getStack()->empty(), BEER_WIDEN("Stack is not empty!"));
-	//RUNTIME_ASSERT(Instance::gPool.empty(), BEER_WIDEN("Some instances were not deleted!"));
-	
 	// TODO: unload classes
 	mClasses.clear();
 
 	SMART_DELETE(mHeap);
-	SMART_DELETE(mFrames);
 	SMART_DELETE(mStack);
 	SMART_DELETE(mClassLoader);
 	SMART_DELETE(mClassHeap);
 }
 
-void VirtualMachine::invoke(StackFrame* frame)
-{
-	NULL_ASSERT(frame);
-	NULL_ASSERT(frame->method);
-	
-	frame->method->call(this, frame);
-}
-
 void VirtualMachine::run()
 {
-	Object* main = getClass(BEER_WIDEN("Main"))->createInstance(getStackFrame(), getHeap());
-	mStack->push(main);
-	openStackFrame(main, BEER_WIDEN("Main::run()"));
+	Frames frames;
+	StackFrame* frame = NULL;
 
-	getDebugger()->started();
+	frames.push_back(StackFrame(mStack));
+	frame = &frames.back();
+	Object* main = getClass(BEER_WIDEN("Main"))->createInstance(this, frame, getHeap());
+ 	frame->stackPush(main); // push receiver
 
-	while(hasStackFrame())
-	{
-		StackFrame* frame = getStackFrame();
-		
-		if(frame->done)
-		{
-			closeStackFrame();
-			continue;
-		}
+	frames.push_back(StackFrame(frame));
+	frame = &frames.back();
+	
+	//openStackFrame(main, BEER_WIDEN("Main::run()"));
 
-		if(getDebugger()->isEnabled()) getDebugger()->step(frame);
-		
-		try
-		{
-			invoke(frame);
-		}
-		catch(Exception& ex)
-		{
-			if(!getDebugger()->catchException(frame, ex)) throw ex;
-		}
-
-		Console::getOutput().flush(cout); // DBG ONLY
-	}
-
-	getDebugger()->ended();
-
-	// flush all output
-	Console::getOutput().flush(cout); // TODO
+	// ugly, TODO: some other way
+	RUNTIME_ASSERT(main->getClass()->substituable(getTaskClass()), BEER_WIDEN("Main is not instance of Task"));
+	frame->method = main->getClass()->findMethod(BEER_WIDEN("Task::dorun()"));
+	NULL_ASSERT(frame->method);
+	frame->method->call(this, &frames, frame);
 }
 
-Integer* VirtualMachine::createInteger(int32 value)
+Integer* VirtualMachine::createInteger(Integer::IntegerData value)
 {
 	if(Integer::canBeInlineValue(value))
 	{
 		return Integer::makeInlineValue(value);
 	}
 	
-	Integer* object = getIntegerClass()->createInstance<Integer>(getStackFrame(), getHeap());
+	Integer* object = getIntegerClass()->createInstance<Integer>(this, NULL, getHeap());
 	object->setNonInlineValue(value);
 	return object;
 }
 
 Float* VirtualMachine::createFloat(Float::FloatData value)
 {
-	Float* object = getFloatClass()->createInstance<Float>(getStackFrame(), getHeap());
+	Float* object = getFloatClass()->createInstance<Float>(this, NULL, getHeap());
 	object->setData(value);
 	return object;
 }
@@ -236,15 +170,17 @@ String* VirtualMachine::createString(const Character::CharacterData* value)
 
 String* VirtualMachine::createString(const string& s)
 {
-	getStackFrame()->stackPush(createInteger(s.size())); // TODO
-	String* object = getStringClass()->createInstance<String>(getStackFrame(), getHeap());
+	StackFrame frame(mStack); // TODO
+	frame.stackPush(createInteger(s.size())); // TODO
+	String* object = getStringClass()->createInstance<String>(this, &frame, getHeap());
 	object->copyData(s.c_str());
 	return object;
 }
 
 String* VirtualMachine::createString(String::LengthData length)
 {
-	getStackFrame()->stackPush(createInteger(length)); // TODO
-	String* object = getStringClass()->createInstance<String>(getStackFrame(), getHeap());
+	StackFrame frame(mStack); // TODO
+	frame.stackPush(createInteger(length)); // TODO
+	String* object = getStringClass()->createInstance<String>(this, &frame, getHeap());
 	return object;
 }
