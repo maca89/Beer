@@ -12,7 +12,8 @@
 #include "ClassFileDescriptor.h"
 #include "StringDescriptor.h"
 #include "BytecodeBuilder.h"
-#include "InlineCache.h"
+#include "MonomorphicInlineCache.h"
+#include "PolymorphicInlineCache.h"
 #include "Debugger.h"
 #include "ArrayClass.h"
 
@@ -375,6 +376,8 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 				break;
 
 			case Beer::Bytecode::INSTR_INVOKE:
+			case Beer::Bytecode::INSTR_STATIC_INVOKE:
+			case Beer::Bytecode::INSTR_SPECIALINVOKE:
 				{
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str();
 					Reference<String> selector = vm->getStringClass<StringClass>()->translate(vm, cselector);
@@ -391,22 +394,21 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 						// TODO!!!
 						builder.setData_int32(selector.getId());
 					
-						InlineCache* cache = InlineCache::from(builder.alloc(InlineCache::countSize(mMethodCachesLength)));
-						cache->clear(mMethodCachesLength);
+						MonomorphicInlineCache* cache = MonomorphicInlineCache::from(builder.alloc(MonomorphicInlineCache::countSize()));
+						cache->clear();
 					}
 				}
 				break;
 				
 			// no caching
 			case Beer::Bytecode::INSTR_INTERFACEINVOKE:
-			case Beer::Bytecode::INSTR_STATIC_INVOKE:
-			case Beer::Bytecode::INSTR_SPECIALINVOKE:
 				{
-					// TODO!!!
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData_int32())->c_str();
 					Reference<String> selector = vm->getStringClass<StringClass>()->translate(vm, cselector);
-
 					builder.setData_int32(selector.getId());
+					
+					PolymorphicInlineCache* cache = PolymorphicInlineCache::from(builder.alloc(PolymorphicInlineCache::countSize(mMethodCachesLength)));
+					cache->clear(mMethodCachesLength);
 				}
 				break;
 
@@ -435,7 +437,10 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 
 MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 {
-	//bool cont = true;
+	//ClassTable* classTable = vm->getClassTable();
+	Instruction* instr = NULL;
+	uint16 nextInstruction = 0;
+	
 	while(true)
 	{
 		// important for debugging
@@ -446,18 +451,16 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 		DBG_ASSERT(frame->programCounter < mDictSize, BEER_WIDEN("Program counter out of range"));
 		DBG_ASSERT(frame->translate(frame->stackTopIndex()) == (frame->stack->size() - 1), BEER_WIDEN("Broken stack"));
 
-		ClassTable* classTable = vm->getClassTable();
-		Instruction* instr = &reinterpret_cast<Instruction&>(mData[mDict[frame->programCounter]]);
-		OpCode opcode = static_cast<OpCode>(instr->opcode);
-		frame->nextInstruction = frame->programCounter + 1;
+		instr = &reinterpret_cast<Instruction&>(mData[mDict[frame->programCounter]]);
+		nextInstruction = frame->programCounter + 1;
 
-		switch (opcode)
+		switch (instr->getOpcode())
 		{
 		case Beer::Bytecode::INSTR_NOP:
 			break;
 
 		case Beer::Bytecode::INSTR_JMP:
-			frame->nextInstruction = instr->getData_uint16();
+			nextInstruction = instr->getData_uint16();
 			break;
 
 		case Beer::Bytecode::INSTR_JMP_TRUE:
@@ -467,7 +470,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 
 				if(cond->getData())
 				{
-					frame->nextInstruction = instr->getData_uint16();
+					nextInstruction = instr->getData_uint16();
 				}
 
 				frame->stackPop();
@@ -481,7 +484,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 
 				if(cond->getData() == false)
 				{
-					frame->nextInstruction = instr->getData_uint16();
+					nextInstruction = instr->getData_uint16();
 				}
 
 				frame->stackPop();
@@ -507,11 +510,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_MOVE_TOP:
-			{
-				StackRef<Object> object(frame, instr->getData_int16());
-				// *NO* null checking!
-				frame->stackMoveTop(instr->getData_int16());
-			}
+			frame->stackMoveTop(instr->getData_int16());
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_INT8:
@@ -523,17 +522,11 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_INT64:
-			{
-				Integer* n = vm->createInteger(static_cast<Integer::IntegerData>(instr->getData_int64()));
-				frame->stackPush(n);
-			}
+			frame->stackPush(vm->createInteger(static_cast<Integer::IntegerData>(instr->getData_int64())));
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_FLOAT:
-			{
-				Float* n = vm->createFloat(instr->getData_float64());
-				frame->stackPush(n);
-			}
+			frame->stackPush(vm->createFloat(instr->getData_float64()));
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_STRING:
@@ -544,24 +537,17 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_CHAR:
-			//throw BytecodeException(BEER_WIDEN("Character is not implemented"));
-			{
-				char8 c = instr->getData_uint8(); // TODO: char16
-				frame->stackPush(Character::makeInlineValue(c));
-			}
+			frame->stackPush(Character::makeInlineValue(instr->getData_uint8())); // TODO: char16
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_BOOL:
-			{
-				int8 v = instr->getData_int8();
-				frame->stackPush(Boolean::makeInlineValue(v == 1));
-			}
+			frame->stackPush(Boolean::makeInlineValue(instr->getData_int8() == 1));
 			break;
 
 		case Beer::Bytecode::INSTR_NEW:
 			{
 				ClassReflection* klass = reinterpret_cast<ClassReflection*>(instr->getData_int32());
-				DBG_ASSERT(klass, BEER_WIDEN("Class is NULBEER_WIDEN("));
+				DBG_ASSERT(klass, BEER_WIDEN("Class is NULL"));
 				Object* obj = klass->createInstance(vm, frame, vm->getHeap());
 				frame->stackPush(obj);
 			}
@@ -571,7 +557,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				Object* object = frame->stackTop();
 				NULL_ASSERT(object);
-				object = classTable->translate(object)->cloneShallow(vm, object, frame, vm->getHeap());
+				object = vm->getClass(object)->cloneShallow(vm, object, frame, vm->getHeap());
 				frame->stackPush(object);
 			}
 			break;
@@ -603,6 +589,8 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_INVOKE:
+		case Beer::Bytecode::INSTR_STATIC_INVOKE:
+		case Beer::Bytecode::INSTR_SPECIALINVOKE:
 			{
 				//MethodReflection* method = BEER_FIND_CACHED_METHOD();
 				StackRef<Object> object(frame, frame->stackTopIndex());
@@ -611,43 +599,44 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				Reference<String> selector(vm->getHeap(), instr->getData_int32());
 
 				// find method using inline cache
-				InlineCache* cache = InlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
-				ClassReflection* klass = classTable->translate(object.get());
-				MethodReflection* method = cache->find(klass, selector.get(), mMethodCachesLength);
+				MonomorphicInlineCache* cache = MonomorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
+				ClassReflection* klass = vm->getClass(object);
+				MethodReflection* method = cache->find(klass, selector.get());
 
 				// lookup failed
 				if(!method)
 				{
-					throw MethodNotFoundException(string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + classTable->translate(object)->getName());
+					throw MethodNotFoundException(string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + vm->getClass(object)->getName());
 				}
 
 				// invoke method
-				frame->programCounter = frame->nextInstruction;
+				frame->programCounter = nextInstruction;
 				return method;
 			}
 			break;
 		
 		// no caching
 		case Beer::Bytecode::INSTR_INTERFACEINVOKE:
-		case Beer::Bytecode::INSTR_STATIC_INVOKE:
-		case Beer::Bytecode::INSTR_SPECIALINVOKE:
 			{
+				//MethodReflection* method = BEER_FIND_CACHED_METHOD();
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
 				Reference<String> selector(vm->getHeap(), instr->getData_int32());
-				
-				ClassReflection* klass = classTable->translate(object.get());
-				MethodReflection* method = klass->findMethod(selector->c_str());
-				
+
+				// find method using inline cache
+				PolymorphicInlineCache* cache = PolymorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
+				ClassReflection* klass = vm->getClass(object);
+				MethodReflection* method = cache->find(klass, selector.get(), mMethodCachesLength);
+
 				// lookup failed
 				if(!method)
 				{
-					throw MethodNotFoundException(string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + classTable->translate(object)->getName());
+					throw MethodNotFoundException(string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + vm->getClass(object)->getName());
 				}
 
 				// invoke method
-				frame->programCounter = frame->nextInstruction; // really?
+				frame->programCounter = nextInstruction;
 				return method;
 			}
 			break;
@@ -915,6 +904,6 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 		}
 
-		frame->programCounter = frame->nextInstruction;
+		frame->programCounter = nextInstruction;
 	}
 }

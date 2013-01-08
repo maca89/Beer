@@ -2,6 +2,7 @@
 #include "prereq.h"
 #include "GarbageCollector.h"
 #include "SimpleMemoryAllocator.h"
+#include "DebugMemoryAllocator.h"
 #include "Object.h"
 #include "StackFrame.h"
 
@@ -16,9 +17,15 @@ namespace Beer
 		typedef uint32 ReferenceId;
 		typedef std::vector<Object*> ReferenceVector;
 
+#ifdef BEER_MEMORY_DEBUGGING
+		typedef DebugMemoryAllocator MemoryAllocator;
+#else
+		typedef SimpleMemoryAllocator MemoryAllocator;
+#endif // BEER_MEMORY_DEBUGGING
+
 	protected:
-		SimpleMemoryAllocator mMemoryOld;
-		SimpleMemoryAllocator mMemoryNew;
+		MemoryAllocator mMemoryOld;
+		MemoryAllocator mMemoryNew;
 		uint32 mLiveObjects;
 		uint32 mLastMoved;
 		uint32 mLastCollected;
@@ -26,11 +33,6 @@ namespace Beer
 		VirtualMachine* mVM;
 		ReferenceVector mReferences;
 		ReferenceId mReferencesNext;
-
-		static const int GuardLength = 256;
-		static const int DbgGuardValue = 0xfdfdfdfd;
-		static const int DbgUninitialisedValue = 0xcdcdcdcd;
-		static const int DbgDeletedValue = 0xfeeefeee;
 
 	public:
 		CopyGC(VirtualMachine* vm, size_t memoryLength = 1024*1); // 1KB
@@ -82,7 +84,7 @@ namespace Beer
 		bool enlargeHeap(size_t desiredSize = 0);
 		void collectAll();
 		Object* move(Object* object);
-		void check(SimpleMemoryAllocator* memory, Object* object);
+		void check(MemoryAllocator* memory, Object* object);
 
 		INLINE uint32 roundSize(uint32 size)
 		{
@@ -108,9 +110,6 @@ namespace Beer
 		{
 			object->setGCFlag(Object::GC_WHITE);
 		}
-
-		Object* makeGuard(void* data, uint32 size);
-		void checkGuard(Object* object);
 	};
 
 	template <class T>

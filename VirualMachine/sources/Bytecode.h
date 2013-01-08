@@ -86,6 +86,11 @@ namespace Beer
 		{
 			uint8 opcode;
 			byte data; // should be used as array!
+
+			// opcode
+
+			INLINE OpCode getOpcode() const { return static_cast<OpCode>(opcode); }
+			INLINE void setOpcode(OpCode value) { opcode = value; }
 			
 			// int 1 byte
 

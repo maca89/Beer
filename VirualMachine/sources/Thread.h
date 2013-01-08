@@ -11,14 +11,15 @@ namespace Beer
 	{
 	protected:
 		VirtualMachine* mVM;
-		Frames mFrames;
+		StackFrame* mLastFrame;
 		WorkStack mStack;
+		DynamicStack<StackFrame> mFrames;
 
 	public:
-		INLINE Thread(VirtualMachine* vm) : mVM(vm), mStack(1024)
+		INLINE Thread(VirtualMachine* vm) : mVM(vm), mStack(1024), mFrames(50)
 		{
 			StackFrame frame(&mStack);
-			mFrames.push_back(frame);
+			mFrames.push(frame);
 		}
 
 		virtual ~Thread()
@@ -30,14 +31,14 @@ namespace Beer
 		INLINE StackFrame* openStackFrame()
 		{
 			StackFrame frame(getStackFrame());
-			mFrames.push_back(frame);
+			mFrames.push(frame);
 			return getStackFrame();
 		}
 
-		INLINE bool hasStackFrame() { return !mFrames.empty(); }
+		INLINE bool hasStackFrame() { return mFrames.size() > 0; }
 
-		INLINE void closeStackFrame() { mFrames.pop_back(); }
+		INLINE void closeStackFrame() { mFrames.pop(); }
 
-		INLINE StackFrame* getStackFrame() { return &mFrames.back(); }
+		INLINE StackFrame* getStackFrame() { return mFrames.topPtr(mFrames.topIndex()); }
 	};
 };

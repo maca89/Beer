@@ -91,6 +91,9 @@ namespace Beer
 			return getClass(name->c_str());
 		}
 
+		INLINE ClassReflection* getClass(const StackRef<Object>& object) const { return mClassTable.translate(object); }
+		INLINE ClassReflection* getClass(Object* object) const { return mClassTable.translate(object); }
+
 		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE WorkStack* getStack() const { return mStack; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }

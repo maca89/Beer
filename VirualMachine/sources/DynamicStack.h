@@ -54,20 +54,16 @@ namespace Beer
 			return obj;
 		}
 
+		INLINE T* topPtr(uint32 index)
+		{
+			DBG_ASSERT(index < mNext, BEER_WIDEN("Stack index out of bounds"));
+			T* obj = &mItems[index];
+			return obj;
+		}
+
 		INLINE T top(int32 index)
 		{
 			return top(absoluteIndex(index));
-		}
-
-		INLINE void set(T obj, uint32 absoluteIndex)
-		{
-			DBG_ASSERT(absoluteIndex < mNext, BEER_WIDEN("Attempting to change value out of the stack"));
-			mItems[absoluteIndex] = obj;
-		}
-
-		INLINE void set(T obj, int32 index)
-		{
-			set(obj, absoluteIndex(index));
 		}
 
 		template <typename T>
@@ -80,6 +76,17 @@ namespace Beer
 		INLINE T top(uint32 index)
 		{
 			return static_cast<T>(top(index));
+		}
+
+		INLINE void set(T obj, uint32 absoluteIndex)
+		{
+			DBG_ASSERT(absoluteIndex < mNext, BEER_WIDEN("Attempting to change value out of the stack"));
+			mItems[absoluteIndex] = obj;
+		}
+
+		INLINE void set(T obj, int32 index)
+		{
+			set(obj, absoluteIndex(index));
 		}
 
 		INLINE uint32 topIndex()

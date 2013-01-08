@@ -30,20 +30,20 @@ namespace Beer
 		INLINE bool isEnabled() const { return mEnabled; }
 		
 		virtual void started();
-		virtual void step(Frames* frames, StackFrame* frame);
+		virtual void step(StackFrame* frame);
 		virtual void ended();
 
 		virtual void setSteppingMode(bool value) { mStepping = value; }
 		INLINE bool isStepping() const { return mStepping && mEnabled; }
 
-		virtual bool catchException(Frames* frames, StackFrame* frame, const Exception& ex);
+		virtual bool catchException(StackFrame* frame, const Exception& ex);
 
 		virtual void printLastOutput();
 		virtual void printNativeInstruction();
 		virtual void printInstruction(const Bytecode::Instruction* instr, uint16 programCounter);
 		virtual void printObject(Object* object);
-		virtual void printCallStack(Frames* frames);
-		virtual void printFrame(Frames* frames, StackFrame* frame);
+		virtual void printCallStack(StackFrame* frame);
+		virtual void printFrame(StackFrame* frame);
 		virtual void printFrameStack(StackFrame* frame);
 		virtual void printStack();
 		virtual void printClassMethods(ClassReflection* klass);

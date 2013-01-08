@@ -23,12 +23,12 @@ namespace Beer
 
 		uint32 add(ClassReflection* klass);
 
-		INLINE ClassReflection* translate(StackRef<Object> object)
+		INLINE ClassReflection* translate(StackRef<Object> object) const
 		{
 			return translate(object.get());
 		}
 
-		INLINE ClassReflection* translate(Object* object)
+		INLINE ClassReflection* translate(Object* object) const
 		{
 			Object::InlineValueId id = object->getInlineClassId();
 			ClassReflection* klass = mTable[id];

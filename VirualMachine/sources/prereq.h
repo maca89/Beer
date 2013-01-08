@@ -292,12 +292,16 @@ namespace Beer
 
 	#ifdef BEER_DEBUG_MODE
 		#define BEER_ASSERTS_ON
+		#define BEER_MEMORY_DEBUGGING
+		#define BEER_GC_DEBUGGING
 	#endif // BEER_DEBUG_MODE
 
 	#ifdef BEER_ASSERTS_ON
 		#define BEER_DEBUG_ASSERTS_ON
 	#endif // BEER_ASSERTS_ON
 
+	//#define BEER_MEMORY_DEBUGGING
+	//#define BEER_GC_DEBUGGING
 	
 	//#define BEER_DEBUG_ASSERTS_ON
 	#define BEER_RUNTIME_ASSERS_ON

@@ -27,7 +27,8 @@
     <ClCompile Include="sources\FileReaderClass.cpp" />
     <ClCompile Include="sources\FileWriterClass.cpp" />
     <ClCompile Include="sources\FloatClass.cpp" />
-    <ClCompile Include="sources\InlineCache.cpp" />
+    <ClCompile Include="sources\PolymorphicInlineCache.cpp" />
+    <ClCompile Include="sources\MemoryUtils.cpp" />
     <ClCompile Include="sources\MethodReflection.cpp" />
     <ClCompile Include="sources\AttributeDescriptor.cpp" />
     <ClCompile Include="sources\BooleanClass.cpp" />
@@ -65,6 +66,8 @@
     <ClCompile Include="sources\VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sources\DebugMemoryAllocator.h" />
+    <ClInclude Include="sources\MonomorphicInlineCache.h" />
     <ClInclude Include="sources\CharacterClass.h" />
     <ClInclude Include="sources\ClassTable.h" />
     <ClInclude Include="sources\ArrayClass.h" />
@@ -76,8 +79,9 @@
     <ClInclude Include="sources\FileReaderClass.h" />
     <ClInclude Include="sources\FileWriterClass.h" />
     <ClInclude Include="sources\FloatClass.h" />
-    <ClInclude Include="sources\InlineCache.h" />
+    <ClInclude Include="sources\PolymorphicInlineCache.h" />
     <ClInclude Include="sources\InlineFunctionTable.h" />
+    <ClInclude Include="sources\MemoryUtils.h" />
     <ClInclude Include="sources\ParamReflection.h" />
     <ClInclude Include="sources\AttributeDescriptor.h" />
     <ClInclude Include="sources\BooleanClass.h" />

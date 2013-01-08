@@ -21,24 +21,24 @@ namespace Beer
 		WorkStack* stack;
 		MethodReflection* method;
 		uint16 programCounter;
-		uint16 nextInstruction;
+		//uint16 nextInstruction;
 
-		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0), nextInstruction(0)
+		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0)//, nextInstruction(0)
 		{
 		}
 
 		INLINE StackFrame(const StackFrame& f) 
-			: prev(f.prev), stack(f.stack), frameOffset(f.frameOffset), method(f.method), programCounter(f.programCounter), nextInstruction(f.nextInstruction)
+			: prev(f.prev), stack(f.stack), frameOffset(f.frameOffset), method(f.method), programCounter(f.programCounter)//, nextInstruction(f.nextInstruction)
 		{
 		}
 
 		INLINE StackFrame(WorkStack* stack)
-			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), programCounter(0), nextInstruction(0)
+			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), programCounter(0)//, nextInstruction(0)
 		{
 		}
 		
 		INLINE StackFrame(StackFrame* prev)
-			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), programCounter(0), nextInstruction(0)
+			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), programCounter(0)//, nextInstruction(0)
 		{
 		}
 
@@ -151,13 +151,13 @@ namespace Beer
 
 		INLINE const T* operator-> () const
 		{
-			DBG_ASSERT(get() != NULL, "Null pointer");
+			DBG_ASSERT(get() != NULL, BEER_WIDEN("Null pointer"));
 			return get();
 		}
 
 		INLINE T* operator-> ()
 		{
-			DBG_ASSERT(get() != NULL, "Null pointer");
+			DBG_ASSERT(get() != NULL, BEER_WIDEN("Null pointer"));
 			return get();
 		}
 

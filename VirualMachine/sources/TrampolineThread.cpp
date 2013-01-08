@@ -26,7 +26,7 @@ void TrampolineThread::work()
 		try
 		{
 		#ifdef BEER_DEBUG_MODE
-			if(mVM->getDebugger()->isEnabled()) mVM->getDebugger()->step(&mFrames, frame);
+			if(mVM->getDebugger()->isEnabled()) mVM->getDebugger()->step(frame);
 		#endif // BEER_DEBUG_MODE
 
 		#ifdef BEER_DEBUG_MODE
@@ -60,7 +60,7 @@ void TrampolineThread::work()
 		}
 		catch(Exception& ex)
 		{
-			if(!mVM->getDebugger()->catchException(&mFrames, frame, ex))
+			if(!mVM->getDebugger()->catchException(frame, ex))
 			{
 				break;//throw ex;
 			}

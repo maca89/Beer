@@ -50,7 +50,7 @@ void Array::toString(VirtualMachine* vm, string& out)
 		if(obj)
 		{
 			stringstream n;
-			vm->getClassTable()->translate(obj)->dump(obj, n);
+			vm->getClass(obj)->dump(obj, n);
 			out += n.str();
 		}
 		else out += BEER_WIDEN("0");

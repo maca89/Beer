@@ -7,10 +7,7 @@ using namespace Beer;
 
 
 //#define BEER_GC_VERBOSE
-
-#ifdef BEER_DEBUG_MODE
-	#define BEER_GC_DEBUGGING
-#endif
+//#define BEER_GC_DEBUGGING
 
 #ifdef BEER_GC_VERBOSE
 	#define GC_DEBUG(msg) cout << "// CopyGC: " << msg << std::endl;
@@ -40,27 +37,6 @@ CopyGC::~CopyGC()
 	collectAll();
 }
 
-Object* CopyGC::makeGuard(void* data, uint32 size)
-{
-	// set memory guard
-	memset(static_cast<byte*>(data), DbgGuardValue, GuardLength);
-	memset(static_cast<byte*>(data) + size - GuardLength, DbgGuardValue, GuardLength);
-
-	// move pointer
-	data = static_cast<byte*>(data) + GuardLength;
-
-	// set memory as uninitialised
-	memset(data, DbgUninitialisedValue, size - 2*GuardLength);
-
-	// return result
-	return reinterpret_cast<Object*>(data);
-}
-
-void CopyGC::checkGuard(Object* object)
-{
-	// TODO
-}
-
 bool CopyGC::enlargeHeap(size_t desiredSize)
 {
 	cout << "Tried to enlarge heap" << std::endl;
@@ -81,10 +57,6 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 
 	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount);
 
-#ifdef BEER_GC_DEBUGGING
-	size += 2 * GuardLength;
-#endif
-
 	if(!makeSpace(size))
 	{
 		stringstream ss;
@@ -96,17 +68,7 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 
 	void* data = mMemoryOld.malloc(size);
 
-	Object* obj
-#ifdef BEER_GC_DEBUGGING
-		= makeGuard(data, size);
-#else
-		= reinterpret_cast<Object*>(data);
-#endif
-
-	// fix size
-#ifdef BEER_GC_DEBUGGING
-	size -= 2 * GuardLength;
-#endif
+	Object* obj = reinterpret_cast<Object*>(data);
 
 	obj->setGCFlag(Object::GC_WHITE);
 	obj->setTypeFlag(Object::TYPE_REF);
@@ -141,10 +103,10 @@ void CopyGC::collectAll()
 		stack->clear();
 	}
 	
-	mMemoryOld.reset();
+	mMemoryOld.clear();
 }
 
-void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
+void CopyGC::check(MemoryAllocator* memory, Object* object)
 {
 	if(object == NULL)
 	{
@@ -162,7 +124,7 @@ void CopyGC::check(SimpleMemoryAllocator* memory, Object* object)
 		throw GCException(BEER_WIDEN("Object's children not in old space"));
 	}
 
-	ClassReflection* klass = mVM->getClassTable()->translate(object);
+	ClassReflection* klass = mVM->getClass(object);
 
 	if(klass->getChildrenCount(object) > 0 && !memory->contains(object->getChildren()))
 	{
@@ -228,9 +190,9 @@ void CopyGC::collect()
 	std::set<Object*> disposed;
 
 	// call dispose on deleted
-	for(Object* object = static_cast<Object*>(mMemoryOld.getHead());
+	for(Object* object = static_cast<Object*>(mMemoryOld.getFirstNode());
 		object != NULL;
-		object = static_cast<Object*>(mMemoryOld.getNext(object)))
+		object = static_cast<Object*>(mMemoryOld.getNextNode(object)))
 	{
 		if(!marked(object))
 		{
@@ -252,14 +214,9 @@ void CopyGC::collect()
 	mLastCollected = mLiveObjects - mLastMoved;
 	mLiveObjects = mLastMoved;
 	mLastMoved = 0;
+	mMemoryOld.clear();
 
-	mMemoryOld.reset();
-
-#ifdef BEER_GC_DEBUGGING
-	mMemoryOld.clear(DbgDeletedValue); // DEBUG ONLY: mark memory as deleted
-#endif // BEER_GC_DEBUGGING
-
-	SimpleMemoryAllocator::swap(mMemoryNew, mMemoryOld);
+	MemoryAllocator::swap(mMemoryNew, mMemoryOld);
 
 #ifdef BEER_GC_DEBUGGING
 	for(ThreadSet::iterator it = mVM->getThreads().begin(); it != mVM->getThreads().end(); it++)
@@ -280,8 +237,8 @@ void CopyGC::collect()
 
 Object* CopyGC::move(Object* object)
 {
-	DBG_ASSERT(object, "Object is NULL");
-	DBG_ASSERT(!object->isInlineValue(), "Object is inline value");
+	DBG_ASSERT(object, BEER_WIDEN("Object is NULL"));
+	DBG_ASSERT(!object->isInlineValue(), BEER_WIDEN("Object is inline value"));
 
 	if(marked(object)) // already moved
 	{
@@ -293,30 +250,13 @@ Object* CopyGC::move(Object* object)
 	uint32 childrenOffset = reinterpret_cast<uint32>(children) - reinterpret_cast<uint32>(object);
 	
 	// get object size
-	size_t size
-#ifdef BEER_GC_DEBUGGING
-		= mMemoryOld.getSize(reinterpret_cast<byte*>(object) - GuardLength);// - 2 * GuardLength;
-#else
-		= mMemoryOld.getSize(object); 
-#endif
-
-	// TODO: check guard
+	size_t size = mMemoryOld.getNodeSize(object);
 
 	// allocate memory in the other space
 	void* data = mMemoryNew.malloc(size);
 	
 	// cast
-	Object* newObject
-#ifdef BEER_GC_DEBUGGING
-		= makeGuard(data, size); 
-#else
-		= reinterpret_cast<Object*>(data);
-#endif
-
-	// fix size
-#ifdef BEER_GC_DEBUGGING
-	 size -= 2 * GuardLength;
-#endif
+	Object* newObject = reinterpret_cast<Object*>(data);
 
 	DBG_ASSERT(newObject != NULL, BEER_WIDEN("Unable to alloc memory in other space"));
 	memcpy(newObject, object, size); // copy content
@@ -327,7 +267,7 @@ Object* CopyGC::move(Object* object)
 	mLastMoved++;
 
 	// move children
-	ClassReflection* klass = mVM->getClassTable()->translate(object);
+	ClassReflection* klass = mVM->getClass(object);
 	for(uint32 i = 0; i < klass->getChildrenCount(object); i++)
 	{
 		Object* child = static_cast<Object*>(children[i]);//object->getChild<Object>(i);

@@ -1,6 +1,7 @@
 #pragma once
 #include "prereq.h"
 
+
 namespace Beer
 {
 	class SimpleMemoryAllocator
@@ -19,21 +20,31 @@ namespace Beer
 		};
 		#pragma pack(pop)
 
+		HANDLE mHeap;
 		byte* mHead;
 		length_t mSize;
 		length_t mNext;
 
 	public:
-		INLINE SimpleMemoryAllocator() : mHead(NULL), mSize(0), mNext(0) {}
-		INLINE SimpleMemoryAllocator(length_t length) : mHead(0), mSize(0), mNext(0) { init(length); }
-		INLINE ~SimpleMemoryAllocator() { SMART_DELETE(mHead); }
+		INLINE SimpleMemoryAllocator() : mHead(NULL), mSize(0), mNext(0), mHeap(NULL) {}
+		INLINE SimpleMemoryAllocator(length_t length) : mHead(NULL), mHeap(NULL), mSize(0), mNext(0) { init(length); }
+		INLINE ~SimpleMemoryAllocator() { destroy(); }
 
-		INLINE void init(length_t size)
+		NOINLINE void init(length_t length)
 		{
-			SMART_DELETE(mHead);
-			mSize = size;
-			mHead = new byte[mSize];
-			memset(mHead, 0, mSize);
+			mSize = length;
+			mHeap = HeapCreate(HEAP_NO_SERIALIZE | HEAP_GENERATE_EXCEPTIONS, length, 0);
+			mHead = static_cast<byte*>(HeapAlloc(mHeap, HEAP_NO_SERIALIZE | HEAP_GENERATE_EXCEPTIONS, length));
+			clear();
+		}
+
+		INLINE void destroy()
+		{
+			HeapFree(mHeap, HEAP_NO_SERIALIZE | HEAP_GENERATE_EXCEPTIONS, mHead);
+			HeapDestroy(mHeap);
+			mSize = 0;
+			mHead = NULL;
+			mHeap = NULL;
 		}
 
 		INLINE void* malloc(length_t size)
@@ -42,9 +53,11 @@ namespace Beer
 			{
 				return NULL;
 			}
+
 			Node* node = reinterpret_cast<Node*>(&mHead[mNext]);
 			node->size = size;
 			mNext += SIZEOF_HEAD + size;
+
 			return &node->ptr;
 		}
 
@@ -53,14 +66,14 @@ namespace Beer
 			return mNext + size + SIZEOF_HEAD < mSize;
 		}
 
-		INLINE void* getHead() const
+		INLINE void* getFirstNode() const
 		{
 			return mHead + SIZEOF_HEAD;
 		}
 
-		INLINE void* getNext(void* object) const
+		INLINE void* getNextNode(void* node) const
 		{
-			byte* next = static_cast<byte*>(object) + getSize(object) + SIZEOF_HEAD;
+			byte* next = static_cast<byte*>(node) + getNodeSize(node) + SIZEOF_HEAD;
 
 			if(next >= &mHead[mNext])
 			{
@@ -70,10 +83,9 @@ namespace Beer
 			return next;
 		}
 
-		INLINE length_t getSize(void* object) const
+		INLINE length_t getNodeSize(void* node) const
 		{
-			Node* node = reinterpret_cast<Node*>(static_cast<byte*>(object) - SIZEOF_HEAD);
-			return node->size;
+			return reinterpret_cast<Node*>(static_cast<byte*>(node) - SIZEOF_HEAD)->size;
 		}
 
 		INLINE length_t getUsed() const
@@ -81,20 +93,14 @@ namespace Beer
 			return mNext;
 		}
 
-		INLINE length_t getTotal() const
+		INLINE length_t getSize() const
 		{
 			return mSize;
 		}
 
-		INLINE void reset()
+		INLINE void clear()
 		{
 			mNext = 0;
-		}
-
-		INLINE void clear(uint32 defaultValue = 0)
-		{
-			reset();
-			memset(mHead, defaultValue, mSize);
 		}
 
 		INLINE bool contains(void* object)
@@ -107,6 +113,7 @@ namespace Beer
 			std::swap(m1.mHead, m2.mHead);
 			std::swap(m1.mSize, m2.mSize);
 			std::swap(m1.mNext, m2.mNext);
+			std::swap(m1.mHeap, m2.mHeap);
 		}
 	};
 };

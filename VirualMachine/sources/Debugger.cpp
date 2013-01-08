@@ -41,20 +41,19 @@ void Debugger::printNativeInstruction()
 	cout << std::endl;
 }
 
-void Debugger::printCallStack(Frames* frames)
+void Debugger::printCallStack(StackFrame* frame)
 {
 	cout << "[CallStack]" << std::endl;
 	
 	uint32 i = 0;
-	for(Frames::const_iterator it = frames->begin(); it != frames->end(); it++)
+	while(frame)
 	{
-		const StackFrame& frame = *it;
 		cout << std::setw(4);
 		cout << std::setfill(BEER_WIDEN(' ')) << "+" << i << " ";
 		
-		if(frame.method)
+		if(frame->method)
 		{
-			cout << frame.method << " " << frame.method->getSelector() << "@" << frame.programCounter;
+			cout << frame->method << " " << frame->method->getSelector() << "@" << frame->programCounter;
 		}
 		else
 		{
@@ -63,6 +62,7 @@ void Debugger::printCallStack(Frames* frames)
 		
 		cout << std::endl;
 		i++;
+		frame = frame->prev;
 	}
 	cout << std::endl;
 }
@@ -83,7 +83,7 @@ void Debugger::printObject(Object* object)
 	if(object == NULL) cout << "null";
 	else
 	{
-		ClassReflection* klass = mVM->getClassTable()->translate(object);
+		ClassReflection* klass = mVM->getClass(object);
 		if(klass)
 		{
 			if(!klass->isValueType()) cout << "#" << object << " ";
@@ -125,9 +125,9 @@ void Debugger::printObject(Object* object)
 	mPrintedObjects.pop_back();
 }
 
-void Debugger::printFrame(Frames* frames, StackFrame* frame)
+void Debugger::printFrame(StackFrame* frame)
 {
-	printCallStack(frames);
+	printCallStack(frame);
 	printFrameStack(frame);
 
 	if(frame->method->isBytecode())
@@ -221,7 +221,7 @@ void Debugger::ended()
 	if(!isEnabled()) return;
 }
 
-void Debugger::step(Frames* frames, StackFrame* frame)
+void Debugger::step(StackFrame* frame)
 {
 	if(!isEnabled()) return;
 	if(isStepping()) system("CLS");
@@ -229,7 +229,7 @@ void Debugger::step(Frames* frames, StackFrame* frame)
 	cout << std::endl << "--------- STEP ---------" << std::endl;
 	printLastOutput();
 	//mVM->getHeap()->collect();
-	printFrame(frames, frame);
+	printFrame(frame);
 
 	if(isStepping())
 	{
@@ -240,17 +240,17 @@ void Debugger::step(Frames* frames, StackFrame* frame)
 	}
 }
 
-bool Debugger::catchException(Frames* frames, StackFrame* frame, const Exception& ex)
+bool Debugger::catchException(StackFrame* frame, const Exception& ex)
 {
 	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();
-	printFrame(frames, frame);
+	printFrame(frame);
 
 	if(ex.getName() == BEER_WIDEN("MethodNotFoundException")) // TODO: better
 	{
 		cout << std::endl;
 		StackRef<Object> receiver(frame, frame->stackTopIndex());
-		ClassReflection* klass = mVM->getClassTable()->translate(receiver);
+		ClassReflection* klass = mVM->getClass(receiver);
 		printClassMethods(klass);
 	}
 	
