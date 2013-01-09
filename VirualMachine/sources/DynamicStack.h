@@ -1,5 +1,6 @@
 #pragma once
 #include "prereq.h"
+#include "GrowableMemoryAllocator.h"
 
 
 namespace Beer
@@ -11,18 +12,25 @@ namespace Beer
 		uint32 mSize;
 		T* mItems;
 		uint32 mNext;
+		GrowableMemoryAllocator mAllocator;
 
 	public:
-		INLINE DynamicStack(uint32 initsize = 50) : mSize(initsize), mItems(NULL), mNext(0)
+#ifdef BEER_DEBUG_MODE
+		INLINE DynamicStack(uint32 commitSize = 1000, uint32 reserveSize = 2000) // default commit ~4KB, default reserve ~8KB
+#else
+		INLINE DynamicStack(uint32 commitSize = 1000, uint32 reserveSize = 260000) // default commit ~4KB, default reserve ~1MB
+#endif
+			: mSize(0), mItems(NULL), mNext(0), mAllocator()
 		{
-			mItems = new T[mSize];
-			memset(mItems, 0, mSize * sizeof(T));
+			mItems = reinterpret_cast<T*>(mAllocator.malloc(commitSize * sizeof(T), reserveSize * sizeof(T)));
+			mSize = reserveSize;
+			//memset(mItems, 0, mSize * sizeof(T));
 			clear();
 		}
 
 		INLINE ~DynamicStack()
 		{
-			SMART_DELETE_ARR(mItems);
+			mAllocator.free(mItems);
 		}
 
 		INLINE uint32 absoluteIndex(int32 index)
@@ -30,14 +38,14 @@ namespace Beer
 			return static_cast<uint32>((static_cast<int64>(mNext) - 1 + index) % mSize);
 		}
 
-		NOINLINE void clear()
+		INLINE void clear()
 		{
 			mNext = 0;
 		}
 
 		INLINE uint32 push(T obj)
 		{
-			check();
+			//check(1);
 			mItems[mNext] = obj;
 			return mNext++;
 		}
@@ -99,9 +107,9 @@ namespace Beer
 			return mNext;
 		}
 
-		INLINE void move(int16 count)
+		INLINE void move(int32 count) // must be signed !!!
 		{
-			check(count);
+			//check(count);
 			mNext += count;
 			
 			if(count > 0)
@@ -110,15 +118,24 @@ namespace Beer
 			}
 		}
 
-		INLINE void check(int16 count = 1)
+		INLINE void move(uint32 count) // shoult not be zero
+		{
+			DBG_ASSERT(count > 0, "Passed value is zero");
+			//check(count);
+			mNext += count;
+			memset(&mItems[mNext - count], 0, count * sizeof(T));
+		}
+
+		INLINE void check(int32 count) // must be signed !!!
 		{
 			if(mNext + count >= mSize)
 			{
-				enlarge();
+				throw StackOverflowException(BEER_WIDEN("Unable to use more stack"));
+				//enlarge();
 			}
 		}
 
-		NOINLINE void enlarge()
+		/*NOINLINE void enlarge()
 		{
 			uint32 newSize = mSize * 10;
 			T* newItems = new T[newSize];
@@ -127,6 +144,7 @@ namespace Beer
 			SMART_DELETE_ARR(mItems);
 			mItems = newItems;
 			mSize = newSize;
-		}
+			//cout << "[DynamicStack::enlarge]";
+		}*/
 	};
 };

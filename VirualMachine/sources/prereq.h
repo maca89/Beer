@@ -274,6 +274,14 @@ namespace Beer
 		}
 	};
 
+	struct StackOverflowException : RuntimeException
+	{
+		StackOverflowException(string msg = BEER_WIDEN(""), string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(msg, filename, line)
+		{
+			mName = BEER_WIDEN("StackOverflowEception");
+		}
+	};
+
 	#define GCException(_msg_) GCException((_msg_), __WFILE__, __LINE__)
 	#define NotEnoughMemoryException(_msg_) NotEnoughMemoryException((_msg_), __WFILE__, __LINE__)
 	#define CriticalAssertException(_msg_) CriticalAssertException((_msg_), __WFILE__, __LINE__)
@@ -288,12 +296,13 @@ namespace Beer
 	#define BytecodeException(_msg_) BytecodeException((_msg_), __WFILE__, __LINE__)
 	#define IOException(_msg_) IOException((_msg_), __WFILE__, __LINE__)
 	#define IOFileException(_msg_) IOFileException((_msg_), __WFILE__, __LINE__)
+	#define StackOverflowException(_msg_) StackOverflowException((_msg_), __WFILE__, __LINE__)
 
 
 	#ifdef BEER_DEBUG_MODE
-		#define BEER_ASSERTS_ON
-		#define BEER_MEMORY_DEBUGGING
-		#define BEER_GC_DEBUGGING
+		//#define BEER_ASSERTS_ON
+		//#define BEER_MEMORY_DEBUGGING
+		//#define BEER_GC_DEBUGGING
 	#endif // BEER_DEBUG_MODE
 
 	#ifdef BEER_ASSERTS_ON

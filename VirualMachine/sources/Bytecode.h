@@ -180,7 +180,7 @@ namespace Beer
 
 		INLINE ~Bytecode()
 		{
-			SMART_DELETE_ARR(mDict);
+			// *NO* deleting of mData or mDict !!!
 		}
 
 		MethodReflection* call(VirtualMachine* vm, StackFrame* frame);

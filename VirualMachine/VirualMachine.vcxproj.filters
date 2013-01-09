@@ -153,6 +153,12 @@
     <ClCompile Include="sources\PolymorphicInlineCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\GrowableMemoryAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BytecodeBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\Bytecode.h">
@@ -330,6 +336,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\DebugMemoryAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\GrowableMemoryAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

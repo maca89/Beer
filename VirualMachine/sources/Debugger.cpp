@@ -44,25 +44,60 @@ void Debugger::printNativeInstruction()
 void Debugger::printCallStack(StackFrame* frame)
 {
 	cout << "[CallStack]" << std::endl;
+
+	typedef std::vector<StackFrame*> FrameVector;
+	uint32 framesMax = 10;
+	uint32 frameCounter = 0;
+	uint32 framei = 0;
+	FrameVector frames(framesMax);
 	
-	uint32 i = 0;
 	while(frame)
 	{
-		cout << std::setw(4);
-		cout << std::setfill(BEER_WIDEN(' ')) << "+" << i << " ";
-		
-		if(frame->method)
+		if(framei < framesMax)
 		{
-			cout << frame->method << " " << frame->method->getSelector() << "@" << frame->programCounter;
-		}
-		else
-		{
-			cout << "no method";
-		}
+			cout << std::setw(4);
+			cout << std::setfill(BEER_WIDEN(' ')) << "+" << framei << " ";
 		
-		cout << std::endl;
-		i++;
+			if(frame->method)
+			{
+				cout << frame->method << " " << frame->method->getSelector() << "@" << frame->programCounter;
+			}
+			else
+			{
+				cout << "no method";
+			}
+			cout << std::endl;
+		}
+
+		frameCounter = (frameCounter + 1) % framesMax;
+		frames[frameCounter] = frame;
+
+		framei++;
 		frame = frame->prev;
+	}
+
+	if(framei >= framesMax)
+	{
+		cout << std::setw(4);
+		cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
+
+		for(uint32 i = 0; i < framesMax; i++)
+		{
+			frame = frames[(frameCounter + i + 1) % framesMax];
+
+			cout << std::setw(4);
+			cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei - i) << " ";
+		
+			if(frame->method)
+			{
+				cout << frame->method << " " << frame->method->getSelector() << "@" << frame->programCounter;
+			}
+			else
+			{
+				cout << "no method";
+			}
+			cout << std::endl;
+		}
 	}
 	cout << std::endl;
 }
@@ -254,7 +289,7 @@ bool Debugger::catchException(StackFrame* frame, const Exception& ex)
 		printClassMethods(klass);
 	}
 	
-	cout << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
+	cout << "\n[" << ex.getName() << "]\n" << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
 
 	return false; // TODO
 }

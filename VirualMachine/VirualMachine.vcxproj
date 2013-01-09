@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sources\ArrayClass.cpp" />
+    <ClCompile Include="sources\BytecodeBuilder.cpp" />
     <ClCompile Include="sources\BytecodeDescriptor.cpp" />
     <ClCompile Include="sources\CharacterClass.cpp" />
     <ClCompile Include="sources\ClassTable.cpp" />
@@ -27,6 +28,7 @@
     <ClCompile Include="sources\FileReaderClass.cpp" />
     <ClCompile Include="sources\FileWriterClass.cpp" />
     <ClCompile Include="sources\FloatClass.cpp" />
+    <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
     <ClCompile Include="sources\PolymorphicInlineCache.cpp" />
     <ClCompile Include="sources\MemoryUtils.cpp" />
     <ClCompile Include="sources\MethodReflection.cpp" />
@@ -67,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\DebugMemoryAllocator.h" />
+    <ClInclude Include="sources\GrowableMemoryAllocator.h" />
     <ClInclude Include="sources\MonomorphicInlineCache.h" />
     <ClInclude Include="sources\CharacterClass.h" />
     <ClInclude Include="sources\ClassTable.h" />
@@ -258,6 +261,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LargeAddressAware>true</LargeAddressAware>
+      <SetChecksum>true</SetChecksum>
+      <TurnOffAssemblyGeneration>
+      </TurnOffAssemblyGeneration>
     </Link>
     <PostBuildEvent>
       <Command>"$(OutDir)VirtualMachineTests.exe" --msvc</Command>

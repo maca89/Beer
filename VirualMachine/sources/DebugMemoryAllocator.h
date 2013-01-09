@@ -64,7 +64,7 @@ namespace Beer
 			mSize = 0;
 		}
 
-		INLINE void* malloc(length_t size)
+		NOINLINE void* malloc(length_t size)
 		{
 			length_t pages = howMuchPages(size) + 2; // +2 for guards
 			length_t blockSize = pages * mPageSize;

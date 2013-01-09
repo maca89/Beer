@@ -5,7 +5,7 @@
 namespace Beer
 {
 	template <typename T>
-	class SmartArray
+	class __SmartArray
 	{
 	protected:
 		T* mData;

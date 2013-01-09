@@ -54,9 +54,9 @@ void TrampolineThread::work()
 				closeStackFrame();
 			}
 
-		#ifdef BEER_DEBUG_MODE
+		//#ifdef BEER_DEBUG_MODE
 			Console::getOutput().flush(cout);
-		#endif // BEER_DEBUG_MODE
+		//#endif // BEER_DEBUG_MODE
 		}
 		catch(Exception& ex)
 		{

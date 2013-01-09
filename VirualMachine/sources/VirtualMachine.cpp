@@ -71,7 +71,6 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mDebugger = new Debugger(this);
 	mClassLoader = new ClassLoader(this, mClassHeap);
 	mStack = new WorkStack(stackInitSize);
-
 	mHeap = new CopyGC(this, heapInitSize);
 
 	mClassLoader->addClassInitializer(BEER_WIDEN("Object"), new ObjectClassInitializer);
@@ -122,6 +121,7 @@ void VirtualMachine::destroy()
 
 void VirtualMachine::run()
 {
+	typedef std::list<StackFrame> Frames;
 	Frames frames;
 	StackFrame* frame = NULL;
 

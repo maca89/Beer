@@ -34,7 +34,9 @@ void StringDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor*
 	errno_t eilseq = EILSEQ;
 
 	size_t mbs_size = mSize / sizeof(char16);
-	char8* mbs_data = new char8[mbs_size];//reinterpret_cast<char8*>(&mData);
+	//char8* mbs_data = new char8[mbs_size];//reinterpret_cast<char8*>(&mData);
+	if(mbs_size >= 128) throw BytecodeException(BEER_WIDEN("String in classfile too long! Either create smaller string or properly implement UTF8 in classfile :-)"));
+	char8 mbs_data[128];
 
 	size_t wcs_size = mSize / sizeof(char16);
 	char16* wcs_data = &mData;
@@ -50,7 +52,7 @@ void StringDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor*
 	//state = mbstowcs_s(&retsize, wcs_data, wcs_size - 1, mbs_data, mbs_size - 1);  // -1 for \0
 	retsize = MultiByteToWideChar(CP_UTF8, 0, mbs_data, mbs_size * sizeof(char8), wcs_data, wcs_size);
 
-	delete[] mbs_data;
+	//delete[] mbs_data;
 
 	RUNTIME_ASSERT(retsize > 0, BEER_WIDEN("Non UTF-16 string"));
 	RUNTIME_ASSERT(state == 0, BEER_WIDEN("Non UTF-16 string"));

@@ -1,6 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Bytecode.h"
+#include "GrowableMemoryAllocator.h"
 
 
 namespace Beer
@@ -12,7 +13,7 @@ namespace Beer
 		uint32 mOldDataSize;
 		uint32 mOldDataIndex;
 
-		std::vector<byte> mNewData;
+		byte* mNewData;
 		uint32 mNewDataIndex;
 
 		uint16* mDict;
@@ -23,13 +24,29 @@ namespace Beer
 		const Bytecode::Instruction* mOldInstr;
 		Bytecode::Instruction* mNewInstr;
 
+		static GrowableMemoryAllocator gMemoryAllocator;
+		static void* gMemory;
+
 	public:
-		INLINE BytecodeBuilder(const byte* data, uint32 dataSize, uint32 dictSize)
-			: mOldData(data), mOldDataSize(dataSize), mNewData((size_t)((double)dataSize * 10)), mDictSize(dictSize), mDict(NULL),
+		NOINLINE BytecodeBuilder(const byte* data, uint32 dataSize, uint32 dictSize)
+			: mOldData(data), mOldDataSize(dataSize), mNewData(NULL), mDictSize(dictSize), mDict(NULL),
 			mOldInstr(NULL), mNewInstr(NULL)
 		{
-			mDict = new uint16[mDictSize];
+			if(!gMemory)
+			{
+				gMemory = gMemoryAllocator.malloc(mDictSize * sizeof(uint16), 1024*1024); // 1MB
+			}
+
+			// allocate dictionary
+			mDict = reinterpret_cast<uint16*>(gMemory);
+			byte* toBeGMemory = reinterpret_cast<byte*>(gMemory) + (mDictSize * sizeof(uint16));
+
+			// allocate buffer for data - should be *AFTER* dictionary, so that it can grow
+			mNewData = reinterpret_cast<byte*>(toBeGMemory);
+
+			// clear dictionary
 			memset(mDict, 0, mDictSize * sizeof(uint16));
+
 			mInstri = 0;
 			mNewDataIndex = 0;
 			mOldDataIndex = 0;
@@ -37,7 +54,7 @@ namespace Beer
 
 		INLINE ~BytecodeBuilder()
 		{
-			SMART_DELETE_ARR(mDict);
+			// nothing
 		}
 
 		INLINE bool done()
@@ -64,7 +81,8 @@ namespace Beer
 
 		INLINE void enlarge(uint16 size)
 		{
-			mNewData.resize(mNewDataIndex + size); // allocate
+			//mNewData.resize(mNewDataIndex + size); //old way
+			// TODO: check if can memory grow that much
 		}
 
 		NOINLINE Bytecode::OpCode/*Bytecode::Instruction**/ next()
@@ -80,24 +98,21 @@ namespace Beer
 			return getOldOpcode();
 		}
 
-		NOINLINE void finish(byte** data, uint32& dataSize, uint16** dict, uint16& dictSize)
+		INLINE void finish(byte** data, uint32& dataSize, uint16** dict, uint16& dictSize)
 		{
-			// alloc data
-			*data = new byte[mNewDataIndex];
-			memcpy(*data, &mNewData[0], mNewDataIndex * sizeof(byte));
+			// save data
+			*data = mNewData;
+			dataSize = mNewDataIndex;
+			gMemory = reinterpret_cast<byte*>(gMemory) + (mNewDataIndex * sizeof(byte)); // permanenty allocate data
 
-			// alloc dict
+			// save dict
 			*dict = mDict;
 			dictSize = mDictSize;
+			gMemory = reinterpret_cast<byte*>(gMemory) + (mDictSize * sizeof(uint16)); // permanenty allocate dictionary
 
+			// clear
 			mDict = NULL;
-		}
-
-		NOINLINE void finish(byte** data, uint32& dataSize)
-		{
-			// alloc data
-			*data = new byte[mNewDataIndex];
-			memcpy(*data, &mNewData[0], mNewDataIndex * sizeof(byte));
+			mNewData = NULL;
 		}
 
 		// opcode
