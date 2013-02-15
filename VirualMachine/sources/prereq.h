@@ -206,12 +206,12 @@ namespace Beer
 		}
 	};
 
+	class Object;
+	class String;
+	class ClassReflection;
 	struct MethodNotFoundException : RuntimeException
 	{
-		MethodNotFoundException(string message, string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(message, filename, line)
-		{
-			mName = BEER_WIDEN("MethodNotFoundException");
-		}
+		MethodNotFoundException(Object* instance, ClassReflection* klass, String* selector, string filename = BEER_WIDEN(""), long line = 0);
 	};
 
 	struct ClassNotFoundException : RuntimeException
@@ -266,19 +266,24 @@ namespace Beer
 		}
 	};
 
-	struct IOFileException : IOException
-	{
-		IOFileException(string msg, string filename = BEER_WIDEN(""), long line = 0) : IOException(msg, filename, line)
-		{
-			mName = BEER_WIDEN("IOFileException");
-		}
-	};
-
 	struct StackOverflowException : RuntimeException
 	{
 		StackOverflowException(string msg = BEER_WIDEN(""), string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(msg, filename, line)
 		{
 			mName = BEER_WIDEN("StackOverflowEception");
+		}
+	};
+
+	struct ArrayIndexOutOfBoundsException : RuntimeException
+	{
+		int64 requiredIndex;
+		int64 arraySize;
+
+		ArrayIndexOutOfBoundsException(int64 index, int64 size, string filename = BEER_WIDEN(""), long line = 0)
+			: RuntimeException(BEER_WIDEN("Array index out of bounds ") /*+ index + BEER_WIDEN(" / ") + size*/, filename, line),
+			requiredIndex(index), arraySize(size)
+		{
+			mName = BEER_WIDEN("ArrayIndexOutOfBoundsException");
 		}
 	};
 
@@ -289,20 +294,20 @@ namespace Beer
 	#define ClassFileException(_msg_) ClassFileException((_msg_), __WFILE__, __LINE__)
 	#define BadCastException(_from_, _to_) BadCastException((_from_), (_to_), __WFILE__, __LINE__)
 	#define UnexpectedClassException(_msg_) UnexpectedClassException((_msg_), __WFILE__, __LINE__)
-	#define MethodNotFoundException(_msg_) MethodNotFoundException((_msg_), __WFILE__, __LINE__)
+	#define MethodNotFoundException(instance, klass, selector) MethodNotFoundException(instance, klass, selector, __WFILE__, __LINE__)
 	#define ClassNotFoundException(_msg_) ClassNotFoundException((_msg_), __WFILE__, __LINE__)
 	#define CircularParentException(_msg_) CircularParentException((_msg_), __WFILE__, __LINE__)
 	#define NullReferenceException(_msg_) NullReferenceException((_msg_), __WFILE__, __LINE__)
 	#define BytecodeException(_msg_) BytecodeException((_msg_), __WFILE__, __LINE__)
 	#define IOException(_msg_) IOException((_msg_), __WFILE__, __LINE__)
-	#define IOFileException(_msg_) IOFileException((_msg_), __WFILE__, __LINE__)
 	#define StackOverflowException(_msg_) StackOverflowException((_msg_), __WFILE__, __LINE__)
+	#define ArrayIndexOutOfBoundsException(index, size) ArrayIndexOutOfBoundsException(index, size, __WFILE__, __LINE__)
 
 
 	#ifdef BEER_DEBUG_MODE
-		//#define BEER_ASSERTS_ON
-		//#define BEER_MEMORY_DEBUGGING
-		//#define BEER_GC_DEBUGGING
+		#define BEER_ASSERTS_ON
+		#define BEER_MEMORY_DEBUGGING
+		#define BEER_GC_DEBUGGING
 	#endif // BEER_DEBUG_MODE
 
 	#ifdef BEER_ASSERTS_ON
@@ -311,12 +316,18 @@ namespace Beer
 
 	//#define BEER_MEMORY_DEBUGGING
 	//#define BEER_GC_DEBUGGING
-	
 	//#define BEER_DEBUG_ASSERTS_ON
+
 	#define BEER_RUNTIME_ASSERS_ON
 	#define BEER_NULL_ASSERTS_ON
 	#define BEER_BOUNDS_ASSERT_ON
 	#define BEER_CRITICAL_ASSERTS_ON
+
+	// optimalizations
+	#define BEER_INLINE_OPTIMALIZATION
+
+	// measure performance
+	//#define BEER_MEASURE_PERFORMANCE
 
 
 	// usually bytecode/virutal-runtime related errors
@@ -354,7 +365,7 @@ namespace Beer
 
 	// array bounds check => important
 	#ifdef BEER_BOUNDS_ASSERT_ON
-		#define BOUNDS_ASSERT(index, size) if(index < 0 || index >= size) throw RuntimeException(string(BEER_WIDEN("Array index out of bounds ")) /*+ index + BEER_WIDEN(" / ") + size*/);
+	#define BOUNDS_ASSERT(index, size) { Integer::IntegerData __index = index; if(__index < 0 || __index >= size) throw ArrayIndexOutOfBoundsException(__index, size); }
 	#else
 		#define BOUNDS_ASSERT(index, size)
 	#endif
@@ -365,12 +376,6 @@ namespace Beer
 	#else
 		#define DEBUG_INFO(_msg_)
 	#endif
-
-	// optimalizations
-	#define BEER_INLINE_OPTIMALIZATION
-
-	// measure performance
-	//#define BEER_MEASURE_PERFORMANCE
 
 	// static initializer
 	#define STATIC_INITIALIZER_START(_name_)												\

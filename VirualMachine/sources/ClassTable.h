@@ -16,7 +16,7 @@ namespace Beer
 		uint32 mNext;
 
 	public:
-		ClassTable() : mNext(1)
+		INLINE ClassTable() : mNext(1)
 		{
 			memset(mTable, 0, TABLE_SIZE * sizeof(void*));
 		}
@@ -30,8 +30,7 @@ namespace Beer
 
 		INLINE ClassReflection* translate(Object* object) const
 		{
-			Object::InlineValueId id = object->getInlineClassId();
-			ClassReflection* klass = mTable[id];
+			ClassReflection* klass = mTable[getInlineClassId(object)];
 			if(klass == NULL) return object->getClass();
 			return klass;
 		}
@@ -42,7 +41,12 @@ namespace Beer
 			return mTable[index];
 		}
 
-		/*INLINE bool isInlineValue(Object* object) const
+		INLINE static Object::InlineValueId getInlineClassId(Object* object)
+		{
+			return reinterpret_cast<Object::InlineValueId>(object) & 15;
+		}
+
+		/*INLINE static bool isInlineValue(Object* object)
 		{
 			return (reinterpret_cast<Object::InlineValueId>(object) & 1);
 		}*/

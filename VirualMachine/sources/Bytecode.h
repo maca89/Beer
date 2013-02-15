@@ -48,6 +48,7 @@ namespace Beer
 			INSTR_CLONE				= 42,
 			INSTR_ASSIGN			= 43,
 			INSTR_LOAD				= 44,
+			INSTR_LOAD_THIS			= 45,// TODO
 
 			// 50: method control
 			INSTR_INVOKE			= 50,
@@ -58,7 +59,7 @@ namespace Beer
 			
 			_INSTR_SIZE			= 127,
 
-			// 100: inlined functions - the numbers may be changed!
+			// inlined functions - the numbers may change!
 			// Boolean
 			INLINE_BOOLEAN_EQUAL = _INSTR_SIZE + 1,
 			INLINE_BOOLEAN_NOT_EQUAL,
@@ -79,6 +80,10 @@ namespace Beer
 			INLINE_ARRAY_GET_LENGTH,
 			INLINE_ARRAY_GET_ITEM,
 			INLINE_ARRAY_SET_ITEM,
+
+			// optimalised instructions - the numbers may change!
+			// Integer
+			OPTIMAL_INTEGER_PUSH_INLINED,
 		};
 
 		#pragma pack(push, 1)
@@ -91,66 +96,21 @@ namespace Beer
 
 			INLINE OpCode getOpcode() const { return static_cast<OpCode>(opcode); }
 			INLINE void setOpcode(OpCode value) { opcode = value; }
-			
-			// int 1 byte
 
-			INLINE uint8 getData_uint8() const { return static_cast<uint8>(data); }
-			INLINE int8 getData_int8() const { return static_cast<int8>(data); }
+			// data
 
-			INLINE uint8& getData_uint8() { return reinterpret_cast<uint8&>(data); }
-			INLINE int8& getData_int8() { return reinterpret_cast<int8&>(data); }
+			INLINE const void* getData() const { return &data; }
 
-			INLINE void setData_uint8(uint8 v) { getData_uint8() = v; }
-			INLINE void setData_int8(int8 v) { getData_int8() = v; }
-			
-			// int 2 bytes
+			INLINE void* getData() { return &data; }
 
-			INLINE uint16 getData_uint16() const { return *reinterpret_cast<const uint16*>(&data); }
-			INLINE int16 getData_int16() const { return *reinterpret_cast<const int16*>(&data); }
+			template <typename T>
+			INLINE const T getData() const { return *reinterpret_cast<const T*>(getData()); }
 
-			INLINE uint16& getData_uint16() { return *reinterpret_cast<uint16*>(&data); }
-			INLINE int16& getData_int16() { return *reinterpret_cast<int16*>(&data); }
+			template <typename T>
+			INLINE T& getData() { return *reinterpret_cast<T*>(getData()); }
 
-			INLINE void setData_uint16(uint16 v) { getData_uint16() = v; }
-			INLINE void setData_int16(int16 v) { getData_int16() = v; }
-
-			// int 4 bytes
-
-			INLINE uint32 getData_uint32() const { return *reinterpret_cast<const uint32*>(&data); }
-			INLINE int32 getData_int32() const { return *reinterpret_cast<const int32*>(&data); }
-
-			INLINE uint32& getData_uint32() { return *reinterpret_cast<uint32*>(&data); }
-			INLINE int32& getData_int32() { return *reinterpret_cast<int32*>(&data); }
-
-			INLINE void setData_uint32(uint32 v) { getData_uint32() = v; }
-			INLINE void setData_int32(int32 v) { getData_int32() = v; }
-
-			// int 8 bytes
-
-			INLINE uint64 getData_uint64() const { return *reinterpret_cast<const uint64*>(&data); }
-			INLINE int64 getData_int64() const { return *reinterpret_cast<const int64*>(&data); }
-
-			INLINE uint64& getData_uint64() { return *reinterpret_cast<uint64*>(&data); }
-			INLINE int64& getData_int64() { return *reinterpret_cast<int64*>(&data); }
-
-			INLINE void setData_uint64(uint64 v) { getData_uint64() = v; }
-			INLINE void setData_int64(int64 v) { getData_int64() = v; }
-
-			// float 4 bytes
-
-			INLINE float32 getData_float32() const { return *reinterpret_cast<const float32*>(&data); }
-
-			INLINE float32& getData_float32() { return *reinterpret_cast<float32*>(&data); }
-
-			INLINE void setData_float32(float32 v) { getData_float32() = v; }
-
-			// float 8 bytes
-
-			INLINE float64 getData_float64() const { return *reinterpret_cast<const float64*>(&data); }
-
-			INLINE float64& getData_float64() { return *reinterpret_cast<float64*>(&data); }
-
-			INLINE void setData_float64(float64 v) { getData_float64() = v; }
+			template <typename T>
+			INLINE void setData(T value) { *reinterpret_cast<T*>(getData()) = value; }
 
 			// print
 
@@ -187,6 +147,9 @@ namespace Beer
 		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }
+		INLINE Instruction* getInstruction(uint16 instri) { return reinterpret_cast<Instruction*>(&mData[mDict[instri]]); }
+
+		INLINE uint16 getInstructionCount() const { return mDictSize; }
 
 	protected:
 		//INLINE bool isBuilt() const { return mDict != NULL; }

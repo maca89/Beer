@@ -171,8 +171,6 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	BuildBinaryOperator(klass, Div, /, Integer, Float, /);
 	BuildBinaryOperator(klass, Modulo, %, Integer, Integer, %);
 	
-	//BuildUnaryOperator(klass, Increment, ++, Integer, ++);
-	//BuildUnaryOperator(klass, Decrement, --, Integer, --);
 	BuildUnaryOperator(klass, Minus, -, Integer, * (-1));
 	
 	BuildCompareOperator(klass, Smaller, <, Integer, <);
@@ -189,17 +187,5 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("Integer::String()"), 1, 0);
 	method->setFunction(&BeerInteger_toString);
 	klass->setMethod(methodi++, method);
-	
-	/*method = loader->createMethod<MethodReflection>(BEER_WIDEN("=="), BEER_WIDEN("Integer::==(Integer)"), 1, 1);
-	method->setFunction(&BeerInteger_equalInteger);
-	klass->setMethod(methodi++, method);*/
-	
-	/*method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), BEER_WIDEN("Integer::++()"), 1, 0);
-	method->setFunction(&BeerInteger_operatorIncrement);
-	klass->setMethod(methodi++, method);
-	
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), BEER_WIDEN("Integer::--()"), 1, 0);
-	method->setFunction(&BeerInteger_operatorDecrement);
-	klass->setMethod(methodi++, method);*/
 }
 

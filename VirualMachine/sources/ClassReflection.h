@@ -74,7 +74,7 @@ namespace Beer
 		
 		// name
 
-		INLINE const char_t* getName() const { return (static_cast<const char_t*>(mName)); }
+		INLINE const char_t* getName() const { return mName; }
 
 		// parents
 

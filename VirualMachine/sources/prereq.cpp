@@ -1,5 +1,9 @@
 #include "stdafx.h"
 #include "prereq.h"
+#include "StringClass.h"
+#include "VirtualMachine.h"
+#include "Object.h"
+#include "ClassReflection.h"
 
 using namespace Beer;
 
@@ -14,3 +18,15 @@ using namespace Beer;
 		size--;
 	}
 }*/
+
+#undef MethodNotFoundException
+
+MethodNotFoundException::MethodNotFoundException(Object* instance, ClassReflection* klass, String* selector, string filename, long line)
+	: RuntimeException(
+		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + klass->getName(), 
+		filename, 
+		line
+	)
+{
+	mName = BEER_WIDEN("MethodNotFoundException");
+}

@@ -86,20 +86,20 @@ void MyClassFileLoader::printClassFile(ClassFileDescriptor* classFile)
 			cout << methodDescr->getName(classFile)->c_str();
 
 			// params
-			if(methodDescr->getParamsLength() > 0) cout << " (BEER_WIDEN(";
+			if(methodDescr->getParamsLength() > 0) cout << "(";
 			for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
 			{
 				ParamDescriptor* paramDescr = classFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
 				
 				cout << classFile->getClassName(paramDescr->getTypeId())->c_str();		
-				cout << ") " << paramDescr->getName(classFile)->c_str();
+				cout << " " << paramDescr->getName(classFile)->c_str();
 
 				if(parami < methodDescr->getParamsLength() - 1) // only between
 				{
-					cout << ", BEER_WIDEN(";
+					cout << ", ";
 				}
 			}
-			if(methodDescr->getParamsLength() > 0) cout << "))";
+			if(methodDescr->getParamsLength() > 0) cout << ")";
 
 			//methodDescr->getSelector // TODO
 

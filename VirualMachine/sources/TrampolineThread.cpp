@@ -29,6 +29,10 @@ void TrampolineThread::work()
 			if(mVM->getDebugger()->isEnabled()) mVM->getDebugger()->step(frame);
 		#endif // BEER_DEBUG_MODE
 
+		//#ifdef BEER_DEBUG_MODE
+			Console::getOutput().flush(cout);
+		//#endif // BEER_DEBUG_MODE
+
 		#ifdef BEER_DEBUG_MODE
 			mVM->getHeap()->collect();
 		#endif // BEER_DEBUG_MODE
@@ -47,16 +51,14 @@ void TrampolineThread::work()
 			
 			if(method)
 			{
-				openStackFrame()->method = method;
+				StackFrame* newFrame = openStackFrame();
+				newFrame->method = method;
+				newFrame->stack->check(method->getMaxStack());
 			}
 			else
 			{
 				closeStackFrame();
 			}
-
-		//#ifdef BEER_DEBUG_MODE
-			Console::getOutput().flush(cout);
-		//#endif // BEER_DEBUG_MODE
 		}
 		catch(Exception& ex)
 		{

@@ -20,6 +20,7 @@ namespace Beer
 
 		INLINE ~CachedOutput()
 		{
+			flush(cout); // really?
 		}
 
 		INLINE void flush(ostream& out)

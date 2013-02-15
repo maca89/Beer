@@ -86,10 +86,8 @@ namespace Beer
 			return NULL;
 		}
 
-		INLINE ClassReflection* getClass(String* name)
-		{
-			return getClass(name->c_str());
-		}
+		INLINE ClassReflection* getClass(const Reference<String>& name) { return getClass(*name); }
+		INLINE ClassReflection* getClass(const String* name) { return getClass(name->c_str()); }
 
 		INLINE ClassReflection* getClass(const StackRef<Object>& object) const { return mClassTable.translate(object); }
 		INLINE ClassReflection* getClass(Object* object) const { return mClassTable.translate(object); }

@@ -62,7 +62,7 @@ namespace Beer
 			return mOldDataIndex >= mOldDataSize;
 		}
 
-		INLINE void copy(uint16 size)
+		NOINLINE void copy(uint16 size)
 		{
 			enlarge(size);
 			for(uint16 i = 0; i < size; i++)
@@ -71,7 +71,7 @@ namespace Beer
 			}
 		}
 
-		INLINE void* alloc(uint16 size)
+		NOINLINE void* alloc(uint16 size)
 		{
 			enlarge(size + 1);
 			void* ptr = &mNewData[mNewDataIndex];
@@ -98,7 +98,7 @@ namespace Beer
 			return getOldOpcode();
 		}
 
-		INLINE void finish(byte** data, uint32& dataSize, uint16** dict, uint16& dictSize)
+		NOINLINE void finish(byte** data, uint32& dataSize, uint16** dict, uint16& dictSize)
 		{
 			// save data
 			*data = mNewData;
@@ -122,33 +122,17 @@ namespace Beer
 
 		INLINE void setNewOpcode(Bytecode::OpCode value) { mNewInstr->opcode = value; }
 
-		// get data
-	
-		INLINE uint64 getData_uint64() { return mOldInstr->getData_uint64(); }
-		INLINE int64 getData_int64() { return mOldInstr->getData_int64(); }
+		// data
 
-		INLINE uint32 getData_uint32() { return mOldInstr->getData_uint32(); }
-		INLINE int32 getData_int32() { return mOldInstr->getData_int32(); }
+		template <typename T>
+		INLINE const T getData() const { return mOldInstr->getData<T>(); }
 
-		INLINE uint16 getData_uint16() { return mOldInstr->getData_uint16(); }
-		INLINE int16 getData_int16() { return mOldInstr->getData_int16(); }
-
-		INLINE uint8 getData_uint8() { return mOldInstr->getData_uint8(); }
-		INLINE int8 getData_int8() { return mOldInstr->getData_int8(); }
-
-		// set data
-	
-		INLINE void setData_uint64(uint64 value) { alloc(sizeof(uint64)); mOldDataIndex += sizeof(uint64); mNewInstr->setData_uint64(value); }
-		INLINE void setData_int64(int64 value) { alloc(sizeof(int64)); mOldDataIndex += sizeof(int64); mNewInstr->setData_int64(value); }
-	
-		INLINE void setData_uint32(uint32 value) { alloc(sizeof(uint32)); mOldDataIndex += sizeof(uint32); mNewInstr->setData_uint32(value); }
-		INLINE void setData_int32(int32 value) { alloc(sizeof(int32)); mOldDataIndex += sizeof(int32); mNewInstr->setData_int32(value); }
-	
-		INLINE void setData_uint16(uint16 value) { alloc(sizeof(uint16)); mOldDataIndex += sizeof(uint16); mNewInstr->setData_uint16(value); }
-		INLINE void setData_int16(int16 value) { alloc(sizeof(int16)); mOldDataIndex += sizeof(int16); mNewInstr->setData_int16(value); }
-	
-		INLINE void setData_uint8(uint8 value) { alloc(sizeof(uint8)); mOldDataIndex += sizeof(uint8); mNewInstr->setData_uint8(value); }
-		INLINE void setData_int8(int8 value) { alloc(sizeof(int8)); mOldDataIndex += sizeof(int8); mNewInstr->setData_int8(value); }
-
+		template <typename T>
+		NOINLINE void setData(T value)
+		{
+			alloc(sizeof(T));
+			mOldDataIndex += sizeof(T);
+			mNewInstr->setData<T>(value);
+		}
 	};
 };

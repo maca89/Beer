@@ -22,7 +22,7 @@ namespace Beer
 	public:
 		INLINE IntegerData getData() const
 		{
-			if(isInlineValue())
+			if(isInlineValue(this))
 			{
 				return getInlineValue(this);
 			}
@@ -56,6 +56,16 @@ namespace Beer
 		{
 			return reinterpret_cast<IntegerData>(data) >> SignatureBits;
 		}
+
+		/*INLINE bool operator < (const Integer& int2) { return getData() < int2.getData(); }
+		INLINE bool operator <= (const Integer& int2) { return getData() <= int2.getData(); }
+		INLINE bool operator > (const Integer& int2) { return getData() > int2.getData(); }
+		INLINE bool operator >= (const Integer& int2) { return getData() >= int2.getData(); }
+		INLINE bool operator == (const Integer& int2) { return getData() == int2.getData(); }
+		INLINE bool operator != (const Integer& int2) { return getData() != int2.getData(); }
+		INLINE IntegerData operator + (const Integer& int2) { return getData() + int2.getData(); }
+		INLINE IntegerData operator - (const Integer& int2) { return getData() - int2.getData(); }
+		INLINE IntegerData operator * (const Integer& int2) { return getData() * int2.getData(); }*/
 	};
 
 	class IntegerClass : public ClassReflection
@@ -71,7 +81,7 @@ namespace Beer
 
 		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 		{
-			if(object->isInlineValue()) return object;
+			if(isInlineValue(object)) return object;
 
 			Integer* num = static_cast<Integer*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
 			num->setNonInlineValue(object->getInstance<Integer>()->getData());

@@ -30,7 +30,6 @@
     <ClCompile Include="sources\FloatClass.cpp" />
     <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
     <ClCompile Include="sources\PolymorphicInlineCache.cpp" />
-    <ClCompile Include="sources\MemoryUtils.cpp" />
     <ClCompile Include="sources\MethodReflection.cpp" />
     <ClCompile Include="sources\AttributeDescriptor.cpp" />
     <ClCompile Include="sources\BooleanClass.cpp" />
@@ -84,7 +83,6 @@
     <ClInclude Include="sources\FloatClass.h" />
     <ClInclude Include="sources\PolymorphicInlineCache.h" />
     <ClInclude Include="sources\InlineFunctionTable.h" />
-    <ClInclude Include="sources\MemoryUtils.h" />
     <ClInclude Include="sources\ParamReflection.h" />
     <ClInclude Include="sources\AttributeDescriptor.h" />
     <ClInclude Include="sources\BooleanClass.h" />
@@ -115,7 +113,6 @@
     <ClInclude Include="sources\QuickSort.h" />
     <ClInclude Include="sources\Selector.h" />
     <ClInclude Include="sources\SimpleMemoryAllocator.h" />
-    <ClInclude Include="sources\SmartArray.h" />
     <ClInclude Include="sources\StackFrame.h" />
     <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\StringClass.h" />

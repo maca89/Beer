@@ -56,17 +56,19 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 	if(preOffset != 0) throw GCException(BEER_WIDEN("preOffset not yet implemented in CopyGC"));
 
 	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount);
-
-	if(!makeSpace(size))
-	{
-		stringstream ss;
-		ss << "Cannot allocate ";
-		ss << size;
-		ss << "bytes";
-		throw NotEnoughMemoryException(ss.str());
-	}
-
 	void* data = mMemoryOld.malloc(size);
+
+	if(data == NULL)
+	{
+		if(!makeSpace(size))
+		{
+			stringstream ss;
+			ss << "Cannot allocate " << size << "bytes";
+			throw NotEnoughMemoryException(ss.str());
+		}
+
+		data = mMemoryOld.malloc(size);
+	}
 
 	Object* obj = reinterpret_cast<Object*>(data);
 
@@ -113,7 +115,7 @@ void CopyGC::check(MemoryAllocator* memory, Object* object)
 		return;
 	}
 
-	if(object->isInlineValue())
+	if(Object::isInlineValue(object))
 	{
 		return;
 	}
@@ -169,7 +171,7 @@ void CopyGC::collect()
 	{
 		Object* object = mReferences[i];
 
-		if(object && !object->isInlineValue()) mReferences[i] = move(object);
+		if(object && !Object::isInlineValue(object)) mReferences[i] = move(object);
 	}
 
 	// move roots and its children
@@ -181,7 +183,7 @@ void CopyGC::collect()
 		for(uint32 i = 0; i < stack->size(); i++)
 		{
 			Object* object = stack->top(i);
-			if(object && !object->isInlineValue()) stack->set(move(object), i);
+			if(object && !Object::isInlineValue(object)) stack->set(move(object), i);
 		}
 	}
 
@@ -238,7 +240,7 @@ void CopyGC::collect()
 Object* CopyGC::move(Object* object)
 {
 	DBG_ASSERT(object, BEER_WIDEN("Object is NULL"));
-	DBG_ASSERT(!object->isInlineValue(), BEER_WIDEN("Object is inline value"));
+	DBG_ASSERT(!Object::isInlineValue(object), BEER_WIDEN("Object is inline value"));
 
 	if(marked(object)) // already moved
 	{
@@ -273,7 +275,7 @@ Object* CopyGC::move(Object* object)
 		Object* child = static_cast<Object*>(children[i]);//object->getChild<Object>(i);
 			
 		// move and adjust pointer
-		if(child && !child->isInlineValue()) newObject->setChild(i, move(child));
+		if(child && !Object::isInlineValue(child)) newObject->setChild(i, move(child));
 	}
 
 #ifdef BEER_GC_DEBUGGING

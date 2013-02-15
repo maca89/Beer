@@ -22,15 +22,10 @@ namespace Beer
 
 		INLINE MethodReflection* find(ClassReflection* klass, String* selector)
 		{
-			return find(klass, selector->c_str());
-		}
-
-		INLINE MethodReflection* find(ClassReflection* klass, const char_t* selector)
-		{
 			DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 			if(mMethod == NULL)
 			{
-				mMethod = klass->findMethod(selector);
+				mMethod = klass->findMethod(selector->c_str());
 			}
 			return mMethod;
 		}

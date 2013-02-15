@@ -35,7 +35,7 @@ namespace Beer
 			return getStackFrame();
 		}
 
-		INLINE bool hasStackFrame() { return mFrames.size() > 0; }
+		INLINE bool hasStackFrame() { return mFrames.size() != 0; }
 
 		INLINE void closeStackFrame() { mFrames.pop(); }
 

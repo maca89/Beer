@@ -10,7 +10,7 @@ using namespace Beer;
 
 Object* ClassReflection::cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 {
-	DBG_ASSERT(!object->isInlineValue(), BEER_WIDEN("Cannot clone an inline value"));
+	DBG_ASSERT(!isInlineValue(object), BEER_WIDEN("Cannot clone an inline value"));
 
 	Object* copy = createInstance(vm, frame, gc);
 	for(uint32 i = 0; i < getPropertiesCount(); i++)

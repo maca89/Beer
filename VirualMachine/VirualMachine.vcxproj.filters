@@ -147,9 +147,6 @@
     <ClCompile Include="sources\NativeThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\MemoryUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sources\PolymorphicInlineCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -165,9 +162,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\prereq.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\SmartArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\stdafx.h">
@@ -324,9 +318,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\Thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MemoryUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\PolymorphicInlineCache.h">

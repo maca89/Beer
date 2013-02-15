@@ -19,14 +19,14 @@ namespace Beer
 
 		// type
 
-		const ClassReflection* getType() const { return mType; }
-		ClassReflection* getType() { return mType; }
+		INLINE const ClassReflection* getType() const { return mType; }
+		INLINE ClassReflection* getType() { return mType; }
 
-		void setType(ClassReflection* value) { mType = value; }
+		INLINE void setType(ClassReflection* value) { mType = value; }
 
 		// name
 
-		const char_t* getName() const { return mName->c_str(); }
-		void setName(Reference<String> value) { mName = value; }
+		INLINE const char_t* getName() const { return mName->c_str(); }
+		INLINE void setName(Reference<String> value) { mName = value; }
 	};
 };

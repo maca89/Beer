@@ -5,8 +5,6 @@
 #include "VirtualMachine.h"
 #include "Debugger.h"
 
-#include "IntegerClass.h"
-#include "StringClass.h"
 #include "ConsoleClass.h"
 
 #include "Thread.h"
@@ -164,6 +162,9 @@ bool sortMethodByTime(MethodReflection* m1, MethodReflection* m2)
 
 int __cdecl main(int argc, const char** argv)
 {
+	MiliTimer mainTimer;
+	mainTimer.start();
+
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
@@ -184,7 +185,7 @@ int __cdecl main(int argc, const char** argv)
 
 		if(!loadFile(settings.classFileName, &data, dataLength))
 		{
-			throw IOFileException(string(BEER_WIDEN("Could not open file: ")) + settings.classFileName);
+			throw IOException(string(BEER_WIDEN("Could not open file: ")) + settings.classFileName);
 		}
 
 		classFile = classFileLoader->loadClassFile(data, dataLength);
@@ -251,6 +252,10 @@ int __cdecl main(int argc, const char** argv)
 	}
 
 	SMART_DELETE(vm);
+
+#ifdef BEER_MEASURE_PERFORMANCE
+	Console::getOutput() << BEER_WIDEN("\nMain took ") << mainTimer.stop();
+#endif // BEER_MEASURE_PERFORMANCE
 
 	//system(BEER_WIDEN("PAUSE"));
 	return 0;

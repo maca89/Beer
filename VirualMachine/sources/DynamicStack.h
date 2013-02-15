@@ -35,7 +35,7 @@ namespace Beer
 
 		INLINE uint32 absoluteIndex(int32 index)
 		{
-			return static_cast<uint32>((static_cast<int64>(mNext) - 1 + index) % mSize);
+			return static_cast<uint32>((static_cast<int64>(mNext) - 1 + index));// % mSize);
 		}
 
 		INLINE void clear()
@@ -58,15 +58,13 @@ namespace Beer
 		INLINE T top(uint32 index)
 		{
 			DBG_ASSERT(index < mNext, BEER_WIDEN("Stack index out of bounds"));
-			T obj = mItems[index];
-			return obj;
+			return mItems[index];
 		}
 
 		INLINE T* topPtr(uint32 index)
 		{
 			DBG_ASSERT(index < mNext, BEER_WIDEN("Stack index out of bounds"));
-			T* obj = &mItems[index];
-			return obj;
+			return &mItems[index];
 		}
 
 		INLINE T top(int32 index)
@@ -110,8 +108,9 @@ namespace Beer
 		INLINE void move(int32 count) // must be signed !!!
 		{
 			//check(count);
-			mNext += count;
 			
+			mNext += count;
+
 			if(count > 0)
 			{
 				memset(&mItems[mNext - count], 0, count * sizeof(T));
