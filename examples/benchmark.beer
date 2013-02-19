@@ -1,0 +1,94 @@
+class Knapsack
+{
+	data
+	{
+		Console out;
+	}
+
+	interface
+	{
+		Knapsack()
+		{
+			out = new Console();
+		}
+
+		Boolean find(Array arr, Integer total)
+		{
+			return find(arr, 0, total);
+		}
+
+		Boolean find(Array arr, Integer start, Integer total)
+		{
+      Integer curr = 0;
+      
+			if(start == arr.getLength())
+			{
+				return false;
+			}
+
+			curr = arr.get(start);
+
+			if(curr == total)
+			{
+				//out.println(curr);
+				return true;
+			}
+			elseif((curr > total) || (!find(arr, start + 1, total - curr)))
+			{
+				return find(arr, start + 1, total);
+			}
+
+			//out.println(curr);
+			return true;
+		}
+	}
+}
+
+class Main
+{
+  data
+	{
+	}
+  
+	interface
+	{
+		run
+		{
+      Boolean result = true;
+      Console out = new Console();
+      Timer timer = new Timer();
+      Integer i = 0;
+      Integer count = 100000;
+      Knapsack knap = new Knapsack();
+      Array arr = new Array(5);
+      
+      while(i < count)
+      {
+  			arr = new Array(5);
+  			arr.set(0, 11);
+  			arr.set(1, 8);
+  			arr.set(2, 7);
+  			arr.set(3, 6);
+  			arr.set(4, 5);
+  
+  			knap = new Knapsack();
+  			if(!knap.find(arr, 20))
+        {
+          result = false;
+        }
+        
+        i += 1;
+      }
+      
+      if(result)
+      {
+        //out.println("Solutions found");
+        out.print(timer.stop());
+      }
+      else
+      {
+        out.println("Solutions not found");
+      }
+		}
+	}
+}

@@ -1,0 +1,81 @@
+class Knapsack
+{
+	data
+	{
+		Console out;
+    Array solution;
+	}
+
+	interface
+	{
+		Knapsack
+		{
+			out = new Console();
+      solution = new Array(0);
+		}
+    
+    addItem(Integer n)
+    {
+      Array newSolution = new Array(solution.getLength() + 1);
+      Integer i = 0;
+      while(i < solution.getLength())
+      {
+        newSolution.set(i, solution.get(i));
+        i += 1; // i++
+      }
+      newSolution.set(i, n);
+      solution = newSolution;
+    }
+    
+		Array find(Array arr, Integer capacity)
+		{
+			find(arr, 0, capacity);
+      return solution;
+		}
+
+		find(Array arr, Integer start, Integer capacity)
+		{
+      if((start >= arr.getLength()) || (0 >= capacity))
+			{
+				return;
+			}
+      
+      Integer item = arr.get(start);
+      
+			if(item <= capacity)
+			{
+				addItem(item);
+        capacity = capacity - item;
+			}
+      
+      find(arr, start + 1, capacity);
+		}
+	}
+}
+
+class Main
+{
+  interface
+	{
+		run
+		{
+      Timer timer = new Timer();
+      Console out = new Console();
+      Knapsack knap = new Knapsack();
+      Array arr = new Array(4);
+      
+			arr = new Array(4);
+			arr.set(0, 18);
+			arr.set(1, 114);
+			arr.set(2, 42);
+			arr.set(3, 136);
+      
+      out.println("Items: " + arr);
+
+			Array solution = knap.find(arr, 100);
+      out.println("Solution: " + solution);
+      
+      out.println("Took " + timer.stop());
+		}
+	}
+}
