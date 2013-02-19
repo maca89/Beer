@@ -1,30 +1,21 @@
-----  KOMPILACE  ----
-Kompilátor i VirtualMachine jsou psány ve Visual Studiu 2012, tzn vyžadují pro kompilaci MSBuild a pro spuštění Visual C++ Redistributable.
+----  COMPILATION  ----
+Compiler and VirtualMachine are both written in Visual Studio 2012. To compile the project without VS2012 you need MSBuild and VC++ Redistributable.
 
-Stažení VC++ Redistributable například zde http://www.microsoft.com/en-us/download/details.aspx?id=30679
+You can download VC++ Redistributable here http://www.microsoft.com/en-us/download/details.aspx?id=30679 
 
-MSBuild je obsažen v .NET frameworku. Doporučujeme použít .NET v4. 
+MSBuild is contained within .NET framework. It is recommended to use .NET 4.5. 
 
-Build.bat zkompiluje pomocí MSBuildu oba projekty. Spustitelné soubory umístí do složky bin. Pokud chcete použít jinou verzi MSBuildu, upravte příslušná místa v build.bat.
+You can compile both projects with MSBuildu and Build.bat. The executables will be stored in /bin. If you wish to use another version of MSBuild, you must update build.bat.
 
 
-----  SPUŠTĚNÍ  ----
-// Zkompiluje soubor file.beer do file.class
-// Pozor, beer-compile vyžaduje složku /stdlib s definicemi vestavěných tříd
+----  EXECUTION  ----
+// Compiles source-file "file.beer" into the class-file "file.class"
+// Beware! Beer-compile requires folder /stdlib with standard class definitions.
 > beer-compile.exe file.beer
 
-// Spustí file.class
+// Runs file.class
 > beer-run.exe file.class
 
-// Příklad spuštění batohu
-> beer-compile.exe source/knapsack.beer
-> beer-run.exe source/knapsack.class in1.txt out1.txt
-
-// Vstupní soubor
-kapacita_batohu pocet_veci vec1 vec2 ...
-
-// Výstupní soubor
-Knapsack capacity: kapacita_batohu
-Items: vec1 vec2 ...
-Solution: not found nebo seznam věcí, které jsou v řešení
-Time: doba_vypoctu 
+// Example of the knapsack
+> beer-compile.exe source/knapsack-plain.beer
+> beer-run.exe source/knapsack-plain.class
