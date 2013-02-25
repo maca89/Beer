@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "PairClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "VirtualMachine.h"
 #include "StackFrame.h"
 #include "IntegerClass.h"
-#include "ParamReflection.h"
+#include "Param.h"
 
 using namespace Beer;
 
@@ -34,10 +34,10 @@ void PairClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Cl
 {
 	klass->extends(0, vm->getObjectClass());
 	
-	MethodReflection* method = NULL;
+	Method* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("Pair")));
 	//method->getReturn(0)->setType(klass);
 	//method->getParam(0)->setType(integerClass);

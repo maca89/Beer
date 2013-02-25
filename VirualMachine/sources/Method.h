@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "ParamReflection.h"
+#include "Param.h"
 #include "Selector.h"
 #include "StackFrame.h"
 #include "Bytecode.h"
@@ -12,10 +12,8 @@ namespace Beer
 {
 	class VirtualMachine;
 	class StackFrame;
-	//class ParamReflection;
-	//class Bytecode;
 
-	class MethodReflection : public Object
+	class Method : public Object
 	{
 	public:
 		typedef void(*Cb)();
@@ -55,7 +53,7 @@ namespace Beer
 		float64 mTimeSpent;
 
 	public:
-		INLINE MethodReflection() : mFunction(NULL), mBytecode(NULL), mTimeSpent(0)
+		INLINE Method() : mFunction(NULL), mBytecode(NULL), mTimeSpent(0)
 		{
 		}
 
@@ -85,16 +83,16 @@ namespace Beer
 			return mReturnsCount;
 		}
 
-		INLINE void setReturn(uint16 i, ParamReflection* value)
+		INLINE void setReturn(uint16 i, Param* value)
 		{
 			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unable to add more returns"));
 			setChild(METHOD_CHILDREN_COUNT + i, value);
 		}
 		
-		INLINE ParamReflection* getReturn(uint16 i) const
+		INLINE Param* getReturn(uint16 i) const
 		{
 			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unknown return"));
-			return getChild<ParamReflection>(METHOD_CHILDREN_COUNT + i);
+			return getChild<Param>(METHOD_CHILDREN_COUNT + i);
 		}
 
 		// params
@@ -104,16 +102,16 @@ namespace Beer
 			return mParamsCount;
 		}
 
-		INLINE void setParam(uint16 i, ParamReflection* value)
+		INLINE void setParam(uint16 i, Param* value)
 		{
 			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unable to add more params"));
 			setChild(METHOD_CHILDREN_COUNT + getReturnsCount() + i, value);
 		}
 
-		INLINE ParamReflection* getParam(uint16 i)
+		INLINE Param* getParam(uint16 i)
 		{
 			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unknown param"));
-			return getChild<ParamReflection>(METHOD_CHILDREN_COUNT + getReturnsCount() + i);
+			return getChild<Param>(METHOD_CHILDREN_COUNT + getReturnsCount() + i);
 		}
 
 		// max stack
@@ -159,7 +157,7 @@ namespace Beer
 
 		// calls
 
-		INLINE MethodReflection* call(VirtualMachine* vm, StackFrame* frame)
+		INLINE Method* call(VirtualMachine* vm, StackFrame* frame)
 		{
 			if(isBytecode())
 			{
@@ -172,10 +170,10 @@ namespace Beer
 		}
 
 	protected:
-		MethodReflection* runFunction(VirtualMachine* vm, StackFrame* frame);
+		Method* runFunction(VirtualMachine* vm, StackFrame* frame);
 
 	private:
-		INLINE ~MethodReflection()
+		INLINE ~Method()
 		{
 			// never called!
 		}

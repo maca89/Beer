@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "BooleanClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "StringClass.h"
 #include "VirtualMachine.h"
 
@@ -25,7 +25,7 @@ struct BeerBoolean_CompareOperator##Name																				\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			1																											\
 		);																												\
@@ -57,15 +57,15 @@ void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	klass->markAsValueType();
 	klass->extends(0, vm->getObjectClass());
 	
-	MethodReflection* method = NULL;
+	Method* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("Boolean")));
 	method->setFunction(&BeerBoolean_init);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Boolean::Boolean()")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("!")));
 	method->setFunction(&BeerBoolean_Negation);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Boolean::!()")), method));

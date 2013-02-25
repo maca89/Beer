@@ -9,7 +9,7 @@
 
 namespace Beer
 {
-	class MethodReflection;
+	class Method;
 	//typedef FixedStack<Object*> WorkStack;
 	typedef DynamicStack<Object*> WorkStack;
 
@@ -19,7 +19,7 @@ namespace Beer
 		uint32 frameOffset;
 		StackFrame* prev;
 		WorkStack* stack;
-		MethodReflection* method;
+		Method* method;
 		uint16 programCounter;
 
 		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0)
@@ -136,15 +136,15 @@ namespace Beer
 			return get();
 		}
 
-		INLINE const T* operator-> () const
+		/*INLINE const T* operator-> () const
 		{
 			DBG_ASSERT(get() != NULL, BEER_WIDEN("Null pointer"));
 			return get();
-		}
+		}*/
 
 		INLINE T* operator-> ()
 		{
-			DBG_ASSERT(get() != NULL, BEER_WIDEN("Null pointer"));
+			DBG_ASSERT(get() != NULL || Object::isInlineValue(get()), BEER_WIDEN("Null pointer")); // Object::isInlineValue is just a workaround TODO: not checking inline value
 			return get();
 		}
 

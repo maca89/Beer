@@ -4,6 +4,7 @@
 #include "VirtualMachine.h"
 #include "Object.h"
 #include "Class.h"
+#include "Method.h"
 
 using namespace Beer;
 
@@ -18,6 +19,19 @@ using namespace Beer;
 		size--;
 	}
 }*/
+
+#undef AbstractMethodException
+
+AbstractMethodException::AbstractMethodException(Method* method, string filename, long line)
+	: RuntimeException(
+		string(BEER_WIDEN("Method ")) + method->getName()->c_str() + BEER_WIDEN(" is abstract"), // TODO
+		filename, 
+		line
+	)
+{
+	mName = BEER_WIDEN("AbstractMethodException");
+}
+
 
 #undef MethodNotFoundException
 

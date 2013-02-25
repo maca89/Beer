@@ -2,7 +2,7 @@
 #include "StringClass.h"
 #include "FloatClass.h"
 #include "BooleanClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "VirtualMachine.h"
 #include "ArrayClass.h"
 
@@ -27,7 +27,7 @@ struct CompareStringOperator##Name																						\
 
 #define BuildCompareStringOperator(Name, Operator, Operation)															\
 	BuildCompareStringOperatorFn(Name, Operation);																		\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			1																											\
 		);																												\
@@ -137,12 +137,12 @@ Class* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* load
 
 void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
-	MethodReflection* method = NULL;
+	Method* method = NULL;
 	uint16 methodi = 0;
 
 	klass->extends(0, vm->getObjectClass());
 
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerString_init);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::String()")), method));
@@ -154,42 +154,42 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 	BuildCompareStringOperator(Equal, ==, == 0);
 	BuildCompareStringOperator(NotEqual, !=, != 0);
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
 	method->setFunction(&BeerString_concatString);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(String)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
 	method->setFunction(&BeerString_concatInteger);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Integer)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
 	method->setFunction(&BeerString_concatFloat);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Float)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
 	method->setFunction(&BeerString_concatBoolean);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Boolean)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
 	method->setFunction(&BeerString_concatCharacter);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Character)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
 	method->setFunction(&BeerString_concatArray);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Array)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("getLength")));
 	method->setFunction(&BeerString_getLength);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::getLength()")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("get")));
 	method->setFunction(&BeerString_getCharacter);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::get(Integer)")), method));

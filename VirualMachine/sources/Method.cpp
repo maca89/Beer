@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "ObjectClass.h"
 #include "GarbageCollector.h"
 #include "StackFrame.h"
@@ -7,10 +7,16 @@
 using namespace Beer;
 
 
-MethodReflection* MethodReflection::runFunction(VirtualMachine* vm, StackFrame* frame)
+Method* Method::runFunction(VirtualMachine* vm, StackFrame* frame)
 {
 	Cb fn = mFunction;
-	NULL_ASSERT(fn);
+	if(fn == NULL)
+	{
+		// TODO
+		throw AbstractMethodException(this);
+	}
+
+	//NULL_ASSERT(fn);
 
 	uint16 i = 0;
 	int32 elemi = 0;

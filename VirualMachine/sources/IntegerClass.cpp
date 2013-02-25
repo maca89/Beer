@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "IntegerClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "StringClass.h"
 #include "VirtualMachine.h"
-#include "ParamReflection.h"
+#include "Param.h"
 #include "FloatClass.h"
 #include "BooleanClass.h"
 
@@ -50,7 +50,7 @@ struct UnaryOperator##Name																								\
 
 #define BuildUnaryOperator(Class, Name, Operator, Return, Do)															\
 	BuildUnaryOperatorFn(Name, Do, Return);																				\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			0																											\
 		);																												\
@@ -80,7 +80,7 @@ struct BinaryOperator##Name																								\
 
 #define BuildBinaryOperator(Class, Name, Operator, Param, Return, Do)													\
 	BuildBinaryOperatorFn(Name, Do, Param, Return);																		\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			1																											\
 		);																												\
@@ -109,7 +109,7 @@ struct CompareOperator##Name																							\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			1																											\
 		);																												\
@@ -130,7 +130,7 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 {
 	klass->markAsValueType();
 	uint16 methodi = 0;
-	MethodReflection* method = NULL;
+	Method* method = NULL;
 
 	Class* integerClass = klass;
 	Class* objectClass = vm->getObjectClass();
@@ -158,12 +158,12 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	BuildCompareOperator(klass, Equal, ==, Integer, ==);
 	BuildCompareOperator(klass, NotEqual, !=, Integer, !=);
 	
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("Float")));
 	method->setFunction(&BeerInteger_toFloat);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::Float()")), method));
 	
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerInteger_toString);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::String()")), method));

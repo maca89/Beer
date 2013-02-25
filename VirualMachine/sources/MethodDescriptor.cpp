@@ -16,7 +16,7 @@ const StringDescriptor* MethodDescriptor::getName(ClassFileDescriptor* classFile
 
 const StringDescriptor* MethodDescriptor::getInterfaceName(ClassFileDescriptor* classFile) const
 {
-	uint16 classId = classFile->getClassId(getInterfaceId());
+	uint16 classId = getInterfaceId();
 	return classFile->getClassName(classId);
 }
 

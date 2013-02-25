@@ -17,6 +17,11 @@ namespace Beer
 	public:
 		INLINE CharacterData getData() const
 		{
+			if(this == NULL)
+			{
+				return '\0'; // just a workaround, TODO
+			}
+
 			return (reinterpret_cast<uint32>(this) >> SignatureBits);
 		}
 

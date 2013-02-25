@@ -5,7 +5,8 @@
 #include "ClassLoader.h"
 
 #include "Class.h"
-#include "MethodReflection.h"
+#include "MetaClass.h"
+#include "Method.h"
 
 #include "ObjectClass.h"
 #include "StringClass.h"
@@ -78,11 +79,30 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mHeap = new CopyGC(this, heapInitSize);
 	mClassLoader = new ClassLoader(this, mHeap);
 
-	/*ClassReflection* metaClass = static_cast<GarbageCollector*>(mHeap)->alloc<ClassReflection>(
-		Object::OBJECT_CHILDREN_COUNT + 2 // name, childrencount
+	
+	String* metaClassName = ((GarbageCollector*)mHeap)->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 10 for "MetaClass", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+	metaClassName->size(9); // 9 for "MetaClass"
+	metaClassName->copyData(BEER_WIDEN("MetaClass"));
+
+	mMetaClass = static_cast<GarbageCollector*>(mHeap)->alloc<MetaClass>(
+		Class::CLASS_CHILDREN_COUNT + 3 // 1 parent, 2 methods
 	);
 
-	new ClassReflection(metaClass); // init v_table*/
+	new(mMetaClass) MetaClass(); // init v_table, TODO: get rid of
+	mMetaClass->setName(metaClassName);
+	mMetaClass->mFlags = 0;
+	mMetaClass->mParentsCount = 1;
+	mMetaClass->mPropertiesCount = 0;
+	mMetaClass->mMethodsCount = 2;
+
+	Method* metaClassCtor = mClassLoader->createMethod(1, 0);
+	metaClassCtor->setFunction(&MetaClass::init);
+
+	Method* metaClassFindMethod = mClassLoader->createMethod(1, 1);
+	metaClassFindMethod->setFunction(&MetaClass::findMethod);
 
 	mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
@@ -106,6 +126,9 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 
 	mObjectClass = mClassLoader->createClass<ObjectClass>(objectClassName, 0, 0, 0);
 	// TODO: default methods
+	
+	// fix references
+	mMetaClass->extends(0, mObjectClass); // TODO
 
 	// create String class
 	String* stringClassName = ((GarbageCollector*)mHeap)->alloc<String>(
@@ -125,9 +148,14 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	stringClassName->setClass(mStringClass); // important!
 
 
+	// fix metaclass methods
+	metaClassCtor->setName(createString(BEER_WIDEN("MetaClass")));
+	mMetaClass->setMethod(0, createPair(createString(BEER_WIDEN("MetaClass::MetaClass()")), metaClassCtor));
+
+	metaClassFindMethod->setName(createString(BEER_WIDEN("open")));
+	mMetaClass->setMethod(1, createPair(createString(BEER_WIDEN("MetaClass::findMethod(String)")), metaClassFindMethod));
+
 	// preloading of some classes
-	//mObjectClass = getClass(BEER_WIDEN("Object"));
-	//mStringClass = getClass(BEER_WIDEN("String"));
 	mPairClass = getClass(BEER_WIDEN("Pair"));
 	mFloatClass = getClass(BEER_WIDEN("Float"));
 	mCharacterClass = getClass(BEER_WIDEN("Character"));
@@ -166,12 +194,14 @@ void VirtualMachine::run()
 
 	frames.push_back(StackFrame(mStack));
 	frame = &frames.back();
+
 	StackRef<Object> main = StackRef<Object>(frame, frame->stackPush(getClass(BEER_WIDEN("Main"))->createInstance(this, frame, getHeap())));
 	Class* mainClass = main->getClass<Class>();
 
 	// call constructor
-	MethodReflection* mainCtor = NULL;
-	if(/*false &&*/ (mainCtor = mainClass->findMethod(BEER_WIDEN("Main::Main()"))))
+	Method* mainCtor = NULL;
+	String* selector = createString(BEER_WIDEN("Main::Main()")); // TODO
+	if(mainCtor = mainClass->findMethod(selector))
 	{
 		// ugly – create another trampoline
 		TrampolineThread* thread = new TrampolineThread(this);
@@ -200,7 +230,8 @@ void VirtualMachine::run()
 
 	frames.push_back(StackFrame(frame));
 	frame = &frames.back();
-	frame->method = mainClass->findMethod(BEER_WIDEN("Task::dorun()"));
+	selector = createString(BEER_WIDEN("Task::dorun()")); // TODO
+	frame->method = mainClass->findMethod(selector);
 	
 	NULL_ASSERT(frame->method);
 	frame->method->call(this, frame);
@@ -263,3 +294,9 @@ Pair* VirtualMachine::createPair(Object* first, Object* second)
 
 	return pair;
 }
+
+/*void VirtualMachine::createInstance(StackFrame* frame, Class* klass)
+{
+	frame->stackPush(klass);
+	MethodReflection* method = klass->findMethod(createString(BEER_WIDEN("Class::createInstance()")));
+}*/

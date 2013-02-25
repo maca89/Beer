@@ -65,7 +65,11 @@ namespace Beer
 		}
 
 		// inline value
-		INLINE static bool isInlineValue(const Object* object) { return (reinterpret_cast<InlineValueId>(object) & 1); }
+		INLINE static bool isInlineValue(const Object* object)
+		{
+			if(object == NULL) return true; // just a workaround, TODO: get rid of
+			return (reinterpret_cast<InlineValueId>(object) & 1);
+		}
 
 		// children count
 		INLINE Object* getChildrenCount() { return getChild<Object>(0); }
@@ -83,11 +87,11 @@ namespace Beer
 
 		// casts
 		
-		template <typename T>
+		/*template <typename T>
 		INLINE T* getInstance()
 		{
 			return static_cast<T*>(this);
-		}
+		}*/
 	};
 	#pragma pack(pop)
 };

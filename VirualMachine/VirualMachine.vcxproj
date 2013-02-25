@@ -19,7 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sources\ParamReflection.cpp" />
+    <ClCompile Include="sources\MetaClass.cpp" />
+    <ClCompile Include="sources\Param.cpp" />
     <ClCompile Include="sources\ArrayClass.cpp" />
     <ClCompile Include="sources\BytecodeBuilder.cpp" />
     <ClCompile Include="sources\BytecodeDescriptor.cpp" />
@@ -32,7 +33,7 @@
     <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
     <ClCompile Include="sources\PairClass.cpp" />
     <ClCompile Include="sources\PolymorphicInlineCache.cpp" />
-    <ClCompile Include="sources\MethodReflection.cpp" />
+    <ClCompile Include="sources\Method.cpp" />
     <ClCompile Include="sources\AttributeDescriptor.cpp" />
     <ClCompile Include="sources\BooleanClass.cpp" />
     <ClCompile Include="sources\ClassDescriptor.cpp" />
@@ -52,7 +53,7 @@
     <ClCompile Include="sources\ObjectClass.cpp" />
     <ClCompile Include="sources\ParamDescriptor.cpp" />
     <ClCompile Include="sources\prereq.cpp" />
-    <ClCompile Include="sources\PropertyReflection.cpp" />
+    <ClCompile Include="sources\Property.cpp" />
     <ClCompile Include="sources\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">Create</PrecompiledHeader>
@@ -90,7 +91,7 @@
     <ClInclude Include="sources\PairClass.h" />
     <ClInclude Include="sources\PolymorphicInlineCache.h" />
     <ClInclude Include="sources\InlineFunctionTable.h" />
-    <ClInclude Include="sources\ParamReflection.h" />
+    <ClInclude Include="sources\Param.h" />
     <ClInclude Include="sources\AttributeDescriptor.h" />
     <ClInclude Include="sources\BooleanClass.h" />
     <ClInclude Include="sources\ClassDescriptor.h" />
@@ -110,12 +111,12 @@
     <ClInclude Include="sources\InterlockedQueue.h" />
     <ClInclude Include="sources\InterlockedStack.h" />
     <ClInclude Include="sources\MethodDescriptor.h" />
-    <ClInclude Include="sources\MethodReflection.h" />
+    <ClInclude Include="sources\Method.h" />
     <ClInclude Include="sources\MyClassFileLoader.h" />
     <ClInclude Include="sources\ObjectClass.h" />
     <ClInclude Include="sources\ParamDescriptor.h" />
     <ClInclude Include="sources\prereq.h" />
-    <ClInclude Include="sources\PropertyReflection.h" />
+    <ClInclude Include="sources\Property.h" />
     <ClInclude Include="sources\QuickSort.h" />
     <ClInclude Include="sources\Selector.h" />
     <ClInclude Include="sources\SimpleMemoryAllocator.h" />

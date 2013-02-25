@@ -8,9 +8,9 @@ namespace Beer
 	struct GarbageCollector;
 	class ClassLoader;
 	class Class;
-	class MethodReflection;
-	class ParamReflection;
-	class PropertyReflection;
+	class Method;
+	class Param;
+	class Property;
 
 	class ClassInitializer
 	{
@@ -59,34 +59,12 @@ namespace Beer
 			return klass;
 		}
 
-		template <typename T>
-		INLINE T* createMethod(uint16 returns, uint16 params)
-		{
-			T* method = static_cast<T*>(createMethod(sizeof(T), returns, params));
-			new(method) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
-			return method;
-		}
-
-		template <typename T>
-		INLINE T* createParam()
-		{
-			T* param = static_cast<T*>(createParam(sizeof(T)));
-			//new(param) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
-			return param;
-		}
-
-		template <typename T>
-		INLINE T* createProperty()
-		{
-			T* prop = static_cast<T*>(createProperty(sizeof(T)));
-			//new(prop) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
-			return prop;
-		}
+		Method* createMethod(uint16 returns, uint16 params);
+		Param* createParam();
+		Property* createProperty();
 
 	protected:
 		Class* createClass(String* name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);
-		MethodReflection* createMethod(uint32 staticSize, uint16 returns, uint16 params);
-		ParamReflection* createParam(uint32 staticSize);
-		PropertyReflection* createProperty(uint32 staticSize);
+		
 	};
 };

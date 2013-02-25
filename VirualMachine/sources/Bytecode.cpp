@@ -8,7 +8,7 @@
 #include "BooleanClass.h"
 #include "FloatClass.h"
 #include "ConsoleClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "ClassFileDescriptor.h"
 #include "StringDescriptor.h"
 #include "BytecodeBuilder.h"
@@ -522,7 +522,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 	builder.finish(&mData, mDataSize, &mDict, mDictSize);
 }
 
-MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
+Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 {
 	Instruction* instr = NULL;
 	uint16 nextInstruction = 0;
@@ -648,7 +648,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			
 				NULL_ASSERT(object.get());
 				// *NO* null assert for value!
-				object->setChild(instr->getData<int16>(), value.get());
+				object->setChild(2 + instr->getData<int16>(), value.get()); // TODO: find start of properties
 			
 				frame->stackPop();
 				frame->stackPop();
@@ -660,7 +660,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
-				Object* child = object->getChild(instr->getData<uint16>());
+				Object* child = object->getChild(2 + instr->getData<uint16>()); // TODO: find start of properties
 
 				// pops object and pushed a child
 				object = child;
@@ -672,7 +672,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				StackRef<Object> object(frame, 0);
 				NULL_ASSERT(object.get());
 
-				Object* child = object->getChild(instr->getData<uint16>());
+				Object* child = object->getChild(2 + instr->getData<uint16>()); // TODO: find start of properties
 
 				// *NO* pop of this !!!
 				frame->stackPush(child);
@@ -691,7 +691,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				// find method using inline cache
 				MonomorphicInlineCache* cache = MonomorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
 				Class* klass = vm->getClass(object);
-				MethodReflection* method = cache->find(klass, *selector);
+				Method* method = cache->find(klass, *selector);
 
 				// lookup failed
 				if(!method)
@@ -718,7 +718,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				// find method using inline cache
 				PolymorphicInlineCache* cache = PolymorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
 				Class* klass = vm->getClass(object);
-				MethodReflection* method = cache->find(klass, selector.get(), mMethodCachesLength);
+				Method* method = cache->find(klass, selector.get(), mMethodCachesLength);
 
 				// lookup failed
 				if(!method)

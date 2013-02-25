@@ -8,7 +8,7 @@ namespace Beer
 	class VirtualMachine;
 	class StackFrame;
 	class ClassFileDescriptor;
-	class MethodReflection;
+	class Method;
 
 	class Bytecode //: public Object, TODO
 	{
@@ -143,7 +143,7 @@ namespace Beer
 			// *NO* deleting of mData or mDict !!!
 		}
 
-		MethodReflection* call(VirtualMachine* vm, StackFrame* frame);
+		Method* call(VirtualMachine* vm, StackFrame* frame);
 		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }

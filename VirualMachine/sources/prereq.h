@@ -214,6 +214,12 @@ namespace Beer
 		MethodNotFoundException(Object* instance, Class* klass, String* selector, string filename = BEER_WIDEN(""), long line = 0);
 	};
 
+	class Method;
+	struct AbstractMethodException : RuntimeException
+	{
+		AbstractMethodException(Method* method, string filename = BEER_WIDEN(""), long line = 0);
+	};
+
 	struct ClassNotFoundException : RuntimeException
 	{
 	protected:
@@ -295,6 +301,7 @@ namespace Beer
 	#define BadCastException(_from_, _to_) BadCastException((_from_), (_to_), __WFILE__, __LINE__)
 	#define UnexpectedClassException(_msg_) UnexpectedClassException((_msg_), __WFILE__, __LINE__)
 	#define MethodNotFoundException(instance, klass, selector) MethodNotFoundException(instance, klass, selector, __WFILE__, __LINE__)
+	#define AbstractMethodException(method) AbstractMethodException(method, __WFILE__, __LINE__)
 	#define ClassNotFoundException(_msg_) ClassNotFoundException((_msg_), __WFILE__, __LINE__)
 	#define CircularParentException(_msg_) CircularParentException((_msg_), __WFILE__, __LINE__)
 	#define NullReferenceException(_msg_) NullReferenceException((_msg_), __WFILE__, __LINE__)

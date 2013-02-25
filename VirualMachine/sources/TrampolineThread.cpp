@@ -2,7 +2,7 @@
 #include "TrampolineThread.h"
 #include "Debugger.h"
 #include "ConsoleClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 
 using namespace Beer;
 
@@ -14,7 +14,7 @@ void TrampolineThread::work()
 	while(hasStackFrame())
 	{
 		StackFrame* frame = getStackFrame();
-		MethodReflection* method = frame->method;
+		Method* method = frame->method;
 		
 		// return
 		if(method == NULL)

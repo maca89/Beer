@@ -28,6 +28,8 @@ namespace Beer
 
 		INLINE WorkStack* getStack() { return &mStack; }
 
+		INLINE Heap* getHeap() { return mVM->getHeap(); }
+
 		INLINE StackFrame* openStackFrame()
 		{
 			StackFrame frame(getStackFrame());

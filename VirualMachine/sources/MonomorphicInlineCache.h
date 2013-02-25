@@ -1,18 +1,18 @@
 #pragma once
 #include "prereq.h"
-#include "MethodReflection.h"
+#include "Method.h"
 
 
 namespace Beer
 {
-	class MethodReflection;
+	class Method;
 	class Class;
 
 	#pragma pack(push, 1)
 	class MonomorphicInlineCache
 	{
 	protected:
-		MethodReflection* mMethod;
+		Method* mMethod;
 
 	public:
 		INLINE void clear()
@@ -20,12 +20,12 @@ namespace Beer
 			memset(this, 0, countSize());
 		}
 
-		INLINE MethodReflection* find(Class* klass, String* selector)
+		INLINE Method* find(Class* klass, String* selector)
 		{
 			DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 			if(mMethod == NULL)
 			{
-				mMethod = klass->findMethod(selector->c_str());
+				mMethod = klass->findMethod(selector);
 			}
 			return mMethod;
 		}

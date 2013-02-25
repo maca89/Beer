@@ -17,6 +17,11 @@ namespace Beer
 	public:
 		INLINE IntegerData getData() const
 		{
+			if(this == NULL)
+			{
+				return 0; // just a workaround, TODO
+			}
+
 			if(isInlineValue(this))
 			{
 				return getInlineValue(this);

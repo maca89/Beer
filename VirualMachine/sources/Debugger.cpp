@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "Debugger.h"
 #include "VirtualMachine.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "ConsoleClass.h"
-#include "PropertyReflection.h"
+#include "Property.h"
 #include "Class.h"
 
 using namespace Beer;
@@ -132,7 +132,7 @@ void Debugger::printObject(Object* object)
 				cout << " {";
 				for(uint32 i = 0; i < klass->getPropertiesCount(); i++)
 				{
-					PropertyReflection* prop = klass->getProperty(i);
+					Property* prop = klass->getProperty(i);
 					Object* child = object->getChild<Object>(i);
 				
 					if(prop) cout << prop->getName() << ": ";

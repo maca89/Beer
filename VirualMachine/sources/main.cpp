@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "prereq.h"
 
-#include "MethodReflection.h"
+#include "Method.h"
 #include "VirtualMachine.h"
 #include "Debugger.h"
 
@@ -154,7 +154,7 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 	return true;
 }
 
-bool sortMethodByTime(MethodReflection* m1, MethodReflection* m2)
+bool sortMethodByTime(Method* m1, Method* m2)
 {
 	return m1->getTimeSpent() > m2->getTimeSpent();
 }
@@ -195,15 +195,15 @@ int __cdecl main(int argc, const char** argv)
 		if(settings.run) vm->run();
 
 	#ifdef BEER_MEASURE_PERFORMANCE
-		typedef std::list<MethodReflection*> MethodList;
+		typedef std::list<Method*> MethodList;
 		MethodList methods;
 
 		for(ClassReflectionTable::iterator it = vm->getClasses().begin(); it != vm->getClasses().end(); it++)
 		{
-			ClassReflection* klass = it->second;
+			Class* klass = it->second;
 			for(uint32 i = 0; i < klass->getMethodsCount(); i++)
 			{
-				MethodReflection* method = klass->getMethod(i);
+				Method* method = klass->getMethod(i);
 				if(method)
 				{
 					methods.push_back(method);

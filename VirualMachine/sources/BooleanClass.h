@@ -21,6 +21,11 @@ namespace Beer
 	public:
 		INLINE BooleanData getData() const
 		{
+			if(this == NULL)
+			{
+				return false; // just a workaround, TODO
+			}
+
 			return (reinterpret_cast<uint32>(this) >> SignatureBits) != 0;
 		}
 

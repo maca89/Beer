@@ -8,7 +8,7 @@ namespace Beer
 	class String;
 	class Class;
 
-	class PropertyReflection : public Object
+	class Property : public Object
 	{
 	public:
 		enum
@@ -30,12 +30,12 @@ namespace Beer
 		void setName(String* value);
 
 	private:
-		INLINE PropertyReflection()
+		INLINE Property()
 		{
 			// never called!
 		}
 
-		INLINE ~PropertyReflection()
+		INLINE ~Property()
 		{
 			// never called!
 		}

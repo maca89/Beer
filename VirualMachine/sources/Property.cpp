@@ -1,26 +1,26 @@
 #include "stdafx.h"
-#include "ParamReflection.h"
+#include "Property.h"
 #include "Class.h"
 
 using namespace Beer;
 
 
-Class* ParamReflection::getType()
+Class* Property::getType()
 {
 	return getChild<Class>(OBJECT_CHILDREN_COUNT);
 }
 
-void ParamReflection::setType(Class* value)
+void Property::setType(Class* value)
 {
 	setChild(OBJECT_CHILDREN_COUNT, value);
 }
 
-String* ParamReflection::getName()
+String* Property::getName()
 {
 	return getChild<String>(OBJECT_CHILDREN_COUNT + 1);
 }
 
-void ParamReflection::setName(String* value)
+void Property::setName(String* value)
 {
 	setChild(OBJECT_CHILDREN_COUNT + 1, value);
 }

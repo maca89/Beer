@@ -3,8 +3,8 @@
 #include "VirtualMachine.h"
 
 #include "Class.h"
-#include "MethodReflection.h"
-#include "ParamReflection.h"
+#include "Method.h"
+#include "Param.h"
 
 using namespace Beer;
 
@@ -78,35 +78,23 @@ bool ClassLoader::canLoadClass(string name)
 	return hasClassInitializer(name);
 }
 
-//////////////////// ---------- classes ---------- ////////////////////
-
-/*uint32 ClassLoader::countClassDynamicSize(string name, uint16 parents, uint16 properties, uint16 methods)
-{
-	return (name.size() + 2) * sizeof(char_t*); // +1 for \0;
-}*/
-
 Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods)
 {
-	//uint32 dynamicSize = countClassDynamicSize(classname, parents, properties, methods);
+
+	//mVM->getMetaClass()->invoke(BEER_WIDEN("Class::createInstance"), );
 
 	Class* klass = mClassHeap->alloc<Class>(
-		staticSize/* + dynamicSize*/, 
+		staticSize, 
 		Object::OBJECT_CHILDREN_COUNT + 1 + parents + methods + properties // +1 for name
 	);
 	
-	// init flags
 	klass->mFlags = 0;
-
-	// init name
-	klass->setName(classname); // TODO
-	/*klass->mNameLength = classname.size();
-	klass->mName = reinterpret_cast<char_t*>(reinterpret_cast<byte*>(klass) + staticSize);
-	strcpy(klass->mName, classname.size() + 1, classname.c_str());*/
-
+	klass->setName(classname);
+	klass->setClass(mVM->getMetaClass());
 	klass->mParentsCount = parents;
 	klass->mPropertiesCount = properties;
 	klass->mMethodsCount = methods;
-	klass->mDefaultChildrenCount = Object::OBJECT_CHILDREN_COUNT + properties;
+	//klass->mDefaultChildrenCount = Object::OBJECT_CHILDREN_COUNT + properties;
 
 	// TODO: where??
 	mVM->addClass(klass);
@@ -114,14 +102,13 @@ Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 par
 	return klass;
 }
 
-//////////////////// ---------- methods ---------- ////////////////////
-
-MethodReflection* ClassLoader::createMethod(uint32 staticSize, uint16 returns, uint16 params)
+Method* ClassLoader::createMethod(uint16 returns, uint16 params)
 {
-	MethodReflection* method = mClassHeap->alloc<MethodReflection>(
-		staticSize,
-		MethodReflection::METHOD_CHILDREN_COUNT + returns + params + 10
+	Method* method = mClassHeap->alloc<Method>(
+		Method::METHOD_CHILDREN_COUNT + returns + params + 10
 	);
+
+	new(method) Method(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
 
 	// init flags, TODO: is it really needed?
 	method->mFlags = 0;
@@ -135,26 +122,24 @@ MethodReflection* ClassLoader::createMethod(uint32 staticSize, uint16 returns, u
 	return method;
 }
 
-//////////////////// ---------- params ---------- ////////////////////
-
-ParamReflection* ClassLoader::createParam(uint32 staticSize)
+Param* ClassLoader::createParam()
 {
-	ParamReflection* param = mClassHeap->alloc<ParamReflection>(
-		staticSize,
-		ParamReflection::PARAM_CHILDREN_COUNT
+	Param* param = mClassHeap->alloc<Param>(
+		Param::PARAM_CHILDREN_COUNT
 	);
+
+	//new(param) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
 
 	return param;
 }
 
-//////////////////// ---------- properties ---------- ////////////////////
-
-PropertyReflection* ClassLoader::createProperty(uint32 staticSize)
+Property* ClassLoader::createProperty()
 {
-	PropertyReflection* prop = mClassHeap->alloc<PropertyReflection>(
-		staticSize,
-		PropertyReflection::PROPERTY_CHILDREN_COUNT
+	Property* prop = mClassHeap->alloc<Property>(
+		Property::PROPERTY_CHILDREN_COUNT
 	);
+
+	//new(prop) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
 
 	return prop;
 }

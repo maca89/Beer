@@ -59,9 +59,9 @@ namespace Beer
 		AttributeDescriptor* getAtribute(uint16 i);
 		MethodDescriptor* getMethod(uint16 i);
 
-		PropertyReflection* makeProperty(VirtualMachine* vm, ClassLoader* loader, AttributeDescriptor* attrDescr);
-		MethodReflection* makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr);
-		ParamReflection* makeParam(VirtualMachine* vm, ClassLoader* loader, ParamDescriptor* paramDescr);
+		Property* makeProperty(VirtualMachine* vm, ClassLoader* loader, AttributeDescriptor* attrDescr);
+		Method* makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr);
+		Param* makeParam(VirtualMachine* vm, ClassLoader* loader, ParamDescriptor* paramDescr);
 
 		const char_t* getParentClassName(VirtualMachine* vm, uint16 i);
 		Class* getType(const StringDescriptor* name, VirtualMachine* vm);

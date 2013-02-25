@@ -17,9 +17,13 @@ namespace Beer
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
-			Object* obj = gc->alloc<Object>(Object::OBJECT_CHILDREN_COUNT);
-			obj->setClass(this);
-			return obj;
+			Object* object = gc->alloc<Object>(Object::OBJECT_CHILDREN_COUNT);
+			
+			object->setClass(this);
+			//invoke(object, BEER_WIDEN("Object::setClass(Class)"));
+
+			//obj->setClass(this);
+			return object;
 		}
 	};
 };

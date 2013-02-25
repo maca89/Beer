@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "ArrayClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "VirtualMachine.h"
 #include "StackFrame.h"
 #include "IntegerClass.h"
-#include "ParamReflection.h"
+#include "Param.h"
 
 using namespace Beer;
 
@@ -98,30 +98,30 @@ void ArrayClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 
 	klass->extends(0, objectClass);
 	
-	MethodReflection* method = NULL;
+	Method* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("Array")));
 	//method->getReturn(0)->setType(klass);
 	//method->getParam(0)->setType(integerClass);
 	method->setFunction(&BeerArray_init);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Array::Array(Integer)")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("getLength")));
 	//method->getReturn(0)->setType(integerClass);
 	method->setFunction(&BeerArray_getSize);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Array::getLength()")), method));
 
-	method = loader->createMethod<MethodReflection>(1, 1);
+	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("get")));
 	//method->getReturn(0)->setType(objectClass);
 	//method->getParam(0)->setType(integerClass);
 	method->setFunction(&BeerArray_get);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Array::get(Integer)")), method));
 
-	method = loader->createMethod<MethodReflection>(0, 2);
+	method = loader->createMethod(0, 2);
 	method->setName(vm->createString(BEER_WIDEN("set")));
 	//method->getParam(0)->setType(integerClass);
 	//method->getParam(1)->setType(objectClass);

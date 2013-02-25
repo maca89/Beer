@@ -8,7 +8,7 @@ namespace Beer
 	class String;
 	class Class;
 
-	class ParamReflection : public Object
+	class Param : public Object
 	{
 	public:
 		enum
@@ -30,12 +30,12 @@ namespace Beer
 		void setName(String* value);
 
 	private:
-		INLINE ParamReflection()
+		INLINE Param()
 		{
 			// never called!
 		}
 
-		INLINE ~ParamReflection()
+		INLINE ~Param()
 		{
 			// never called!
 		}

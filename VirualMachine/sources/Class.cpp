@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "Class.h"
 #include "ObjectClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "GarbageCollector.h"
-#include "PropertyReflection.h"
+#include "Property.h"
 #include "StringClass.h"
 
 using namespace Beer;
@@ -46,7 +46,7 @@ void Class::extends(uint16 i, Class* klass)
 	}*/
 }
 
-MethodReflection* Class::findMethod(const char_t* selector)
+Method* Class::findMethod(String* selector)
 {
 	for(uint16 i = 0; i < mMethodsCount; i++)
 	{
@@ -55,9 +55,9 @@ MethodReflection* Class::findMethod(const char_t* selector)
 		{
 			String* s2 = method->getFirst<String>();
 			//Object* o = method->getFirst<Object>();
-			if(strcmp(s2->c_str(), selector) == 0)
+			if(selector->compare(s2) == 0)
 			{
-				return method->getSecond<MethodReflection>();
+				return method->getSecond<Method>();
 			}
 		}
 	}
@@ -65,7 +65,7 @@ MethodReflection* Class::findMethod(const char_t* selector)
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
 		Class* parent = getParent(i);
-		MethodReflection* method = parent->findMethod(selector);
+		Method* method = parent->findMethod(selector);
 		if(method) return method;
 	}
 

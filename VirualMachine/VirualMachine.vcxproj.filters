@@ -102,9 +102,6 @@
     <ClCompile Include="sources\LoadedObject.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
-    <ClCompile Include="sources\MethodReflection.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="sources\FloatClass.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
@@ -150,16 +147,22 @@
     <ClCompile Include="sources\PairClass.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
-    <ClCompile Include="sources\PropertyReflection.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ParamReflection.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="sources\Task.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\Class.cpp">
+      <Filter>Source Files\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MetaClass.cpp">
+      <Filter>Source Files\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Method.cpp">
+      <Filter>Source Files\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Param.cpp">
+      <Filter>Source Files\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Property.cpp">
       <Filter>Source Files\Reflection</Filter>
     </ClCompile>
   </ItemGroup>
@@ -175,12 +178,6 @@
     </ClInclude>
     <ClInclude Include="sources\VirtualMachine.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MethodReflection.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\PropertyReflection.h">
-      <Filter>Header Files\Reflection</Filter>
     </ClInclude>
     <ClInclude Include="sources\ConsoleClass.h">
       <Filter>Header Files\InternalClasses</Filter>
@@ -262,9 +259,6 @@
     </ClInclude>
     <ClInclude Include="sources\LoadedObject.h">
       <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ParamReflection.h">
-      <Filter>Header Files\Reflection</Filter>
     </ClInclude>
     <ClInclude Include="sources\FloatClass.h">
       <Filter>Header Files\InternalClasses</Filter>
@@ -354,6 +348,15 @@
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\Class.h">
+      <Filter>Header Files\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Method.h">
+      <Filter>Header Files\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Param.h">
+      <Filter>Header Files\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Property.h">
       <Filter>Header Files\Reflection</Filter>
     </ClInclude>
   </ItemGroup>

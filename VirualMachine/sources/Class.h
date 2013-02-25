@@ -3,14 +3,14 @@
 #include "Object.h"
 #include "Selector.h"
 #include "Pair.h"
-#include "PropertyReflection.h"
+#include "Property.h"
 #include "String.h" // TODO
 
 
 namespace Beer
 {
 	class EventReflection;
-	class MethodReflection;
+	class Method;
 	struct GarbageCollector;
 	class StackFrame;
 	class VirtualMachine;
@@ -25,11 +25,15 @@ namespace Beer
 			FLAG_INTERFACE = 0x02
 		};
 
-		// children order (not including those of Object parent class):
-		// #1 name
-		// #2 parents
-		// #3 methods
-		// #4 properties
+		enum
+		{
+			// children order (not including those of Object parent class):
+			// #1 name
+			// #2 parents[] // TODO: size
+			// #3 methods[] // TODO: size
+			// #4 properties[] // TODO: size
+			CLASS_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1,
+		};
 
 		////////////////////////////////////////////////////////////
 		////             Initialized by ClassLoader             ////
@@ -40,7 +44,7 @@ namespace Beer
 		uint16 mParentsCount;
 		uint32 mPropertiesCount;
 		uint16 mMethodsCount;
-		uint32 mDefaultChildrenCount;
+		//uint32 mDefaultChildrenCount;
 		////////////////////////////////////////////////////////////
 
 	public:
@@ -62,8 +66,8 @@ namespace Beer
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
 
 		// children count, TODO: get rid of
-		INLINE void setDefaultChildrenCount(uint32 value) { mDefaultChildrenCount = value; }
-		INLINE uint32 getDefaultChildrenCount() { return mDefaultChildrenCount; }
+		//INLINE void setDefaultChildrenCount(uint32 value) { mDefaultChildrenCount = value; }
+		//INLINE uint32 getDefaultChildrenCount() { return mDefaultChildrenCount; }
 
 		//virtual uint64 getChildrenCount(Object* object) { return mDefaultChildrenCount; }
 		
@@ -124,22 +128,22 @@ namespace Beer
 			return mPropertiesCount;
 		}
 
-		INLINE void setProperty(uint32 i, PropertyReflection* prop)
+		INLINE void setProperty(uint32 i, Property* prop)
 		{
 			DBG_ASSERT(i < getPropertiesCount(), BEER_WIDEN("Unable to add more properties")); 
 			setChild(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + getMethodsCount() + i, prop); // 1 for name
 		}
 
-		INLINE PropertyReflection* getProperty(uint32 i) const
+		INLINE Property* getProperty(uint32 i) const
 		{
 			DBG_ASSERT(i < getPropertiesCount(), BEER_WIDEN("Unknown property"));
-			return getChild<PropertyReflection>(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + getMethodsCount() + i); // 1 for name
+			return getChild<Property>(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + getMethodsCount() + i); // 1 for name
 		}
 
 		// 
 
 		void extends(uint16 i, Class* klass);
-		MethodReflection* findMethod(const char_t* selector);
+		Method* findMethod(String* selector);
 		bool substituable(Class* otherClass) const;
 
 		// instance creation

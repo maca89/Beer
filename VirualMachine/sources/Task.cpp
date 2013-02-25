@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Task.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "VirtualMachine.h"
 #include "LoadedObject.h"
 
@@ -14,7 +14,8 @@ void BEER_CALL Task::dorun(VirtualMachine* vm, StackFrame* frame, StackRef<Objec
 
 	thread->openStackFrame()->stackPush(receiver.get()); // push receiver
 
-	MethodReflection* method = receiver->getClass<Class>()->findMethod(BEER_WIDEN("Main::run()")); // ugly, TODO: Task::run
+	String* selector = vm->createString(BEER_WIDEN("Task::run()")); // TODO: Task
+	Method* method = receiver->getClass<Class>()->findMethod(selector); // TODO
 	NULL_ASSERT(method); // TODO
 	thread->openStackFrame()->method = method;
 

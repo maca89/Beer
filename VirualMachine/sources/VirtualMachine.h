@@ -52,7 +52,8 @@ namespace Beer
 		ClassTable mClassTable;
 		InlineFunctionTable mInlineFnTable;
 		ThreadSet mThreads;
-
+		
+		Class* mMetaClass;
 		Class* mObjectClass;
 		Class* mStringClass;
 		Class* mFloatClass;
@@ -66,7 +67,7 @@ namespace Beer
 		INLINE VirtualMachine()
 			: mStack(NULL), /*mFrames(NULL),*/ mHeap(NULL), mClassHeap(NULL),
 			mClassLoader(NULL), mDebugger(NULL), 
-			mObjectClass(NULL), mStringClass(NULL), mCharacterClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mPairClass(NULL)//, mTaskClass(NULL)
+			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mCharacterClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mPairClass(NULL)//, mTaskClass(NULL)
 		{
 		}
 
@@ -114,10 +115,11 @@ namespace Beer
 		String* createString(const string& s);
 		Pair* createPair(Object* first, Object* second);
 
+		INLINE Class* getMetaClass() const { return mMetaClass; }
+		INLINE Class* getObjectClass() const { return mObjectClass; }
 		INLINE Class* getFloatClass() const { return mFloatClass; }
 		INLINE Class* getIntegerClass() const { return mIntegerClass; }
 		INLINE Class* getBooleanClass() const { return mBooleanClass; }
-		INLINE Class* getObjectClass() const { return mObjectClass; }
 		INLINE Class* getStringClass() /*const*/ { return mStringClass; }
 		INLINE Class* getCharacterClass() const { return mCharacterClass; }
 		//INLINE Class* getTaskClass() const { return mTaskClass; }
@@ -125,6 +127,8 @@ namespace Beer
 
 		template <typename T>
 		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }
+
+		//void createInstance(StackFrame* frame, Class* klass); // pushes onto stack
 
 	protected:
 	};

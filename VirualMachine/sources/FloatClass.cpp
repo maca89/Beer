@@ -2,7 +2,7 @@
 #include "FloatClass.h"
 #include "IntegerClass.h"
 #include "BooleanClass.h"
-#include "MethodReflection.h"
+#include "Method.h"
 #include "StringClass.h"
 #include "VirtualMachine.h"
 
@@ -46,7 +46,7 @@ struct UnaryOperator##Name																								\
 
 #define BuildUnaryOperator(Class, Name, Operator, Return, Do)															\
 	BuildUnaryOperatorFn(Name, Do, Return);																				\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			0																											\
 		);																												\
@@ -77,7 +77,7 @@ struct BinaryOperator##Name																								\
 
 #define BuildBinaryOperator(Class, Name, Operator, Param, Return, Do)													\
 	BuildBinaryOperatorFn(Name, Do, Param, Return);																		\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			1																											\
 		);																												\
@@ -106,7 +106,7 @@ struct CompareOperator##Name																							\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	method = loader->createMethod<MethodReflection>(																	\
+	method = loader->createMethod(																				\
 			1, 																											\
 			1																											\
 		);																												\
@@ -132,7 +132,7 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	uint16 methodi = 0;
 	klass->extends(0, vm->getObjectClass());
 	
-	MethodReflection* method = loader->createMethod<MethodReflection>(1, 0);
+	Method* method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("Float")));
 	method->setFunction(&BeerFloat_init);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::Float()")), method));
@@ -151,12 +151,12 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	BuildCompareOperator(klass, Equal, ==, Float, ==);
 	BuildCompareOperator(klass, NotEqual, !=, Float, !=);
 	
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("Integer")));
 	method->setFunction(&BeerFloat_toInteger);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::Integer()")), method));
 	
-	method = loader->createMethod<MethodReflection>(1, 0);
+	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerFloat_toString);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::String()")), method));
