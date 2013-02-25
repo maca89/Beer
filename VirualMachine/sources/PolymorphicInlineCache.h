@@ -6,7 +6,7 @@
 namespace Beer
 {
 	class MethodReflection;
-	class ClassReflection;
+	class Class;
 
 	#pragma pack(push, 1)
 	class PolymorphicInlineCache
@@ -14,7 +14,7 @@ namespace Beer
 	public:
 		struct CachedMethod
 		{
-			ClassReflection* klass;
+			Class* klass;
 			MethodReflection* method;
 		};
 
@@ -32,12 +32,12 @@ namespace Beer
 			return &mMethods;
 		}
 
-		INLINE MethodReflection* find(ClassReflection* klass, String* selector, uint16 methodsLength)
+		INLINE MethodReflection* find(Class* klass, String* selector, uint16 methodsLength)
 		{
 			return find(klass, selector->c_str(), methodsLength);
 		}
 
-		NOINLINE MethodReflection* find(ClassReflection* klass, const char_t* selector, uint16 methodsLength);
+		NOINLINE MethodReflection* find(Class* klass, const char_t* selector, uint16 methodsLength);
 
 		INLINE static PolymorphicInlineCache* from(void* ptr)
 		{

@@ -3,7 +3,7 @@
 #include "StringClass.h"
 #include "VirtualMachine.h"
 #include "Object.h"
-#include "ClassReflection.h"
+#include "Class.h"
 
 using namespace Beer;
 
@@ -21,9 +21,9 @@ using namespace Beer;
 
 #undef MethodNotFoundException
 
-MethodNotFoundException::MethodNotFoundException(Object* instance, ClassReflection* klass, String* selector, string filename, long line)
+MethodNotFoundException::MethodNotFoundException(Object* instance, Class* klass, String* selector, string filename, long line)
 	: RuntimeException(
-		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + klass->getName(), 
+		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + klass->getName()->c_str(), // TODO
 		filename, 
 		line
 	)

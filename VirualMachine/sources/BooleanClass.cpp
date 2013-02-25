@@ -25,17 +25,15 @@ struct BeerBoolean_CompareOperator##Name																				\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	MethodReflection* Name##Method																						\
-		= loader->createMethod<MethodReflection>(																		\
-			BEER_WIDEN(#Operator), 																						\
-			string(Class->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 		\
+	method = loader->createMethod<MethodReflection>(																	\
 			1, 																											\
 			1																											\
 		);																												\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	/*Name##Method->getParam(0)->setType(integerClass);*/																\
-	Name##Method->setFunction(&(BeerBoolean_CompareOperator##Name::fn));												\
-	Class->setMethod(methodi++, Name##Method);																			\
+	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
+	/*method->getReturn(0)->setType(integerClass);*/																	\
+	/*method->getParam(0)->setType(integerClass);*/																		\
+	method->setFunction(&(BeerBoolean_CompareOperator##Name::fn));														\
+	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Boolean::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")")).c_str()), method));\
 
 
 
@@ -49,12 +47,12 @@ void BEER_CALL BeerBoolean_Negation(VirtualMachine* vm, StackFrame* frame, Stack
 	ret = Boolean::makeInlineValue(!receiver->getData());
 }
 
-ClassReflection* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
+Class* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
 	return loader->createClass<BooleanClass>(name, 1, 0, 6);
 }
 
-void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
+void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->markAsValueType();
 	klass->extends(0, vm->getObjectClass());
@@ -62,13 +60,15 @@ void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Boolean"), string(klass->getName()) + BEER_WIDEN("::Boolean()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("Boolean")));
 	method->setFunction(&BeerBoolean_init);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Boolean::Boolean()")), method));
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Boolean"), string(klass->getName()) + BEER_WIDEN("::!()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("!")));
 	method->setFunction(&BeerBoolean_Negation);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Boolean::!()")), method));
 
 	BuildCompareOperator(klass, Equal, ==, Boolean, ==);
 	BuildCompareOperator(klass, NotEqual, !=, Boolean, !=);

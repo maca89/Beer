@@ -1,14 +1,15 @@
 #include "stdafx.h"
-#include "ClassReflection.h"
+#include "Class.h"
 #include "ObjectClass.h"
 #include "MethodReflection.h"
 #include "GarbageCollector.h"
 #include "PropertyReflection.h"
+#include "StringClass.h"
 
 using namespace Beer;
 
 
-Object* ClassReflection::cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
+/*Object* Class::cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 {
 	DBG_ASSERT(!isInlineValue(object), BEER_WIDEN("Cannot clone an inline value"));
 
@@ -23,20 +24,19 @@ Object* ClassReflection::cloneShallow(VirtualMachine* vm, Object* object, StackF
 Object* ClassReflection::cloneDeep(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
 {
 	throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
-}
+}*/
 
-
-void ClassReflection::extends(uint16 i, ClassReflection* klass)
+void Class::extends(uint16 i, Class* klass)
 {
 	DBG_ASSERT(i < mParentsCount, BEER_WIDEN("Unable to add more parents"));
 
 	// copy parent
-	mParents[i] = klass;
+	setParent(i, klass);
 
 	// copy properties
-	for(uint16 i = 0; i < klass->mPropertiesCount; i++)
+	for(uint16 i = 0; i < klass->getPropertiesCount(); i++)
 	{
-		setProperty(i, klass->mProperties[i]);
+		setProperty(i, klass->getProperty(i));
 	}
 
 	// copy methods
@@ -46,32 +46,42 @@ void ClassReflection::extends(uint16 i, ClassReflection* klass)
 	}*/
 }
 
-MethodReflection* ClassReflection::findMethod(const char_t* selector)
+MethodReflection* Class::findMethod(const char_t* selector)
 {
 	for(uint16 i = 0; i < mMethodsCount; i++)
 	{
-		if(mMethods[i] && strcmp(mMethods[i]->getSelector(), selector) == 0) return mMethods[i];
+		Pair* method = getMethod(i);
+		if(method)
+		{
+			String* s2 = method->getFirst<String>();
+			//Object* o = method->getFirst<Object>();
+			if(strcmp(s2->c_str(), selector) == 0)
+			{
+				return method->getSecond<MethodReflection>();
+			}
+		}
 	}
 
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
-		MethodReflection* method = mParents[i]->findMethod(selector);
+		Class* parent = getParent(i);
+		MethodReflection* method = parent->findMethod(selector);
 		if(method) return method;
 	}
 
 	return NULL;
 }
 
-bool ClassReflection::substituable(ClassReflection* otherClass) const
+bool Class::substituable(Class* otherClass) const
 {
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
-		if(mParents[i] == otherClass) return true;
+		if(getParent(i) == otherClass) return true;
 	}
 			
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
-		if(mParents[i]->substituable(otherClass)) return true;
+		if(getParent(i)->substituable(otherClass)) return true;
 	}
 
 	return false;

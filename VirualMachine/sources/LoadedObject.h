@@ -18,19 +18,20 @@ namespace Beer
 	class StringDescriptor;
 	class AttributeDescriptor;
 	class MethodDescriptor;
+	class ParamDescriptor;
 
 	class LoadedObject : public Object
 	{
 	};
 
-	class LoadedObjectClass : public ClassReflection
+	class LoadedObjectClass : public Class
 	{
 	public:
 		// ClassReflection
 
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
-			LoadedObject* obj = gc->alloc<LoadedObject>(getPropertiesCount());
+			LoadedObject* obj = gc->alloc<LoadedObject>(Object::OBJECT_CHILDREN_COUNT + getPropertiesCount());
 			obj->setClass(this);
 
 			return obj;
@@ -42,7 +43,7 @@ namespace Beer
 	protected:
 		ClassDescriptor* mClassDescr;
 		ClassFileDescriptor* mClassFile;
-		ClassReflection* mClass;
+		Class* mClass;
 
 	public:
 		INLINE LoadedObjectInitializer(ClassFileDescriptor* classFile, ClassDescriptor* classDescr)
@@ -51,22 +52,24 @@ namespace Beer
 		}
 
 		// interface ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 
 	protected:
 		AttributeDescriptor* getAtribute(uint16 i);
 		MethodDescriptor* getMethod(uint16 i);
 
-		PropertyReflection* makeProperty(VirtualMachine* vm, AttributeDescriptor* attrDescr);
+		PropertyReflection* makeProperty(VirtualMachine* vm, ClassLoader* loader, AttributeDescriptor* attrDescr);
 		MethodReflection* makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr);
+		ParamReflection* makeParam(VirtualMachine* vm, ClassLoader* loader, ParamDescriptor* paramDescr);
 
 		const char_t* getParentClassName(VirtualMachine* vm, uint16 i);
-		ClassReflection* getType(const StringDescriptor* name, VirtualMachine* vm);
+		Class* getType(const StringDescriptor* name, VirtualMachine* vm);
 
-		INLINE Reference<String> getString(VirtualMachine* vm, const StringDescriptor* strdescr)
+		INLINE String* getString(VirtualMachine* vm, const StringDescriptor* strdescr)
 		{
-			return vm->getStringClass<StringClass>()->translate(vm, strdescr->c_str());
+			//return vm->getStringClass<StringClass>()->translate(vm, strdescr->c_str());
+			return vm->createString(strdescr->c_str());
 		}
 	};
 };

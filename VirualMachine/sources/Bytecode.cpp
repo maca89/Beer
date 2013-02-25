@@ -258,7 +258,7 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 		break;
 
 	case Beer::Bytecode::INSTR_NEW:
-		cout << "NEW " << reinterpret_cast<ClassReflection*>(getData<uint32>())->getName();
+		cout << "NEW " << reinterpret_cast<Class*>(getData<uint32>())->getName();
 		break;
 
 	case Beer::Bytecode::INSTR_CLONE:
@@ -462,8 +462,8 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 					// TODO!!!
 					const char16* cstring = classFile->getClassName(builder.getData<int32>())->c_str();
 					Reference<String> name = vm->getStringClass<StringClass>()->translate(vm, cstring);
-					ClassReflection* klass = vm->getClass(name);
-					builder.setData<ClassReflection*>(klass); // TODO: pass Reference
+					Class* klass = vm->getClass(name);
+					builder.setData<Class*>(klass); // TODO: pass Reference
 				}
 				break;
 
@@ -628,14 +628,15 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_NEW:
-			frame->stackPush(instr->getData<ClassReflection*>()->createInstance(vm, frame, vm->getHeap())); // TODO: reference
+			frame->stackPush(instr->getData<Class*>()->createInstance(vm, frame, vm->getHeap())); // TODO: reference
 			break;
 
 		case Beer::Bytecode::INSTR_CLONE:
 			{
 				Object* object = frame->stackTop();
 				NULL_ASSERT(object);
-				object = vm->getClass(object)->cloneShallow(vm, object, frame, vm->getHeap());
+				throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
+				//object = vm->getClass(object)->cloneShallow(vm, object, frame, vm->getHeap()); // TODO
 				frame->stackPush(object);
 			}
 			break;
@@ -689,12 +690,13 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 
 				// find method using inline cache
 				MonomorphicInlineCache* cache = MonomorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
-				ClassReflection* klass = vm->getClass(object);
+				Class* klass = vm->getClass(object);
 				MethodReflection* method = cache->find(klass, *selector);
 
 				// lookup failed
 				if(!method)
 				{
+					cache->find(klass, *selector);
 					throw MethodNotFoundException(*object, klass, *selector);
 				}
 				
@@ -715,7 +717,7 @@ MethodReflection* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 
 				// find method using inline cache
 				PolymorphicInlineCache* cache = PolymorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
-				ClassReflection* klass = vm->getClass(object);
+				Class* klass = vm->getClass(object);
 				MethodReflection* method = cache->find(klass, selector.get(), mMethodCachesLength);
 
 				// lookup failed

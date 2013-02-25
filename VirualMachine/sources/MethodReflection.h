@@ -1,6 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
+#include "ParamReflection.h"
 #include "Selector.h"
 #include "StackFrame.h"
 #include "Bytecode.h"
@@ -11,7 +12,7 @@ namespace Beer
 {
 	class VirtualMachine;
 	class StackFrame;
-	class ParamReflection;
+	//class ParamReflection;
 	//class Bytecode;
 
 	class MethodReflection : public Object
@@ -25,38 +26,37 @@ namespace Beer
 			FLAG_INTERNAL = 0x02
 		};
 
+		enum
+		{
+			METHOD_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1 // name
+		};
+
+		// children order:
+		// # name
+		// # returns size		// TODO
+		// # returns array
+		// # params size		// TODO
+		// # params array
+
 		////////////////////////////////////////////////////////////
 		////             Initialized by ClassLoader             ////
 		////////////////////////////////////////////////////////////
 		uint8 mFlags;
 
-		uint16 mNameCount;
-		char_t* mName;
-		
-		uint16 mSelectorCount;
-		char_t* mSelector;
-
+		// TODO: garbaged
 		uint16 mReturnsCount;
-		ParamReflection** mReturns;
-
 		uint16 mParamsCount;
-		ParamReflection** mParams;
-
-		uint16 mMaxStack;
 		////////////////////////////////////////////////////////////
 
+	protected:
+		uint16 mMaxStack;
 		Cb mFunction;
 		Bytecode* mBytecode;
 		float64 mTimeSpent;
 
 	public:
-		INLINE MethodReflection() : mFunction(NULL), mBytecode(NULL), mTimeSpent(NULL)
+		INLINE MethodReflection() : mFunction(NULL), mBytecode(NULL), mTimeSpent(0)
 		{
-		}
-
-		INLINE ~MethodReflection()
-		{
-			// is never called!
 		}
 
 		// time spent
@@ -80,15 +80,41 @@ namespace Beer
 		
 		// returns
 
-		INLINE uint16 getReturnsCount() const { return mReturnsCount; }
-		INLINE void setReturn(uint16 i, ParamReflection* ret) { DBG_ASSERT(i < mReturnsCount, BEER_WIDEN("Unable to add more returns")); mReturns[i] = ret; }
-		INLINE ParamReflection* getReturn(uint16 i) { DBG_ASSERT(i < mReturnsCount, BEER_WIDEN("Unknown return")); return mReturns[i]; }
+		INLINE uint16 getReturnsCount() const
+		{
+			return mReturnsCount;
+		}
+
+		INLINE void setReturn(uint16 i, ParamReflection* value)
+		{
+			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unable to add more returns"));
+			setChild(METHOD_CHILDREN_COUNT + i, value);
+		}
+		
+		INLINE ParamReflection* getReturn(uint16 i) const
+		{
+			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unknown return"));
+			return getChild<ParamReflection>(METHOD_CHILDREN_COUNT + i);
+		}
 
 		// params
 
-		INLINE uint16 getParamsCount() const { return mParamsCount; }
-		INLINE void setParam(uint16 i, ParamReflection* param) { DBG_ASSERT(i < mParamsCount, BEER_WIDEN("Unable to add more params")); mParams[i] = param; }
-		INLINE ParamReflection* getParam(uint16 i) { DBG_ASSERT(i < mParamsCount, BEER_WIDEN("Unknown param")); return mParams[i]; }
+		INLINE uint16 getParamsCount() const
+		{
+			return mParamsCount;
+		}
+
+		INLINE void setParam(uint16 i, ParamReflection* value)
+		{
+			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unable to add more params"));
+			setChild(METHOD_CHILDREN_COUNT + getReturnsCount() + i, value);
+		}
+
+		INLINE ParamReflection* getParam(uint16 i)
+		{
+			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unknown param"));
+			return getChild<ParamReflection>(METHOD_CHILDREN_COUNT + getReturnsCount() + i);
+		}
 
 		// max stack
 
@@ -96,12 +122,16 @@ namespace Beer
 		INLINE void setMaxStack(uint16 value) { mMaxStack = value; }
 
 		// name
+		
+		INLINE String* getName() const
+		{
+			return getChild<String>(OBJECT_CHILDREN_COUNT);
+		}
 
-		INLINE const char_t* getName() const { return mName; }
-
-		// selector
-
-		INLINE const char_t* getSelector() const { return mSelector; }
+		INLINE void setName(String* value)
+		{
+			setChild(OBJECT_CHILDREN_COUNT, value);
+		}
 
 		// NativeMethod
 		
@@ -143,5 +173,11 @@ namespace Beer
 
 	protected:
 		MethodReflection* runFunction(VirtualMachine* vm, StackFrame* frame);
+
+	private:
+		INLINE ~MethodReflection()
+		{
+			// never called!
+		}
 	};
 };

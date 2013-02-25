@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PolymorphicInlineCache.h"
-#include "ClassReflection.h"
+#include "Class.h"
 #include "MethodReflection.h"
 
 using namespace Beer;
@@ -15,7 +15,7 @@ using namespace Beer;
 #endif
 
 
-MethodReflection* PolymorphicInlineCache::find(ClassReflection* klass, const char_t* selector, uint16 methodsLength)
+MethodReflection* PolymorphicInlineCache::find(Class* klass, const char_t* selector, uint16 methodsLength)
 {
 	DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 
@@ -23,7 +23,7 @@ MethodReflection* PolymorphicInlineCache::find(ClassReflection* klass, const cha
 	for(uint8 i = 0; i < methodsLength; i++)
 	{
 		CachedMethod* cachedMethod = &getMethods()[i];
-		ClassReflection* cachedClass = cachedMethod->klass;
+		Class* cachedClass = cachedMethod->klass;
 
 		if(cachedClass == NULL)
 		{

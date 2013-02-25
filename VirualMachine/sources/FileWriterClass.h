@@ -64,14 +64,14 @@ namespace Beer
 		friend class FileWriterClass;
 	};
 
-	class FileWriterClass : public ClassReflection
+	class FileWriterClass : public Class
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			// TODO: constructor
-			FileWriter* writer = gc->alloc<FileWriter>();
+			FileWriter* writer = gc->alloc<FileWriter>(Object::OBJECT_CHILDREN_COUNT);
 			writer->setClass(this);
 			writer->mFile = new std::ofstream(); // memory leak!
 			return writer;
@@ -82,7 +82,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

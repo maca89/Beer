@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "VirtualMachine.h"
 #include "Debugger.h"
-#include "MarkAndSweepGC.h"
 #include "CopyGC.h"
 #include "ClassLoader.h"
 
+#include "Class.h"
 #include "MethodReflection.h"
 
 #include "ObjectClass.h"
@@ -17,8 +17,9 @@
 #include "TimerClass.h"
 #include "FileReaderClass.h"
 #include "FileWriterClass.h"
-#include "TaskClass.h"
+#include "Task.h"
 #include "LoadedObject.h"
+#include "PairClass.h"
 
 using namespace Beer;
 
@@ -31,17 +32,20 @@ using namespace Beer;
 #	define VM_DEBUG(msg)
 #endif
 
-void VirtualMachine::addClass(ClassReflection* reflection)
+void VirtualMachine::addClass(Class* reflection)
 {
-	ClassReflectionTable::iterator it = mClasses.find(reflection->getName());
-	RUNTIME_ASSERT(it == mClasses.end(), string(BEER_WIDEN("Class with such name already exists: ")) + reflection->getName());
-	mClasses[reflection->getName()] = reflection;
+	ClassReflectionTable::iterator it = mClasses.find(reflection->getName()->c_str()); // TODO
+	RUNTIME_ASSERT(it == mClasses.end(), string(BEER_WIDEN("Class with such name already exists: ")) + reflection->getName()->c_str()); // TODO
+	mClasses[reflection->getName()->c_str()] = reflection; // TODO
 	VM_DEBUG(BEER_WIDEN("Added class ") << reflection->getName());
 }
 
-void VirtualMachine::removeClass(ClassReflection* reflection)
+/*void VirtualMachine::removeClass(ClassReflection* reflection)
 {
-	ClassReflectionTable::iterator it = mClasses.find(reflection->getName());
+	throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
+
+	// TODO
+	ClassReflectionTable::iterator it = mClasses.find(reflection->getName()->c_str());
 	RUNTIME_ASSERT(it != mClasses.end(), BEER_WIDEN("No class with such name"));
 	mClasses.erase(it);
 	VM_DEBUG(BEER_WIDEN("Removed class ") << reflection->getName());
@@ -49,32 +53,37 @@ void VirtualMachine::removeClass(ClassReflection* reflection)
 
 bool VirtualMachine::hasClass(string name) const
 {
+	// TODO
 	return (mClasses.find(name) != mClasses.end()) || mClassLoader->canLoadClass(name);
-}
+}*/
 	
-ClassReflection* VirtualMachine::getClass(string name)
+Class* VirtualMachine::getClass(String* name)
 {
-	ClassReflectionTable::iterator it = mClasses.find(name);
-	if(it != mClasses.end()) return mClasses.find(name)->second;
+	ClassReflectionTable::iterator it = mClasses.find(name->c_str()); // TODO
+	if(it != mClasses.end()) return mClasses.find(name->c_str())->second; // TODO
 
 	mClassLoader->loadClass(name);
 
-	it = mClasses.find(name);
-	if(it != mClasses.end()) return mClasses.find(name)->second;
+	// TODO
+	it = mClasses.find(name->c_str()); // TODO
+	if(it != mClasses.end()) return mClasses.find(name->c_str())->second; // TODO
 
-	throw ClassNotFoundException(name);
+	throw ClassNotFoundException(name->c_str()); // TODO
 }
 
 void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 {
-	mClassHeap = new MarkAndSweepGC(); // TODO: get rid of this
 	mDebugger = new Debugger(this);
-	mClassLoader = new ClassLoader(this, mClassHeap);
 	mStack = new WorkStack(stackInitSize);
 	mHeap = new CopyGC(this, heapInitSize);
+	mClassLoader = new ClassLoader(this, mHeap);
 
-	mClassLoader->addClassInitializer(BEER_WIDEN("Object"), new ObjectClassInitializer);
-	mClassLoader->addClassInitializer(BEER_WIDEN("String"), new StringClassInitializer);
+	/*ClassReflection* metaClass = static_cast<GarbageCollector*>(mHeap)->alloc<ClassReflection>(
+		Object::OBJECT_CHILDREN_COUNT + 2 // name, childrencount
+	);
+
+	new ClassReflection(metaClass); // init v_table*/
+
 	mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("Integer"), new IntegerClassInitializer);
@@ -84,17 +93,47 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mClassLoader->addClassInitializer(BEER_WIDEN("Timer"), new TimerClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("FileReader"), new FileReaderClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("FileWriter"), new FileWriterClassInitializer);
-	mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskClassInitializer);
-	//mClassLoader->addClassInitializer(BEER_WIDEN("Main"), new MainClassInitializer);
+	//mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Pair"), new PairClassInitializer);
+
+	// create Object class
+	String* objectClassName = ((GarbageCollector*)mHeap)->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Object", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+	objectClassName->size(6); // 6 for "Object"
+	objectClassName->copyData(BEER_WIDEN("Object"));
+
+	mObjectClass = mClassLoader->createClass<ObjectClass>(objectClassName, 0, 0, 0);
+	// TODO: default methods
+
+	// create String class
+	String* stringClassName = ((GarbageCollector*)mHeap)->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "String", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+	objectClassName->size(6); // 6 for "String"
+	objectClassName->copyData(BEER_WIDEN("String"));
+
+	mStringClass = mClassLoader->createClass<StringClass>(stringClassName, 1, 0, 15);
+	StringClassInitializer* stringInit = new StringClassInitializer();
+	stringInit->initClass(this, mClassLoader, mStringClass);
+	delete stringInit;
+
+	// fix references
+	objectClassName->setClass(mStringClass); // important!
+	stringClassName->setClass(mStringClass); // important!
+
 
 	// preloading of some classes
-	mObjectClass = getClass(BEER_WIDEN("Object"));
-	mStringClass = getClass(BEER_WIDEN("String"));
+	//mObjectClass = getClass(BEER_WIDEN("Object"));
+	//mStringClass = getClass(BEER_WIDEN("String"));
+	mPairClass = getClass(BEER_WIDEN("Pair"));
 	mFloatClass = getClass(BEER_WIDEN("Float"));
 	mCharacterClass = getClass(BEER_WIDEN("Character"));
 	mBooleanClass = getClass(BEER_WIDEN("Boolean"));
 	mIntegerClass = getClass(BEER_WIDEN("Integer"));
-	mTaskClass = getClass(BEER_WIDEN("Task"));
+	//mTaskClass = getClass(BEER_WIDEN("Task"));
 
 	// !!! the order is important !!!
 	////////////////////////////////////////////// xxxxxxx0 // Object
@@ -127,17 +166,42 @@ void VirtualMachine::run()
 
 	frames.push_back(StackFrame(mStack));
 	frame = &frames.back();
-	Object* main = getClass(BEER_WIDEN("Main"))->createInstance(this, frame, getHeap());
- 	frame->stackPush(main); // push receiver
+	StackRef<Object> main = StackRef<Object>(frame, frame->stackPush(getClass(BEER_WIDEN("Main"))->createInstance(this, frame, getHeap())));
+	Class* mainClass = main->getClass<Class>();
 
-	frames.push_back(StackFrame(frame));
-	frame = &frames.back();
-	
+	// call constructor
+	MethodReflection* mainCtor = NULL;
+	if(/*false &&*/ (mainCtor = mainClass->findMethod(BEER_WIDEN("Main::Main()"))))
+	{
+		// ugly – create another trampoline
+		TrampolineThread* thread = new TrampolineThread(this);
+		getThreads().insert(thread);
+
+		thread->openStackFrame()->stackMoveTop(1); // for return
+		thread->getStackFrame()->stackPush(*main); // push receiver
+		thread->openStackFrame()->method = mainCtor;
+
+		thread->run();
+		thread->wait();
+
+		main = thread->getStack()->top(0); // fix main // TODO
+	}
+
 	//openStackFrame(main, BEER_WIDEN("Main::run()"));
 
 	// ugly, TODO: some other way
-	RUNTIME_ASSERT(main->getClass()->substituable(getTaskClass()), BEER_WIDEN("Main is not instance of Task"));
-	frame->method = main->getClass()->findMethod(BEER_WIDEN("Task::dorun()"));
+	//RUNTIME_ASSERT(mainClass->substituable(getTaskClass()), BEER_WIDEN("Main is not instance of Task"));
+
+
+	// push receiver
+	frames.push_back(StackFrame(frame));
+	frame = &frames.back();
+	frame->stackPush(*main);
+
+	frames.push_back(StackFrame(frame));
+	frame = &frames.back();
+	frame->method = mainClass->findMethod(BEER_WIDEN("Task::dorun()"));
+	
 	NULL_ASSERT(frame->method);
 	frame->method->call(this, frame);
 }
@@ -183,4 +247,19 @@ String* VirtualMachine::createString(String::LengthData length)
 	frame.stackPush(createInteger(length)); // TODO
 	String* object = getStringClass()->createInstance<String>(this, &frame, getHeap());
 	return object;
+}
+
+Pair* VirtualMachine::createPair(Object* first, Object* second)
+{
+	StackFrame frame(mStack);
+	Pair* pair = getPairClass()->createInstance<Pair>(this, &frame, getHeap());
+
+	// TODO: call ctor
+	pair->setFirst(first);
+	DBG_ASSERT(pair->getFirst<Object>() == first, BEER_WIDEN("Object saved into Pair differs from the given"));
+
+	pair->setSecond(second);
+	DBG_ASSERT(pair->getSecond<Object>() == second, BEER_WIDEN("Object saved into Pair differs from the given"));
+
+	return pair;
 }

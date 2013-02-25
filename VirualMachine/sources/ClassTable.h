@@ -6,13 +6,13 @@
 
 namespace Beer
 {
-	class ClassReflection;
+	class Class;
 
 	class ClassTable
 	{
 	protected:
 		static const int TABLE_SIZE = 1 << (sizeof(Object::InlineValueId) * 8);
-		ClassReflection* mTable[TABLE_SIZE];
+		Class* mTable[TABLE_SIZE];
 		uint32 mNext;
 
 	public:
@@ -21,21 +21,21 @@ namespace Beer
 			memset(mTable, 0, TABLE_SIZE * sizeof(void*));
 		}
 
-		uint32 add(ClassReflection* klass);
+		uint32 add(Class* klass);
 
-		INLINE ClassReflection* translate(StackRef<Object> object) const
+		INLINE Class* translate(StackRef<Object> object) const
 		{
 			return translate(object.get());
 		}
 
-		INLINE ClassReflection* translate(Object* object) const
+		INLINE Class* translate(Object* object) const
 		{
-			ClassReflection* klass = mTable[getInlineClassId(object)];
-			if(klass == NULL) return object->getClass();
+			Class* klass = mTable[getInlineClassId(object)];
+			if(klass == NULL) return object->getClass<Class>();
 			return klass;
 		}
 
-		INLINE ClassReflection* operator[] (uint32 index) const
+		INLINE Class* operator[] (uint32 index) const
 		{
 			DBG_ASSERT(index < mNext, BEER_WIDEN("Unknown class id"));
 			return mTable[index];

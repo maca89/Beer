@@ -33,22 +33,6 @@ void BEER_CALL BeerInteger_toString(VirtualMachine* vm, StackFrame* frame, Stack
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 }*/
 
-/*void BEER_CALL BeerInteger_operatorIncrement(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> ret)
-{
-	Integer::IntegerData data = receiver->getData();
-	receiver = vm->createInteger(data + 1);
-	ret = vm->createInteger(data);
-}
-
-void BEER_CALL BeerInteger_operatorDecrement(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> ret)
-{
-	Integer::IntegerData data = receiver->getData();
-	receiver = vm->createInteger(data - 1);
-	ret = vm->createInteger(data);
-}*/
-
-
-
 // unary operator
 
 #define BuildUnaryOperatorFn(Name, Do, Return)																			\
@@ -60,22 +44,20 @@ struct UnaryOperator##Name																								\
 		StackRef<Integer> receiver, 																					\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->create##Return(receiver->getData() Do);														\
+		ret = vm->create##Return(receiver->getData() Do);																\
 	}																													\
 };																														\
 
 #define BuildUnaryOperator(Class, Name, Operator, Return, Do)															\
 	BuildUnaryOperatorFn(Name, Do, Return);																				\
-	MethodReflection* Name##Method																						\
-		= loader->createMethod<MethodReflection>(																		\
-			BEER_WIDEN(#Operator), 																						\
-			string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("()"), 								\
+	method = loader->createMethod<MethodReflection>(																	\
 			1, 																											\
 			0																											\
 		);																												\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	Name##Method->setFunction(&(UnaryOperator##Name::fn));																\
-	Class->setMethod(methodi++, Name##Method);																			\
+	/*method->getReturn(0)->setType(integerClass);*/																	\
+	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
+	method->setFunction(&(UnaryOperator##Name::fn));																	\
+	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("()")).c_str()), method));\
 
 
 
@@ -98,17 +80,15 @@ struct BinaryOperator##Name																								\
 
 #define BuildBinaryOperator(Class, Name, Operator, Param, Return, Do)													\
 	BuildBinaryOperatorFn(Name, Do, Param, Return);																		\
-	MethodReflection* Name##Method																						\
-		= loader->createMethod<MethodReflection>(																		\
-			BEER_WIDEN(#Operator), 																						\
-			string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 		\
+	method = loader->createMethod<MethodReflection>(																	\
 			1, 																											\
 			1																											\
 		);																												\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	/*Name##Method->getParam(0)->setType(integerClass);*/																\
-	Name##Method->setFunction(&(BinaryOperator##Name::fn));																\
-	Class->setMethod(methodi++, Name##Method);																			\
+	method->setName(vm->createString(BEER_WIDEN(#Operator)));														\
+	/*method->getReturn(0)->setType(integerClass);*/																\
+	/*method->getParam(0)->setType(integerClass);*/																\
+	method->setFunction(&(BinaryOperator##Name::fn));																\
+	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")")).c_str()), method));\
 
 
 // compare operator
@@ -129,33 +109,31 @@ struct CompareOperator##Name																							\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	MethodReflection* Name##Method																						\
-		= loader->createMethod<MethodReflection>(																		\
-			BEER_WIDEN(#Operator), 																						\
-			string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 		\
+	method = loader->createMethod<MethodReflection>(																	\
 			1, 																											\
 			1																											\
 		);																												\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	/*Name##Method->getParam(0)->setType(integerClass);*/																\
-	Name##Method->setFunction(&(CompareOperator##Name::fn));															\
-	Class->setMethod(methodi++, Name##Method);																			\
+	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
+	/*method->getReturn(0)->setType(integerClass);*/																	\
+	/*method->getParam(0)->setType(integerClass);*/																		\
+	method->setFunction(&(CompareOperator##Name::fn));																	\
+	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Integer::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")")).c_str()), method));	\
 
 
 
-ClassReflection* IntegerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
+Class* IntegerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
 	return loader->createClass<IntegerClass>(name, 1, 0, 15);
 }
 
-void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
+void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->markAsValueType();
 	uint16 methodi = 0;
 	MethodReflection* method = NULL;
 
-	ClassReflection* integerClass = klass;
-	ClassReflection* objectClass = vm->getObjectClass();
+	Class* integerClass = klass;
+	Class* objectClass = vm->getObjectClass();
 	//ClassReflection* floatClass = vm->getFloatClass();
 	//ClassReflection* booleanClass = vm->getBooleanClass();
 
@@ -180,12 +158,14 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	BuildCompareOperator(klass, Equal, ==, Integer, ==);
 	BuildCompareOperator(klass, NotEqual, !=, Integer, !=);
 	
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Float"), BEER_WIDEN("Integer::Float()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("Float")));
 	method->setFunction(&BeerInteger_toFloat);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::Float()")), method));
 	
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), BEER_WIDEN("Integer::String()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerInteger_toString);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::String()")), method));
 }
 

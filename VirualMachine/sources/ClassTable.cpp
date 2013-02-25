@@ -4,7 +4,7 @@
 using namespace Beer;
 
 
-uint32 ClassTable::add(ClassReflection* klass)
+uint32 ClassTable::add(Class* klass)
 {
 	// ...01
 	if(mNext == 1)

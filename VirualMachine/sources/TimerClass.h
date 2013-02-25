@@ -22,14 +22,14 @@ namespace Beer
 		friend class TimerClass;
 	};
 
-	class TimerClass : public ClassReflection
+	class TimerClass : public Class
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			// TODO: constructor
-			Timer* timer = gc->alloc<Timer>();
+			Timer* timer = gc->alloc<Timer>(Object::OBJECT_CHILDREN_COUNT);
 			timer->setClass(this);
 			timer->mTimer = MiliTimer();
 			timer->start();
@@ -41,7 +41,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

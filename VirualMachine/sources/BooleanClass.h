@@ -37,7 +37,7 @@ namespace Beer
 		}
 	};
 
-	class BooleanClass : public ClassReflection
+	class BooleanClass : public Class
 	{
 	public:
 		// ClassReflection
@@ -45,23 +45,13 @@ namespace Beer
 		{
 			return Boolean::makeInlineValue(false);
 		}
-
-		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
-		{
-			return object;
-		}
-
-		virtual void dump(Object* object, stringstream& out)
-		{
-			out << object->getInstance<Boolean>()->getData();
-		};
 	};
 
 	class BooleanClassInitializer : public ClassInitializer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

@@ -1,59 +1,59 @@
 class Knapsack
 {
-	data
-	{
-		Console out;
-	}
+  data
+  {
+    Console out;
+  }
 
-	interface
-	{
-		Knapsack()
-		{
-			out = new Console();
-		}
+  interface
+  {
+    Knapsack()
+    {
+      out = new Console();
+    }
 
-		Boolean find(Array arr, Integer total)
-		{
-			return find(arr, 0, total);
-		}
+    Boolean find(Array arr, Integer total)
+    {
+      return find(arr, 0, total);
+    }
 
-		Boolean find(Array arr, Integer start, Integer total)
-		{
+    Boolean find(Array arr, Integer start, Integer total)
+    {
       Integer curr = 0;
       
-			if(start == arr.getLength())
-			{
-				return false;
-			}
+      if(start == arr.getLength())
+      {
+        return false;
+      }
 
-			curr = arr.get(start);
+      curr = arr.get(start);
 
-			if(curr == total)
-			{
-				//out.println(curr);
-				return true;
-			}
-			elseif((curr > total) || (!find(arr, start + 1, total - curr)))
-			{
-				return find(arr, start + 1, total);
-			}
+      if(curr == total)
+      {
+        //out.println(curr);
+        return true;
+      }
+      elseif((curr > total) || (!find(arr, start + 1, total - curr)))
+      {
+        return find(arr, start + 1, total);
+      }
 
-			//out.println(curr);
-			return true;
-		}
-	}
+      //out.println(curr);
+      return true;
+    }
+  }
 }
 
 class Main
 {
   data
-	{
-	}
+  {
+  }
   
-	interface
-	{
-		run
-		{
+  interface
+  {
+    run
+    {
       Boolean result = true;
       Console out = new Console();
       Timer timer = new Timer();
@@ -64,15 +64,15 @@ class Main
       
       while(i < count)
       {
-  			arr = new Array(5);
-  			arr.set(0, 11);
-  			arr.set(1, 8);
-  			arr.set(2, 7);
-  			arr.set(3, 6);
-  			arr.set(4, 5);
+        arr = new Array(5);
+        arr.set(0, 11);
+        arr.set(1, 8);
+        arr.set(2, 7);
+        arr.set(3, 6);
+        arr.set(4, 5);
   
-  			knap = new Knapsack();
-  			if(!knap.find(arr, 20))
+        knap = new Knapsack();
+        if(!knap.find(arr, 20))
         {
           result = false;
         }
@@ -89,6 +89,6 @@ class Main
       {
         out.println("Solutions not found");
       }
-		}
-	}
+    }
+  }
 }

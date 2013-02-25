@@ -2,6 +2,7 @@
 #include "CopyGC.h"
 #include "VirtualMachine.h"
 #include "Thread.h"
+#include "Class.h"
 
 using namespace Beer;
 
@@ -53,7 +54,7 @@ bool CopyGC::makeSpace(uint32 size)
 Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 {
 	//TODO: preOffset
-	if(preOffset != 0) throw GCException(BEER_WIDEN("preOffset not yet implemented in CopyGC"));
+	//if(preOffset != 0) throw GCException(BEER_WIDEN("preOffset not yet implemented in CopyGC"));
 
 	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount);
 	void* data = mMemoryOld.malloc(size);
@@ -70,24 +71,25 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 		data = mMemoryOld.malloc(size);
 	}
 
-	Object* obj = reinterpret_cast<Object*>(data);
+	Object* obj = reinterpret_cast<Object*>(reinterpret_cast<byte*>(data) + preOffset);
 
 	obj->setGCFlag(Object::GC_WHITE);
 	obj->setTypeFlag(Object::TYPE_REF);
-	obj->setClass(NULL);
+	//obj->setClass(NULL);
 		
 	// children array is at the end of object
-	if(childrenCount > 0)
+	//if(childrenCount > 0)
 	{
 		Object** children = reinterpret_cast<Object**>(reinterpret_cast<byte*>(obj) + staticSize);
 		memset(children, 0, childrenCount * sizeof(void*));
+		children[0] = mVM->createInteger(childrenCount); // TODO
 		obj->setChildren(children);
 	}
 #ifdef BEER_GC_DEBUGGING
-	else
+	/*else
 	{
 		obj->setChildren(NULL);
-	}
+	}*/
 #endif // BEER_GC_DEBUGGING
 
 	mLiveObjects++;
@@ -126,15 +128,20 @@ void CopyGC::check(MemoryAllocator* memory, Object* object)
 		throw GCException(BEER_WIDEN("Object's children not in old space"));
 	}
 
-	ClassReflection* klass = mVM->getClass(object);
+	Class* klass = mVM->getClass(object);
+	if(klass == NULL) // TODO: metaclass
+	{
+		return; // TODO
+	}
 
-	if(klass->getChildrenCount(object) > 0 && !memory->contains(object->getChildren()))
+	Integer* childrenCount = static_cast<Integer*>(object->getChildrenCount()); // TODO
+	if(childrenCount->getData()/*klass->getChildrenCount(object)*/ > 0 && !memory->contains(object->getChildren()))
 	{
 		//memory->contains(object->getChildren());
 		throw GCException(BEER_WIDEN("Object not in old space"));
 	}
 
-	for(uint16 i = 0; i < klass->getChildrenCount(object); i++)
+	for(uint16 i = 0; i < childrenCount->getData(); i++)
 	{
 		check(memory, object->getChild(i));
 	}
@@ -142,6 +149,7 @@ void CopyGC::check(MemoryAllocator* memory, Object* object)
 
 void CopyGC::collect()
 {
+	//return;
 	GC_DEBUG(BEER_WIDEN("Collect"));
 	GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
 	
@@ -166,6 +174,7 @@ void CopyGC::collect()
 	////////////////////////////////////////////////////////////////////////////////////////
 #endif // BEER_GC_DEBUGGING
 
+	// static pool roots
 	//StringPool* pool = mVM->getStringClass<StringClass>()->getPool();
 	for(ReferenceId i = 1; i < mReferences.size(); i++)
 	{
@@ -174,7 +183,13 @@ void CopyGC::collect()
 		if(object && !Object::isInlineValue(object)) mReferences[i] = move(object);
 	}
 
-	// move roots and its children
+	// classes roots
+	for(ClassReflectionTable::iterator it = mVM->getClasses().begin(); it != mVM->getClasses().end(); it++)
+	{
+		it->second = static_cast<Class*>(move(it->second));
+	}
+
+	// stack roots
 	for(ThreadSet::iterator it = mVM->getThreads().begin(); it != mVM->getThreads().end(); it++)
 	{
 		Thread* thread = *it;
@@ -269,10 +284,16 @@ Object* CopyGC::move(Object* object)
 	mLastMoved++;
 
 	// move children
-	ClassReflection* klass = mVM->getClass(object);
-	for(uint32 i = 0; i < klass->getChildrenCount(object); i++)
+	Class* klass = mVM->getClass(object);
+	if(klass == NULL) // TODO: metaclass
 	{
-		Object* child = static_cast<Object*>(children[i]);//object->getChild<Object>(i);
+		// TODO
+		return newObject;
+	}
+	Integer* childrenCount = static_cast<Integer*>(object->getChildrenCount()); // TODO
+	for(uint32 i = 0; i < childrenCount->getData(); i++)
+	{
+		Object* child = object->getChild(i);//static_cast<Object*>(children[i]);
 			
 		// move and adjust pointer
 		if(child && !Object::isInlineValue(child)) newObject->setChild(i, move(child));

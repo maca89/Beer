@@ -63,12 +63,6 @@
     <ClCompile Include="sources\InterlockedQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\MarkAndSweepGC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ClassReflection.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="sources\Interlocked.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,9 +132,6 @@
     <ClCompile Include="sources\CharacterClass.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
-    <ClCompile Include="sources\TaskClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
     <ClCompile Include="sources\TrampolineThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -155,6 +146,21 @@
     </ClCompile>
     <ClCompile Include="sources\BytecodeBuilder.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\PairClass.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\PropertyReflection.cpp">
+      <Filter>Source Files\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ParamReflection.cpp">
+      <Filter>Source Files\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Task.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Class.cpp">
+      <Filter>Source Files\Reflection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -174,9 +180,6 @@
       <Filter>Header Files\Reflection</Filter>
     </ClInclude>
     <ClInclude Include="sources\PropertyReflection.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ClassReflection.h">
       <Filter>Header Files\Reflection</Filter>
     </ClInclude>
     <ClInclude Include="sources\ConsoleClass.h">
@@ -201,9 +204,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\InterlockedStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MarkAndSweepGC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\GarbageCollector.h">
@@ -308,9 +308,6 @@
     <ClInclude Include="sources\InlineFunctionTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\TaskClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
     <ClInclude Include="sources\TrampolineThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -331,6 +328,33 @@
     </ClInclude>
     <ClInclude Include="sources\GrowableMemoryAllocator.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StringBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\PairClass.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Integer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\String.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Pair.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Character.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MetaClass.h">
+      <Filter>Header Files\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Task.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Class.h">
+      <Filter>Header Files\Reflection</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

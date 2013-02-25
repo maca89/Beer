@@ -10,7 +10,7 @@ namespace Beer
 	class ClassFileDescriptor;
 	class MethodReflection;
 
-	class Bytecode
+	class Bytecode //: public Object, TODO
 	{
 	public:
 		enum OpCode

@@ -14,12 +14,20 @@ const StringDescriptor* MethodDescriptor::getName(ClassFileDescriptor* classFile
 	return classFile->getDescriptor<StringDescriptor>(getNameId());
 }
 
+const StringDescriptor* MethodDescriptor::getInterfaceName(ClassFileDescriptor* classFile) const
+{
+	uint16 classId = classFile->getClassId(getInterfaceId());
+	return classFile->getClassName(classId);
+}
+
 void MethodDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor* classFile)
 {
 	//////////// convert my data
 	
 	// no need to convert flags
 	format.convert(getNameId());
+	format.convert(getInterfaceId());
+	format.convert(getMaxStack());
 
 	format.convert(getParamsLength());
 	for(uint16 i = 0; i < getParamsLength(); i++)
@@ -33,12 +41,17 @@ void MethodDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor*
 		format.convert(getReturnId(i));
 	}
 
-	format.convert(getBytecodeId());
+	if(!isAbstract())
+	{
+		format.convert(getBytecodeId());
+	}
 
 	//////////// convert referenced
 
 	// convert name
 	classFile->getDescriptor<StringDescriptor>(getNameId())->convert(format, classFile);
+
+	// no need to convert interface
 
 	// convert params
 	for(uint16 i = 0; i < getParamsLength(); i++)
@@ -53,5 +66,8 @@ void MethodDescriptor::convert(FileFormatConverter& format, ClassFileDescriptor*
 	}
 
 	// convert bytecode
-	classFile->getDescriptor<BytecodeDescriptor>(getBytecodeId())->convert(format, classFile);
+	if(!isAbstract() && !isNative())
+	{
+		classFile->getDescriptor<BytecodeDescriptor>(getBytecodeId())->convert(format, classFile);
+	}
 }

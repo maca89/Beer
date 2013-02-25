@@ -1,32 +1,47 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "StringClass.h"
 
 
 namespace Beer
 {
-	class ClassReflection;
-	//class String;
+	class String;
+	class Class;
 
 	class PropertyReflection : public Object
 	{
+	public:
+		enum
+		{
+			PROPERTY_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 2 // type, name
+		};
+
 	protected:
-		ClassReflection* mType;
-		Reference<String> mName;
+		// nothing
 
 	public:
-
 		// type
-
-		INLINE const ClassReflection* getType() const { return mType; }
-		INLINE ClassReflection* getType() { return mType; }
-
-		INLINE void setType(ClassReflection* value) { mType = value; }
+		Class* getType();
+		void setType(Class* value);
 
 		// name
 
-		INLINE const char_t* getName() const { return mName->c_str(); }
-		INLINE void setName(Reference<String> value) { mName = value; }
+		String* getName();
+		void setName(String* value);
+
+	private:
+		INLINE PropertyReflection()
+		{
+			// never called!
+		}
+
+		INLINE ~PropertyReflection()
+		{
+			// never called!
+		}
 	};
+
+	/*class PropertyClass
+	{
+	};*/
 };

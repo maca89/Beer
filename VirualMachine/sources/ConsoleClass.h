@@ -42,22 +42,16 @@ namespace Beer
 		friend class ConsoleClass;
 	};
 
-	class ConsoleClass : public ClassReflection
+	class ConsoleClass : public Class
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
-			Console* cons = gc->alloc<Console>();
+			Console* cons = gc->alloc<Console>(Object::OBJECT_CHILDREN_COUNT);
 			cons->setClass(this);
 			cons->setReadFailed(false);
-			return cons;
-		}
-
-		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
-		{
-			Console* cons = static_cast<Console*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
-			cons->setReadFailed(object->getInstance<Console>()->getReadFailed());
+			//cons->setChildrenCount(vm->createInteger(getDefaultChildrenCount())); // TODO
 			return cons;
 		}
 	};
@@ -66,7 +60,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

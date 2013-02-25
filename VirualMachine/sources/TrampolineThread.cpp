@@ -34,7 +34,7 @@ void TrampolineThread::work()
 		//#endif // BEER_DEBUG_MODE
 
 		#ifdef BEER_DEBUG_MODE
-			mVM->getHeap()->collect();
+			//mVM->getHeap()->collect(); // TODO
 		#endif // BEER_DEBUG_MODE
 
 		#ifdef BEER_MEASURE_PERFORMANCE

@@ -33,7 +33,7 @@ struct Settings
 		debuggerEnabled(false), 
 		debuggerStepping(false),
 		stackSize(1*1024),
-		heapSize(5*1024*1024)
+		heapSize(10*1024*1024)
 	{}
 };
 

@@ -10,6 +10,8 @@ using namespace Beer;
 MethodReflection* MethodReflection::runFunction(VirtualMachine* vm, StackFrame* frame)
 {
 	Cb fn = mFunction;
+	NULL_ASSERT(fn);
+
 	uint16 i = 0;
 	int32 elemi = 0;
 	uint16 returnCount = getReturnsCount();

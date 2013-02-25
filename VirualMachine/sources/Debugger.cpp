@@ -4,7 +4,7 @@
 #include "MethodReflection.h"
 #include "ConsoleClass.h"
 #include "PropertyReflection.h"
-#include "ClassReflection.h"
+#include "Class.h"
 
 using namespace Beer;
 
@@ -60,7 +60,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " " << frame->method->getSelector() << "@" << frame->programCounter;
+				cout << frame->method << " " << frame->method->getName() << "@" << frame->programCounter;// TODO: selector
 			}
 			else
 			{
@@ -90,7 +90,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " " << frame->method->getSelector() << "@" << frame->programCounter;
+				cout << frame->method << " " << frame->method->getName() << "@" << frame->programCounter;// TODO: selector
 			}
 			else
 			{
@@ -118,13 +118,13 @@ void Debugger::printObject(Object* object)
 	if(object == NULL) cout << "null";
 	else
 	{
-		ClassReflection* klass = mVM->getClass(object);
+		Class* klass = mVM->getClass(object);
 		if(klass)
 		{
 			if(!klass->isValueType()) cout << "#" << object << " ";
 
 			stringstream ss;
-			klass->dump(object, ss);
+			//klass->dump(object, ss); // TODO: call String()
 			cout << ss.str();
 
 			if(klass->getPropertiesCount() > 0)
@@ -231,16 +231,16 @@ void Debugger::printStack()
 	cout << std::endl;
 }
 
-void Debugger::printClassMethods(ClassReflection* klass)
+void Debugger::printClassMethods(Class* klass)
 {
 	cout << "[Class " << klass->getName() << "]" << std::endl;
 	for(uint16 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
 	{
-		MethodReflection* method = klass->getMethod(methodi);
-		if(method)
+		Pair* definedMethod = klass->getMethod(methodi);
+		if(definedMethod)
 		{
 			cout << std::setw(4);
-			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " " << method->getSelector() << std::endl;
+			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " " << definedMethod->getFirst<String>()->c_str() << std::endl;// TODO: selector
 		}
 	}
 }
@@ -285,7 +285,7 @@ bool Debugger::catchException(StackFrame* frame, const Exception& ex)
 	{
 		cout << std::endl;
 		StackRef<Object> receiver(frame, frame->stackTopIndex());
-		ClassReflection* klass = mVM->getClass(receiver);
+		Class* klass = mVM->getClass(receiver);
 		printClassMethods(klass);
 	}
 	

@@ -17,8 +17,9 @@ namespace Beer
 		typedef Integer::IntegerData LengthData;
 
 	protected:
+		// TODO: garbaged
 		LengthData mSize;
-		ClassReflection* mItemClass;
+		Class* mItemClass;
 	
 	public:
 		INLINE LengthData getSize() const
@@ -34,21 +35,21 @@ namespace Beer
 
 		INLINE Object* getItem(LengthData i)
 		{
-			return getChild<Object>(i);
+			return getChild<Object>(OBJECT_CHILDREN_COUNT + i);
 		}
 
 		INLINE void setItem(LengthData i, Object* obj)
 		{
 			//DBG_ASSERT(obj->getClass()->substituable(mItemClass), BEER_WIDEN("Unexpected class")); // TODO: CLASS_ASSERT
-			setChild(i, obj);
+			setChild(OBJECT_CHILDREN_COUNT + i, obj);
 		}
 
-		INLINE ClassReflection* getItemClass()
+		INLINE Class* getItemClass()
 		{
 			return mItemClass;
 		}
 
-		INLINE void setItemClass(ClassReflection* klass)
+		INLINE void setItemClass(Class* klass)
 		{
 			mItemClass = klass;
 		}
@@ -56,29 +57,17 @@ namespace Beer
 		NOINLINE void toString(VirtualMachine* vm, string& out);
 	};
 
-	class ArrayClass : public ClassReflection
+	class ArrayClass : public Class
 	{
 	public:
-		// ClassReflection
-		virtual uint64 getChildrenCount(Object* object)
-		{
-			return static_cast<Array*>(object)->getSize();
-		}
-
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc);
-		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc);
-
-		/*svirtual void dump(Object* object, stringstream& out)
-		{
-			out << object->getInstance<Array>()->getData();
-		};*/
 	};
 
 	class ArrayClassInitializer : public ClassInitializer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

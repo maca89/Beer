@@ -61,7 +61,6 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 
 			// 4 bytes = 32bit + referenced string
 			case Beer::Bytecode::INSTR_PUSH_STRING:
-			case Beer::Bytecode::INSTR_NEW:
 			case Beer::Bytecode::INSTR_INVOKE:
 			case Beer::Bytecode::INSTR_INTERFACEINVOKE:
 			case Beer::Bytecode::INSTR_STATIC_INVOKE:
@@ -76,6 +75,18 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			case Beer::Bytecode::INSTR_PUSH_FLOAT:
 				format.convert(instr->getData<uint64>());
 				bytei += sizeof(uint64);
+				break;
+
+			case Beer::Bytecode::INSTR_NEW:
+				{
+					format.convert(instr->getData<uint32>());
+					uint32 classId = classFile->getClassId(instr->getData<uint32>());
+					if(classFile->isExternalClass(classId))
+					{
+						classFile->getDescriptor<StringDescriptor>(classId)->convert(format, classFile);
+					}
+					bytei += sizeof(uint32);
+				}
 				break;
 
 			default:

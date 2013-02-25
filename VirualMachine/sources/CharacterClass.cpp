@@ -25,17 +25,15 @@ struct BeerCharacter_CompareOperator##Name																				\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	MethodReflection* Name##Method																						\
-		= loader->createMethod<MethodReflection>(																		\
-			BEER_WIDEN(#Operator), 																						\
-			string(Class->getName()) + BEER_WIDEN("::") + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"), 	\
+	method = loader->createMethod<MethodReflection>(																	\
 			1, 																											\
 			1																											\
 		);																												\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	/*Name##Method->getParam(0)->setType(integerClass);*/																\
-	Name##Method->setFunction(&(BeerCharacter_CompareOperator##Name::fn));												\
-	Class->setMethod(methodi++, Name##Method);																			\
+	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
+	/*method->getReturn(0)->setType(integerClass);*/																	\
+	/*method->getParam(0)->setType(integerClass);*/																		\
+	method->setFunction(&(BeerCharacter_CompareOperator##Name::fn));													\
+	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Character::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")")).c_str()), method));\
 
 
 
@@ -54,12 +52,12 @@ void BEER_CALL BeerCharacter_toInteger(VirtualMachine* vm, StackFrame* frame, St
 	ret = vm->createInteger(receiver->getData());
 }
 
-ClassReflection* CharacterClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
+Class* CharacterClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
 	return loader->createClass<CharacterClass>(name, 1, 0, 5);
 }
 
-void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
+void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->markAsValueType();
 	klass->extends(0, vm->getObjectClass());
@@ -67,17 +65,20 @@ void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loade
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Character"), string(klass->getName()) + BEER_WIDEN("::Character()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("Character")));
 	method->setFunction(&BeerCharacter_init);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::Character()")), method));
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("String"), string(klass->getName()) + BEER_WIDEN("::String()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerCharacter_toString);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::String()")), method));
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Integer"), string(klass->getName()) + BEER_WIDEN("::Integer()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("Integer")));
 	method->setFunction(&BeerCharacter_toInteger);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::Integer()")), method));
 
 	BuildCompareOperator(klass, Equal, ==, Character, ==);
 	BuildCompareOperator(klass, NotEqual, !=, Character, !=);

@@ -10,10 +10,22 @@ namespace Beer
 	#pragma pack(push, 1)
 	class MethodDescriptor
 	{
+	public:
+		enum
+		{
+			FLAG_NATIVE = 0x01,
+			FLAG_ABSTRACT = 0x02,
+			FLAG_SPECIAL = 0x04,
+			FLAG_STATIC = 0x08,
+			FLAG_OVERRIDE = 0x10,
+			FLAG_IMMUTABLE = 0x80,
+		};
+
 	protected:
-		//uint16 mLength; // deprecated
 		uint8 mFlags;
 		uint16 mNameId;
+		uint16 mInterfaceId;
+		uint16 mMaxStack;
 		uint16 mParamsLength;
 		uint16 mParams; // should be used as array
 		// uint16 mReturnsLength;
@@ -26,12 +38,34 @@ namespace Beer
 		INLINE uint8 getFlags() const { return mFlags; }
 		INLINE uint8& getFlags() { return mFlags; }
 
+		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
+		INLINE void markFlag(uint8 n) { mFlags |= n; }
+		
+		INLINE bool isNative() const { return hasFlag(FLAG_NATIVE); }
+		INLINE bool isAbstract() const { return hasFlag(FLAG_ABSTRACT); }
+		INLINE bool isOverride() const { return hasFlag(FLAG_OVERRIDE); }
+		INLINE bool isSpecial() const { return hasFlag(FLAG_SPECIAL); }
+		INLINE bool isStatic() const { return hasFlag(FLAG_STATIC); }
+		INLINE bool isImmutable() const { return hasFlag(FLAG_IMMUTABLE); }
+
 		// name
 
 		INLINE uint16 getNameId() const { return mNameId; }
 		INLINE uint16& getNameId() { return mNameId; }
 
 		const StringDescriptor* getName(ClassFileDescriptor* classFile) const;
+
+		// max stack
+
+		INLINE uint16 getMaxStack() const { return mMaxStack; }
+		INLINE uint16& getMaxStack() { return mMaxStack; }
+
+		// interface
+
+		INLINE uint16 getInterfaceId() const { return mInterfaceId; }
+		INLINE uint16& getInterfaceId() { return mInterfaceId; }
+
+		const StringDescriptor* getInterfaceName(ClassFileDescriptor* classFile) const;
 
 		// params
 

@@ -56,14 +56,14 @@ namespace Beer
 		friend class FileReaderClass;
 	};
 
-	class FileReaderClass : public ClassReflection
+	class FileReaderClass : public Class
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
 			// TODO: constructor
-			FileReader* reader = gc->alloc<FileReader>();
+			FileReader* reader = gc->alloc<FileReader>(Object::OBJECT_CHILDREN_COUNT);
 			reader->setClass(this);
 			reader->mFile = new ifstream(); // memory leak!
 			return reader;
@@ -74,7 +74,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

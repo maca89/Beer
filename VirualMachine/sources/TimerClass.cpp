@@ -24,27 +24,30 @@ void BEER_CALL BeerTimer_stop(VirtualMachine* vm, StackFrame* frame, StackRef<Ti
 }
 
 
-ClassReflection* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
+Class* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
 	return loader->createClass<TimerClass>(name, 1, 0, 3);
 }
 
-void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
+void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->extends(0, vm->getObjectClass());
 
 	MethodReflection* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("Timer"), BEER_WIDEN("Timer::Timer()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("Timer")));
 	method->setFunction(&BeerTimer_init);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Timer::Timer()")), method));
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("start"), BEER_WIDEN("Timer::start()"), 0, 0);
+	method = loader->createMethod<MethodReflection>(0, 0);
+	method->setName(vm->createString(BEER_WIDEN("start")));
 	method->setFunction(&BeerTimer_start);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Timer::start()")), method));
 
-	method = loader->createMethod<MethodReflection>(BEER_WIDEN("stop"), BEER_WIDEN("Timer::stop()"), 1, 0);
+	method = loader->createMethod<MethodReflection>(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("stop")));
 	method->setFunction(&BeerTimer_stop);
-	klass->setMethod(methodi++, method);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Timer::stop()")), method));
 }

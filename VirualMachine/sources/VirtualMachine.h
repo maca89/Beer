@@ -16,7 +16,7 @@
 
 namespace Beer
 {
-	class ClassReflection;
+	class Class;
 	class ObjectClass;
 	class StringClass;
 	class BooleanClass;
@@ -37,7 +37,7 @@ namespace Beer
 
 	typedef CopyGC Heap;
 	typedef std::set<Thread*> ThreadSet;
-	typedef std::map<string, ClassReflection*> ClassReflectionTable;
+	typedef std::map<string, Class*> ClassReflectionTable;
 
 	class VirtualMachine
 	{
@@ -53,19 +53,20 @@ namespace Beer
 		InlineFunctionTable mInlineFnTable;
 		ThreadSet mThreads;
 
-		ClassReflection* mObjectClass;
-		ClassReflection* mStringClass;
-		ClassReflection* mFloatClass;
-		ClassReflection* mIntegerClass;
-		ClassReflection* mBooleanClass;
-		ClassReflection* mCharacterClass;
-		ClassReflection* mTaskClass;
+		Class* mObjectClass;
+		Class* mStringClass;
+		Class* mFloatClass;
+		Class* mIntegerClass;
+		Class* mBooleanClass;
+		Class* mCharacterClass;
+		//Class* mTaskClass;
+		Class* mPairClass;
 
 	public:
 		INLINE VirtualMachine()
 			: mStack(NULL), /*mFrames(NULL),*/ mHeap(NULL), mClassHeap(NULL),
 			mClassLoader(NULL), mDebugger(NULL), 
-			mObjectClass(NULL), mStringClass(NULL), mCharacterClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL)
+			mObjectClass(NULL), mStringClass(NULL), mCharacterClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mPairClass(NULL)//, mTaskClass(NULL)
 		{
 		}
 
@@ -73,24 +74,24 @@ namespace Beer
 		{
 		}
 	
-		void addClass(ClassReflection* reflection);
-		void removeClass(ClassReflection* reflection);
-		bool hasClass(string name) const;
-		ClassReflection* getClass(string name);
+		void addClass(Class* reflection);
+		//void removeClass(ClassReflection* reflection);
+		//bool hasClass(string name) const;
+		Class* getClass(String* name);
 		
-		template <typename T>
+		/*template <typename T>
 		INLINE T* getClass(string name)
 		{
 			ClassReflection* klass = getClass(name);
 			if(klass) return static_cast<T*>(klass);
 			return NULL;
-		}
+		}*/
 
-		INLINE ClassReflection* getClass(const Reference<String>& name) { return getClass(*name); }
-		INLINE ClassReflection* getClass(const String* name) { return getClass(name->c_str()); }
+		INLINE Class* getClass(string name) { return getClass(createString(name)); } // TODO: get rid of
+		INLINE Class* getClass(Reference<String>& name) { return getClass(*name); }
 
-		INLINE ClassReflection* getClass(const StackRef<Object>& object) const { return mClassTable.translate(object); }
-		INLINE ClassReflection* getClass(Object* object) const { return mClassTable.translate(object); }
+		INLINE Class* getClass(const StackRef<Object>& object) const { return mClassTable.translate(object); }
+		INLINE Class* getClass(Object* object) const { return mClassTable.translate(object); }
 
 		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE WorkStack* getStack() const { return mStack; }
@@ -105,19 +106,22 @@ namespace Beer
 		void run();
 		void destroy();
 
+		// TODO: get rid of these
 		Integer* createInteger(Integer::IntegerData value);
 		Float* createFloat(Float::FloatData value);
 		String* createString(const Character::CharacterData* value);
 		String* createString(String::LengthData length);
 		String* createString(const string& s);
+		Pair* createPair(Object* first, Object* second);
 
-		INLINE ClassReflection* getFloatClass() const { return mFloatClass; }
-		INLINE ClassReflection* getIntegerClass() const { return mIntegerClass; }
-		INLINE ClassReflection* getBooleanClass() const { return mBooleanClass; }
-		INLINE ClassReflection* getObjectClass() const { return mObjectClass; }
-		INLINE ClassReflection* getStringClass() const { return mStringClass; }
-		INLINE ClassReflection* getCharacterClass() const { return mCharacterClass; }
-		INLINE ClassReflection* getTaskClass() const { return mTaskClass; }
+		INLINE Class* getFloatClass() const { return mFloatClass; }
+		INLINE Class* getIntegerClass() const { return mIntegerClass; }
+		INLINE Class* getBooleanClass() const { return mBooleanClass; }
+		INLINE Class* getObjectClass() const { return mObjectClass; }
+		INLINE Class* getStringClass() /*const*/ { return mStringClass; }
+		INLINE Class* getCharacterClass() const { return mCharacterClass; }
+		//INLINE Class* getTaskClass() const { return mTaskClass; }
+		INLINE Class* getPairClass() /*const*/ { return getClass(BEER_WIDEN("Pair")); /*return mPairClass;*/ }
 
 		template <typename T>
 		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }

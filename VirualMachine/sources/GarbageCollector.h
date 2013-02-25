@@ -15,7 +15,7 @@ namespace Beer
 		template <typename T>
 		INLINE T* alloc()
 		{
-			return alloc<T>(/*T::CHILDREN_COUNT*/0);
+			return alloc<T>(/*T::CHILDREN_COUNT or 0*/ Object::OBJECT_CHILDREN_COUNT);
 		}
 
 		template <typename T>

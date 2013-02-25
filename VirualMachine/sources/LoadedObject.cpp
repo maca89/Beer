@@ -16,39 +16,65 @@
 #include "MethodReflection.h"
 
 #include "Bytecode.h"
+#include "Task.h"
 
 using namespace Beer;
 
 
-ClassReflection* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
+Class* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
+	uint16 methodsLength = mClassDescr->getMethodsLength();
+	uint16 propertiesLength = mClassDescr->getAttributesLength();
+
+	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
+	{
+		MethodDescriptor* methodDescr = getMethod(i);
+		if(methodDescr->isOverride())
+		{
+			methodsLength += 1; // will have to save two times with two selectors
+		}
+	}
+
+	if(strcmp(name->c_str(), BEER_WIDEN("EntryPoint")) == 0) // TODO: Task
+	{
+		methodsLength++; // dorun
+	}
+
+	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
+	{
+		Class* parent = vm->getClass(getParentClassName(vm, i));
+		propertiesLength += parent->getPropertiesCount();
+	}
+
 	return loader->createClass<LoadedObjectClass>(
 		name, // classDescr->getName(classFile)->c_str()
-		mClassDescr->getParentsLength() + 1 + (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0), // + 1 for Object, TODO: Main in classfile
-		mClassDescr->getAttributesLength(), 
-		mClassDescr->getMethodsLength()
+		mClassDescr->getParentsLength() == 0 ? 1 : mClassDescr->getParentsLength() /*+ (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0)*/, // + 1 for Object, TODO: Main in classfile
+		propertiesLength, 
+		methodsLength
 	);
 }
 
-void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass) // TODO: add parents properties into properties size
+void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass) // TODO: add parents properties into properties size
 {
 	mClass = klass; // ugly
 
 	uint16 propStart = 0;
 	uint16 parentStart = 0;
+	uint16 methodStart = 0;
 	
 	// Task class, TODO: in classfile
-	if(strcmp(klass->getName(), BEER_WIDEN("Main")) == 0)
-	{
-		ClassReflection* taskClass = vm->getClass(BEER_WIDEN("Task"));
-		mClass->extends(parentStart++, taskClass); // class will be loaded if its not
-		propStart += taskClass->getPropertiesCount();
-	}
+	//if(strcmp(klass->getName(), BEER_WIDEN("Main")) == 0)
+	//{
+		//ClassReflection* taskClass = vm->getClass(BEER_WIDEN("Task"));
+		//mClass->extends(parentStart++, taskClass); // class will be loaded if its not
+		//propStart += taskClass->getPropertiesCount();
+	//}
 
 	// default Object class, TODO: in classfile
-	else
+	//else
+	if(mClassDescr->getParentsLength() == 0)
 	{
-		ClassReflection* objectClass = vm->getObjectClass(); // class will be loaded if its not
+		Class* objectClass = vm->getObjectClass(); // class will be loaded if its not
 		mClass->extends(parentStart++, objectClass);
 		propStart += objectClass->getPropertiesCount();
 	}
@@ -56,7 +82,7 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	// parents
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
-		ClassReflection* parent = vm->getClass(getParentClassName(vm, i));
+		Class* parent = vm->getClass(getParentClassName(vm, i));
 		mClass->extends(parentStart + i, parent); // class will be loaded if its not
 		propStart += parent->getPropertiesCount();
 	}
@@ -65,7 +91,7 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	for(uint16 i = 0; i < mClassDescr->getAttributesLength(); i++)
 	{
 		AttributeDescriptor* attrDescr = getAtribute(i);
-		PropertyReflection* prop = makeProperty(vm, attrDescr);
+		PropertyReflection* prop = makeProperty(vm, loader, attrDescr);
 		mClass->setProperty(propStart + i, prop);
 	}
 
@@ -73,8 +99,52 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
 		MethodDescriptor* methodDescr = getMethod(i);
-		MethodReflection* method = makeMethod(vm, loader, methodDescr);
-		mClass->setMethod(i, method);
+		MethodReflection* method = NULL;
+		
+		/*dif(methodDescr->isNative())
+		{
+			if(strcmp(klass->getName(), BEER_WIDEN("Task")) == 0 && strcmp(methodDescr->getName(mClassFile)->c_str(), BEER_WIDEN("dorun")) == 0)
+			{
+				method = loader->createMethod<MethodReflection>(BEER_WIDEN("dorun"), 0, 0);
+				method->setFunction(&TaskClass::dorun);
+				klass->setMethod(i, vm->createPair(vm->createString(BEER_WIDEN("Task::dorun()")), method));
+			}
+			else
+			{
+				throw ClassFileException((string(BEER_WIDEN("Unknown native method ")) + methodDescr->getName(mClassFile)->c_str() + BEER_WIDEN(" for class ") + klass->getName()).c_str());
+			}
+		}*/
+		//else
+		//{
+			method = makeMethod(vm, loader, methodDescr);
+		//}
+
+		string selector = string() + BEER_WIDEN("::") + method->getName()->c_str();
+		selector += BEER_WIDEN("(");
+		for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
+		{
+			ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
+			selector += vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(paramDescr->getTypeId())->c_str())->c_str();
+			if(parami < methodDescr->getParamsLength() - 1) selector += BEER_WIDEN(",");
+		}
+		selector += BEER_WIDEN(")");
+
+		mClass->setMethod(methodStart++, vm->createPair(vm->createString((string(mClass->getName()->c_str()) + selector)), method)); // TODO
+
+		if(methodDescr->isOverride())
+		{
+			string interf = BEER_WIDEN("EntryPoint");// TODO: methodDescr->getInterfaceName(mClassFile)->c_str();
+			string interfSelector = interf + selector;
+			mClass->setMethod(methodStart++, vm->createPair(vm->createString(interfSelector.c_str()), method));
+		}
+	}
+
+	if(strcmp(klass->getName()->c_str(), BEER_WIDEN("EntryPoint")) == 0) // TODO: entrypoint
+	{
+		MethodReflection* method = loader->createMethod<MethodReflection>(0, 0);
+		method->setName(vm->createString(BEER_WIDEN("dorun")));
+		method->setFunction(&Task::dorun);
+		klass->setMethod(mClassDescr->getMethodsLength(), vm->createPair(vm->createString(BEER_WIDEN("Task::dorun()")), method));
 	}
 }
 
@@ -88,46 +158,38 @@ MethodDescriptor* LoadedObjectInitializer::getMethod(uint16 i)
 	return mClassFile->getDescriptor<MethodDescriptor>(mClassDescr->getMethodId(i));
 }
 
-PropertyReflection* LoadedObjectInitializer::makeProperty(VirtualMachine* vm, AttributeDescriptor* attrDescr)
+PropertyReflection* LoadedObjectInitializer::makeProperty(VirtualMachine* vm, ClassLoader* loader, AttributeDescriptor* attrDescr)
 {
-	PropertyReflection* prop = new PropertyReflection;
-			
-	// set name
+	PropertyReflection* prop = loader->createProperty<PropertyReflection>();
+	
 	prop->setName(getString(vm, attrDescr->getName(mClassFile)));
-
-	// set type
-	prop->setType(vm->getClass(*getString(vm, mClassFile->getClassName(attrDescr->getTypeId()))));
+	prop->setType(vm->getClass(getString(vm, mClassFile->getClassName(attrDescr->getTypeId()))));
 			
 	return prop;
+}
+
+ParamReflection* LoadedObjectInitializer::makeParam(VirtualMachine* vm, ClassLoader* loader, ParamDescriptor* paramDescr)
+{
+	ParamReflection* param = loader->createParam<ParamReflection>();
+
+	param->setName(getString(vm, paramDescr->getName(mClassFile)));
+	param->setType(vm->getClass(getString(vm, mClassFile->getClassName(paramDescr->getTypeId()))));
+			
+	return param;
 }
 
 MethodReflection* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
 	string name = vm->getStringClass<StringClass>()->translate(vm, methodDescr->getName(mClassFile)->c_str())->c_str();
-	
-	// TODO - load
-	string selector = string(mClass->getName()) + BEER_WIDEN("::") + name;
-	selector += BEER_WIDEN("(");
-	for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
-	{
-		ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
-		selector += vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(paramDescr->getTypeId())->c_str())->c_str();
-		if(parami < methodDescr->getParamsLength() - 1) selector += BEER_WIDEN(",");
-	}
-	selector += BEER_WIDEN(")");
-	
-	MethodReflection* method = loader->createMethod<MethodReflection>(name, selector, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
-	
-	method->mMaxStack = 20; // TODO
+	MethodReflection* method = loader->createMethod<MethodReflection>(methodDescr->getReturnsLength(), methodDescr->getParamsLength());
+	method->setName(vm->createString(name));
+	method->setMaxStack(20); // TODO: methodDescr->getMaxStack()
 
 	// returns
 	for(uint16 reti = 0; reti < methodDescr->getReturnsLength(); reti++)
 	{
 		ParamDescriptor* returnDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getReturnId(reti));
-		
-		ParamReflection* ret = loader->createParam<ParamReflection>(vm->getStringClass<StringClass>()->translate(vm, returnDescr->getName(mClassFile)->c_str())->c_str());
-		ret->setType(getType(mClassFile->getClassName(returnDescr->getTypeId()), vm));
-		
+		ParamReflection* ret = makeParam(vm, loader, returnDescr);
 		method->setReturn(reti, ret);
 	}
 
@@ -135,18 +197,18 @@ MethodReflection* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassL
 	for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
 	{
 		ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
-		
-		ParamReflection* param = loader->createParam<ParamReflection>(vm->getStringClass<StringClass>()->translate(vm, paramDescr->getName(mClassFile)->c_str())->c_str());
-		param->setType(getType(mClassFile->getClassName(paramDescr->getTypeId()), vm));
-
+		ParamReflection* param = makeParam(vm, loader, paramDescr);
 		method->setParam(parami, param);
 	}
 
-	// bytecode
-	BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
-	Bytecode* bytecode = new Bytecode(bcDescr->getData(), bcDescr->getSize(), bcDescr->getInstrCount());
-	bytecode->build(vm, mClassFile);
-	method->setBytecode(bytecode);
+	if(!methodDescr->isAbstract() && !methodDescr->isNative())
+	{
+		// bytecode
+		BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
+		Bytecode* bytecode = new Bytecode(bcDescr->getData(), bcDescr->getSize(), bcDescr->getInstrCount());
+		bytecode->build(vm, mClassFile);
+		method->setBytecode(bytecode);
+	}
 	
 	return method;
 }
@@ -156,10 +218,10 @@ const char_t* LoadedObjectInitializer::getParentClassName(VirtualMachine* vm, ui
 	return vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(mClassDescr->getParentId(i))->c_str())->c_str();
 }
 
-ClassReflection* LoadedObjectInitializer::getType(const StringDescriptor* name, VirtualMachine* vm)
+Class* LoadedObjectInitializer::getType(const StringDescriptor* name, VirtualMachine* vm)
 {
-	Reference<String> strname = getString(vm, name);
-	if(strcmp(mClass->getName(), strname->c_str()) == 0)
+	String* strname = getString(vm, name);
+	if(mClass->getName()->compare(strname) == 0)
 	{
 		return mClass; // prevents circular reference exception
 	}

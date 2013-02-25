@@ -5,37 +5,43 @@
 
 namespace Beer
 {
-	class ClassReflection;
+	class String;
+	class Class;
 
 	class ParamReflection : public Object
 	{
 	public:
-		////////////////////////////////////////////////////////////
-		////             Initialized by ClassLoader             ////
-		////////////////////////////////////////////////////////////
-		uint16 mNameCount;
-		char_t* mName;
-		
-		ClassReflection* mType;
-		////////////////////////////////////////////////////////////
+		enum
+		{
+			PARAM_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 2 // type, name
+		};
+
+	protected:
+		// nothing
 
 	public:
+		// type
+		Class* getType();
+		void setType(Class* value);
+
+		// name
+
+		String* getName();
+		void setName(String* value);
+
+	private:
 		INLINE ParamReflection()
 		{
+			// never called!
 		}
 
 		INLINE ~ParamReflection()
 		{
-			// is never called!
+			// never called!
 		}
-
-		// type
-		
-		INLINE ClassReflection* getType() { return mType; }
-		INLINE void setType(ClassReflection* klass) { mType = klass; }
-
-		// name
-
-		INLINE const char_t* getName() const { return mName; }
 	};
+
+	/*class ParamClass
+	{
+	};*/
 };

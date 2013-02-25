@@ -78,12 +78,12 @@ namespace Beer
 		return ::lstrcmpW(str1, str2);
 	}
 
-	INLINE static size_t strlen(const char8* str)
+	INLINE static int32 strlen(const char8* str)
 	{
 		return ::strlen(str);
 	}
 
-	INLINE static size_t strlen(const char16* str)
+	INLINE static int32 strlen(const char16* str)
 	{
 		return ::lstrlenW(str);
 	}
@@ -208,10 +208,10 @@ namespace Beer
 
 	class Object;
 	class String;
-	class ClassReflection;
+	class Class;
 	struct MethodNotFoundException : RuntimeException
 	{
-		MethodNotFoundException(Object* instance, ClassReflection* klass, String* selector, string filename = BEER_WIDEN(""), long line = 0);
+		MethodNotFoundException(Object* instance, Class* klass, String* selector, string filename = BEER_WIDEN(""), long line = 0);
 	};
 
 	struct ClassNotFoundException : RuntimeException

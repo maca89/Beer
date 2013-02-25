@@ -1,5 +1,6 @@
 #pragma once
 #include "prereq.h"
+#include "Integer.h"
 #include "ObjectClass.h"
 #include "GarbageCollector.h"
 #include "ClassLoader.h"
@@ -10,95 +11,23 @@ namespace Beer
 {
 	class VirtualMachine;
 
-	class Integer : public Object
-	{
-	public:
-		typedef int64 IntegerData;
-		static const int SignatureBits = 2;
-
-	protected:
-		IntegerData mData;
-
-	public:
-		INLINE IntegerData getData() const
-		{
-			if(isInlineValue(this))
-			{
-				return getInlineValue(this);
-			}
-			return mData;
-		}
-
-		INLINE void setNonInlineValue(IntegerData data)
-		{
-			mData = data;
-		}
-
-		NOINLINE void toString(string& out)
-		{
-			stringstream ss;
-			ss << getData();
-			ss >> out;
-		}
-
-		INLINE static bool canBeInlineValue(IntegerData data)
-		{
-			// TODO: negative numbers
-			return (data >> (sizeof(IntegerData) * 8 - SignatureBits)) == 0;
-		}
-
-		INLINE static Integer* makeInlineValue(IntegerData data)
-		{
-			return reinterpret_cast<Integer*>((data << SignatureBits) | 1);
-		}
-
-		INLINE static IntegerData getInlineValue(const Integer* data)
-		{
-			return reinterpret_cast<IntegerData>(data) >> SignatureBits;
-		}
-
-		/*INLINE bool operator < (const Integer& int2) { return getData() < int2.getData(); }
-		INLINE bool operator <= (const Integer& int2) { return getData() <= int2.getData(); }
-		INLINE bool operator > (const Integer& int2) { return getData() > int2.getData(); }
-		INLINE bool operator >= (const Integer& int2) { return getData() >= int2.getData(); }
-		INLINE bool operator == (const Integer& int2) { return getData() == int2.getData(); }
-		INLINE bool operator != (const Integer& int2) { return getData() != int2.getData(); }
-		INLINE IntegerData operator + (const Integer& int2) { return getData() + int2.getData(); }
-		INLINE IntegerData operator - (const Integer& int2) { return getData() - int2.getData(); }
-		INLINE IntegerData operator * (const Integer& int2) { return getData() * int2.getData(); }*/
-	};
-
-	class IntegerClass : public ClassReflection
+	class IntegerClass : public Class
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
-			Integer* num = gc->alloc<Integer>();
+			Integer* num = gc->alloc<Integer>(Object::OBJECT_CHILDREN_COUNT);
 			num->setClass(this);
 			return num;
 		}
-
-		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
-		{
-			if(isInlineValue(object)) return object;
-
-			Integer* num = static_cast<Integer*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
-			num->setNonInlineValue(object->getInstance<Integer>()->getData());
-			return num;
-		}
-
-		virtual void dump(Object* object, stringstream& out)
-		{
-			out << object->getInstance<Integer>()->getData();
-		};
 	};
 	
 	class IntegerClassInitializer : public ClassInitializer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

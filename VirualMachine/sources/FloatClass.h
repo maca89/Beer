@@ -29,27 +29,15 @@ namespace Beer
 		}
 	};
 
-	class FloatClass : public ClassReflection
+	class FloatClass : public Class
 	{
 	public:
 		// ClassReflection
 		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
 		{
-			Float* num = gc->alloc<Float>();
+			Float* num = gc->alloc<Float>(Object::OBJECT_CHILDREN_COUNT);
 			num->setClass(this);
 			return num;
-		}
-
-		virtual Object* cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
-		{
-			Float* num = static_cast<Float*>(this->ClassReflection::cloneShallow(vm, object, frame, gc));
-			num->setData(object->getInstance<Float>()->getData());
-			return num;
-		}
-
-		virtual void dump(Object* object, stringstream& out)
-		{
-			out << std::setprecision(8) << std::fixed << object->getInstance<Float>()->getData();
 		}
 	};
 	
@@ -57,7 +45,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual ClassReflection* createClass(VirtualMachine* vm, ClassLoader* loader, string name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass);
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

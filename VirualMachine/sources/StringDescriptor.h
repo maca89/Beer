@@ -9,7 +9,7 @@ namespace Beer
 
 	#pragma pack(push, 1)
 	class StringDescriptor
-	{	
+	{
 	public:
 		enum
 		{
@@ -33,12 +33,12 @@ namespace Beer
 
 		INLINE uint8 getFlags() const { return mFlags; }
 		INLINE uint8& getFlags() { return mFlags; }
-		
-		INLINE void markAsMachineEncoded() { markFlag(FLAG_MACHINE_ENCODED); }
-		INLINE bool isMachineEncoded() const { return hasFlag(FLAG_MACHINE_ENCODED); }
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
+		
+		INLINE void markAsMachineEncoded() { markFlag(FLAG_MACHINE_ENCODED); }
+		INLINE bool isMachineEncoded() const { return hasFlag(FLAG_MACHINE_ENCODED); }
 
 		// data
 

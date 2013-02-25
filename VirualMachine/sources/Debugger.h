@@ -9,7 +9,7 @@ namespace Beer
 	class VirtualMachine;
 	class Object;
 	class StackFrame;
-	class ClassReflection;
+	class Class;
 
 	class Debugger
 	{
@@ -46,6 +46,6 @@ namespace Beer
 		virtual void printFrame(StackFrame* frame);
 		virtual void printFrameStack(StackFrame* frame);
 		virtual void printStack();
-		virtual void printClassMethods(ClassReflection* klass);
+		virtual void printClassMethods(Class* klass);
 	};
 }

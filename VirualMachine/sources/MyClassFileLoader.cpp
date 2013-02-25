@@ -103,23 +103,35 @@ void MyClassFileLoader::printClassFile(ClassFileDescriptor* classFile)
 
 			//methodDescr->getSelector // TODO
 
-			cout << std::endl;
-
-			cout << "\t\t{" << std::endl;
-			
-			uint16 instri = 0;
-			BytecodeDescriptor* bc = classFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
-			for(uint16 bytei = 0; bytei < bc->getSize();)
+			if(!methodDescr->isAbstract() && !methodDescr->isNative())
 			{
-				const Bytecode::Instruction* instr = reinterpret_cast<const Bytecode::Instruction*>(&bc->getByte(bytei));
-				cout << "\t\t\t";
-				cout << std::setw(3);
-				cout << std::setfill(BEER_WIDEN(' ')) << instri++ << ": ";
-				bytei += instr->printRaw(classFile);
 				cout << std::endl;
-			}
+				cout << "\t\t{" << std::endl;
+				
+				cout << "\t\t\t// maxStack = " << methodDescr->getMaxStack() << std::endl;
+				if(methodDescr->isOverride()) cout << "\t\t\t// override " << methodDescr->getInterfaceName(classFile)->c_str() << std::endl;
+				if(methodDescr->isStatic()) cout << "\t\t\t// static" << std::endl;
+				if(methodDescr->isSpecial()) cout << "\t\t\t// special" << std::endl;
+				if(methodDescr->isImmutable()) cout << "\t\t\t// immutable" << std::endl;
+
+				uint16 instri = 0;
+				BytecodeDescriptor* bc = classFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
+				for(uint16 bytei = 0; bytei < bc->getSize();)
+				{
+					const Bytecode::Instruction* instr = reinterpret_cast<const Bytecode::Instruction*>(&bc->getByte(bytei));
+					cout << "\t\t\t";
+					cout << std::setw(3);
+					cout << std::setfill(BEER_WIDEN(' ')) << instri++ << ": ";
+					bytei += instr->printRaw(classFile);
+					cout << std::endl;
+				}
 			
-			cout << "\t\t}" << std::endl;
+				cout << "\t\t}" << std::endl;
+			}
+			else
+			{
+				cout << ";" << std::endl;
+			}
 		}
 		cout << "\t}" << std::endl;
 

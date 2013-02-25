@@ -6,7 +6,7 @@
 namespace Beer
 {
 	class MethodReflection;
-	class ClassReflection;
+	class Class;
 
 	#pragma pack(push, 1)
 	class MonomorphicInlineCache
@@ -20,7 +20,7 @@ namespace Beer
 			memset(this, 0, countSize());
 		}
 
-		INLINE MethodReflection* find(ClassReflection* klass, String* selector)
+		INLINE MethodReflection* find(Class* klass, String* selector)
 		{
 			DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 			if(mMethod == NULL)
