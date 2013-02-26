@@ -1,11 +1,11 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
+#include "String.h"
 #include "Param.h"
-#include "Selector.h"
 #include "StackFrame.h"
 #include "Bytecode.h"
-#include "Timer.h"
+#include "MiliTimer.h"
 
 
 namespace Beer
@@ -157,20 +157,20 @@ namespace Beer
 
 		// calls
 
-		INLINE Method* call(VirtualMachine* vm, StackFrame* frame)
+		INLINE Method* call(Thread* thread, StackFrame* frame)
 		{
 			if(isBytecode())
 			{
-				return mBytecode->call(vm, frame);
+				return mBytecode->call(thread, frame);
 			}
 			else
 			{
-				return runFunction(vm, frame);
+				return runFunction(thread, frame);
 			}
 		}
 
 	protected:
-		Method* runFunction(VirtualMachine* vm, StackFrame* frame);
+		Method* runFunction(Thread* thread, StackFrame* frame);
 
 	private:
 		INLINE ~Method()

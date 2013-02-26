@@ -310,7 +310,6 @@ namespace Beer
 	#define StackOverflowException(_msg_) StackOverflowException((_msg_), __WFILE__, __LINE__)
 	#define ArrayIndexOutOfBoundsException(index, size) ArrayIndexOutOfBoundsException(index, size, __WFILE__, __LINE__)
 
-
 	#ifdef BEER_DEBUG_MODE
 		#define BEER_ASSERTS_ON
 		#define BEER_MEMORY_DEBUGGING

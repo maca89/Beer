@@ -68,7 +68,7 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
+		Object* createInstance(Thread* thread, StackFrame* frame, GarbageCollector* gc) // TODO!!!
 		{
 			// TODO: constructor
 			FileWriter* writer = gc->alloc<FileWriter>(Object::OBJECT_CHILDREN_COUNT);

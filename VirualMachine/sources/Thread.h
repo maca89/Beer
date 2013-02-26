@@ -1,26 +1,36 @@
 #pragma once
 #include "prereq.h"
+#include "CopyGC.h"
 #include "NativeThread.h"
-#include "VirtualMachine.h"
 #include "StackFrame.h"
+#include "Integer.h"
+#include "Float.h"
+#include "PolymorphicInlineCache.h"
 
 
 namespace Beer
 {
+	class VirtualMachine;
+	class Array;
+	typedef CopyGC Heap;
+
 	class Thread : public NativeThread
 	{
 	protected:
 		VirtualMachine* mVM;
-		StackFrame* mLastFrame;
+		//StackFrame* mLastFrame;
 		WorkStack mStack;
 		DynamicStack<StackFrame> mFrames;
+		Heap* mHeap;
+
+		enum
+		{
+			CREATE_INSTANCE_CACHE_SIZE = 10
+		};
+		byte createInstanceMethodCacheBytes[sizeof(PolymorphicInlineCache::CachedMethod) * CREATE_INSTANCE_CACHE_SIZE];
 
 	public:
-		INLINE Thread(VirtualMachine* vm) : mVM(vm), mStack(1024), mFrames(50)
-		{
-			StackFrame frame(&mStack);
-			mFrames.push(frame);
-		}
+		Thread(VirtualMachine* vm);
 
 		virtual ~Thread()
 		{
@@ -28,7 +38,9 @@ namespace Beer
 
 		INLINE WorkStack* getStack() { return &mStack; }
 
-		INLINE Heap* getHeap() { return mVM->getHeap(); }
+		INLINE VirtualMachine* getVM() { return mVM; }
+
+		INLINE Heap* getHeap() { return mHeap; }
 
 		INLINE StackFrame* openStackFrame()
 		{
@@ -42,5 +54,25 @@ namespace Beer
 		INLINE void closeStackFrame() { mFrames.pop(); }
 
 		INLINE StackFrame* getStackFrame() { return mFrames.topPtr(mFrames.topIndex()); }
+
+		void getIntegerClass(StackRef<Class> ret);
+		void getFloatClass(StackRef<Class> ret);
+		void getStringClass(StackRef<Class> ret);
+		void getArrayClass(StackRef<Class> ret);
+		void getPairClass(StackRef<Class> ret);
+
+		void getClass(StackRef<String> name, StackRef<Class> ret);
+		void getMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> method);
+		
+		void createInteger(StackRef<Integer> ret, Integer::IntegerData value);
+		void createFloat(StackRef<Float> ret, Float::FloatData value);
+		void createString(StackRef<String> ret, string value);
+		void createString(StackRef<Integer> length, StackRef<String> ret);
+		void createArray(StackRef<Integer> length, StackRef<Array> ret);
+		void createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret);
+		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
+
+	protected:
+		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 	};
 };

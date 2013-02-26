@@ -1,13 +1,11 @@
 #pragma once
 #include "prereq.h"
-#include "ObjectClass.h"
+#include "Class.h"
 #include "StackFrame.h"
 
 
 namespace Beer
 {
-	class Class;
-
 	class ClassTable
 	{
 	protected:

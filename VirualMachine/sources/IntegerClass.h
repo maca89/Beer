@@ -1,6 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Integer.h"
+#include "Class.h"
 #include "ObjectClass.h"
 #include "GarbageCollector.h"
 #include "ClassLoader.h"
@@ -14,13 +15,7 @@ namespace Beer
 	class IntegerClass : public Class
 	{
 	public:
-		// ClassReflection
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
-		{
-			Integer* num = gc->alloc<Integer>(Object::OBJECT_CHILDREN_COUNT);
-			num->setClass(this);
-			return num;
-		}
+		static void BEER_CALL createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Integer> ret);
 	};
 	
 	class IntegerClassInitializer : public ClassInitializer

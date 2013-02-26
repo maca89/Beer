@@ -1,6 +1,7 @@
 #pragma once
 #include "prereq.h"
-#include "ObjectClass.h"
+#include "Float.h"
+#include "Class.h"
 #include "GarbageCollector.h"
 #include "ClassLoader.h"
 
@@ -9,41 +10,8 @@ namespace Beer
 {
 	class VirtualMachine;
 
-	class Float : public Object
-	{
-	public:
-		typedef float64 FloatData;
-
-	protected:
-		FloatData mData;
-
-	public:
-		INLINE FloatData getData() const
-		{
-			if(this == NULL)
-			{
-				return 0.0f; // just a workaround, TODO
-			}
-
-			return mData;
-		}
-
-		INLINE void setData(FloatData data)
-		{
-			mData = data;
-		}
-	};
-
 	class FloatClass : public Class
 	{
-	public:
-		// ClassReflection
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
-		{
-			Float* num = gc->alloc<Float>(Object::OBJECT_CHILDREN_COUNT);
-			num->setClass(this);
-			return num;
-		}
 	};
 	
 	class FloatClassInitializer : public ClassInitializer

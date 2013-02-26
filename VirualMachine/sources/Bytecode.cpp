@@ -380,6 +380,10 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 	case OPTIMAL_INTEGER_PUSH_INLINED:
 		cout << "OPTIMAL_INTEGER_PUSH_INLINED";
 		break;
+
+	case OPTIMAL_ARRAY_ALLOC:
+		cout << "OPTIMAL_ARRAY_ALLOC";
+		break;
 	
 	default:
 		cout << "[UNKNOWN]";
@@ -464,6 +468,12 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 					Reference<String> name = vm->getStringClass<StringClass>()->translate(vm, cstring);
 					Class* klass = vm->getClass(name);
 					builder.setData<Class*>(klass); // TODO: pass Reference
+#ifdef BEER_INLINE_OPTIMALIZATION
+					if(strcmp(cstring, BEER_WIDEN("Array")) == 0)
+					{
+						builder.setNewOpcode(OPTIMAL_ARRAY_ALLOC);
+					}
+#endif // BEER_INLINE_OPTIMALIZATION
 				}
 				break;
 
@@ -522,8 +532,9 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 	builder.finish(&mData, mDataSize, &mDict, mDictSize);
 }
 
-Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
+Method* Bytecode::call(Thread* thread, StackFrame* frame)
 {
+	VirtualMachine* vm = thread->getVM();
 	Instruction* instr = NULL;
 	uint16 nextInstruction = 0;
 	
@@ -600,23 +611,36 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_INT8:
-			frame->stackPush(vm->createInteger(instr->getData<int8>()));
+			{
+				StackRef<Integer> ret(frame, frame->stackPush());
+				thread->createInteger(ret, instr->getData<int8>());
+			}
 			break;
 		
 		case Beer::Bytecode::INSTR_PUSH_INT32:
-			frame->stackPush(vm->createInteger(instr->getData<int32>()));
+			{
+				StackRef<Integer> ret(frame, frame->stackPush());
+				thread->createInteger(ret, instr->getData<int32>());
+			}
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_INT64:
-			frame->stackPush(vm->createInteger(static_cast<Integer::IntegerData>(instr->getData<int64>())));
+			{
+				StackRef<Integer> ret(frame, frame->stackPush());
+				thread->createInteger(ret, static_cast<Integer::IntegerData>(instr->getData<int64>()));
+			}
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_FLOAT:
-			frame->stackPush(vm->createFloat(instr->getData<float64>()));
+			{
+				frame->stackMoveTop(1);
+				StackRef<Float> ret(frame, frame->stackTopIndex());
+				thread->createFloat(ret, static_cast<Float::FloatData>(instr->getData<float64>()));
+			}
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_STRING:
-			frame->stackPush(vm->getHeap()->translate(instr->getData<int32>()));
+			frame->stackPush(thread->getHeap()->translate(instr->getData<int32>()));
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_CHAR:
@@ -628,7 +652,12 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_NEW:
-			frame->stackPush(instr->getData<Class*>()->createInstance(vm, frame, vm->getHeap())); // TODO: reference
+			//frame->stackPush(instr->getData<Class*>()->createInstance(vm, frame, vm->getHeap()));
+			{
+				StackRef<Object> instance(frame, frame->stackPush());
+				StackRef<Class> klass(frame, frame->stackPush(instr->getData<Class*>())); // TODO
+				thread->createInstance(klass, instance);
+			}
 			break;
 
 		case Beer::Bytecode::INSTR_CLONE:
@@ -713,11 +742,13 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
-				Reference<String> selector(vm->getHeap(), instr->getData<int32>());
+				Reference<String> selector(thread->getHeap(), instr->getData<int32>());
 
 				// find method using inline cache
 				PolymorphicInlineCache* cache = PolymorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
-				Class* klass = vm->getClass(object);
+
+
+				Class* klass = thread->getVM()->getClass(object); // TODO
 				Method* method = cache->find(klass, selector.get(), mMethodCachesLength);
 
 				// lookup failed
@@ -813,11 +844,12 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				BEER_METHOD_PERFORMANCE_START();
 
-				frame->stack->set(vm->createInteger(
-					frame->stack->top<Integer*>(0)->getData() + frame->stack->top<Integer*>(-1)->getData()
-				), -2);
-
+				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+				Integer::IntegerData result = frame->stack->top<Integer*>(0)->getData() + frame->stack->top<Integer*>(-1)->getData();
 				frame->stackMoveTop(-2);
+
+				thread->createInteger(ret, result);
+
 
 				BEER_METHOD_PERFORMANCE_END();
 			}
@@ -827,11 +859,11 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				BEER_METHOD_PERFORMANCE_START();
 
-				frame->stack->set(vm->createInteger(
-					frame->stack->top<Integer*>((int32)0)->getData() - frame->stack->top<Integer*>(-1)->getData()
-				), -2);
-
+				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+				Integer::IntegerData result = frame->stack->top<Integer*>(0)->getData() - frame->stack->top<Integer*>(-1)->getData();
 				frame->stackMoveTop(-2);
+
+				thread->createInteger(ret, result);
 
 				BEER_METHOD_PERFORMANCE_END();
 			}
@@ -841,11 +873,12 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				BEER_METHOD_PERFORMANCE_START();
 
-				frame->stack->set(vm->createInteger(
-					frame->stack->top<Integer*>((int32)0)->getData() * frame->stack->top<Integer*>(-1)->getData()
-				), -2);
-
+				StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+				Integer::IntegerData result = frame->stack->top<Integer*>(0)->getData() * frame->stack->top<Integer*>(-1)->getData();
 				frame->stackMoveTop(-2);
+
+				thread->createInteger(ret, result);
+
 
 				BEER_METHOD_PERFORMANCE_END();
 			}
@@ -860,6 +893,7 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				), -2);
 
 				frame->stackMoveTop(-2);
+
 
 				BEER_METHOD_PERFORMANCE_END();
 			}
@@ -939,11 +973,10 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 			{
 				BEER_METHOD_PERFORMANCE_START();
 
-				frame->stack->set(vm->createInteger(
-					frame->stack->top<Array*>((int32)0)->getSize() 
-				), -1);
-
+				StackRef<Integer> ret(frame, frame->stackTopIndex() - 1);
+				Integer::IntegerData result = frame->stack->top<Array*>((int32)0)->getSize();
 				frame->stackMoveTop(-1);
+				thread->createInteger(ret, result);
 
 				BEER_METHOD_PERFORMANCE_END();
 			}
@@ -964,7 +997,7 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 				else
 				{
 					// just a temporary solution to missing value types
-					ret = vm->createInteger(0);
+					ret = Integer::makeInlineValue(0);
 				}
 
 				frame->stackMoveTop(-2);
@@ -992,6 +1025,15 @@ Method* Bytecode::call(VirtualMachine* vm, StackFrame* frame)
 
 		case OPTIMAL_INTEGER_PUSH_INLINED:
 			frame->stackPush(reinterpret_cast<Integer*>(instr->getData<int32>()));
+			break;
+
+		case OPTIMAL_ARRAY_ALLOC:
+			//frame->stackPush(instr->getData<Class*>()->createInstance(vm, frame, vm->getHeap()));
+			{
+				StackRef<Integer> length(frame, frame->stackTopIndex());
+				StackRef<Array> instance(frame, frame->stackPush());
+				thread->createArray(length.copy(), instance); // pops copied length
+			}
 			break;
 #endif // BEER_INLINE_OPTIMALIZATION
 

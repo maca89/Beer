@@ -60,7 +60,7 @@ namespace Beer
 	class ArrayClass : public Class
 	{
 	public:
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc);
+		static void BEER_CALL createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Array> ret);
 	};
 
 	class ArrayClassInitializer : public ClassInitializer

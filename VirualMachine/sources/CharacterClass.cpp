@@ -13,7 +13,7 @@ using namespace Beer;
 struct BeerCharacter_CompareOperator##Name																				\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Character> receiver, 																					\
 		StackRef<Param> arg, 																							\
@@ -25,7 +25,7 @@ struct BeerCharacter_CompareOperator##Name																				\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			1																											\
 		);																												\
@@ -37,19 +37,23 @@ struct BeerCharacter_CompareOperator##Name																				\
 
 
 
-void BEER_CALL BeerCharacter_init(VirtualMachine* vm, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> ret1)
+void BEER_CALL BeerCharacter_init(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL BeerCharacter_toString(VirtualMachine* vm, StackFrame* frame, StackRef<Character> receiver, StackRef<String> ret)
+void BEER_CALL BeerCharacter_toString(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<String> ret)
 {
-	ret = vm->createString(receiver->getData());
+	StackRef<Integer> one(frame, frame->stackPush(Integer::makeInlineValue(1)));
+	thread->createString(one, ret);
+
+	Character::CharacterData c = receiver->getData();
+	ret->copyData(&c, 1);
 }
 
-void BEER_CALL BeerCharacter_toInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Character> receiver, StackRef<Integer> ret)
+void BEER_CALL BeerCharacter_toInteger(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Integer> ret)
 {
-	ret = vm->createInteger(receiver->getData());
+	thread->createInteger(ret, receiver->getData());
 }
 
 Class* CharacterClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)

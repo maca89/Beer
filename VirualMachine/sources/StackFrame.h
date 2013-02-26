@@ -3,8 +3,6 @@
 #include "FixedStack.h"
 #include "DynamicStack.h"
 #include "Object.h"
-#include "Selector.h"
-#include "ObjectClass.h"
 
 
 namespace Beer
@@ -37,6 +35,11 @@ namespace Beer
 		}
 
 		INLINE ~StackFrame() {}
+
+		INLINE int32 stackPush()
+		{
+			return translate(stack->push());
+		}
 
 		INLINE int32 stackPush(Object* obj)
 		{
@@ -86,6 +89,10 @@ namespace Beer
 
 		INLINE uint32 translate(int32 index) // index <= 0
 		{
+			/*if(static_cast<int64>(frameOffset) + index <= 0)
+			{
+				int a = 0;
+			}*/
 			DBG_ASSERT(static_cast<int64>(frameOffset) + index > 0, BEER_WIDEN("Stack index out of bounds"));
 			return static_cast<int64>(frameOffset) + index - 1;
 		}
@@ -148,7 +155,7 @@ namespace Beer
 			return get();
 		}
 
-		INLINE uint32 getIndex() const
+		INLINE int32 getIndex() const
 		{
 			return mIndex;
 		}
@@ -168,14 +175,21 @@ namespace Beer
 			return mFrame->stackTop<T>(mIndex);
 		}
 
-		INLINE void copy()
+		INLINE StackRef<T> copy()
 		{
-			mFrame->stackPush(get());
+			return StackRef<T>(mFrame, mFrame->stackPush(get()));
 		}
 
 		INLINE bool isNull() const
 		{
 			return get() == NULL;
+		}
+
+		template<typename U>
+		INLINE StackRef<U> staticCast()
+		{
+			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cas
+			return StackRef<U>(mFrame, mIndex);
 		}
 	};
 	#pragma pack(pop)

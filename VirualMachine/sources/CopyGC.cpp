@@ -80,9 +80,14 @@ Object* CopyGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 	// children array is at the end of object
 	//if(childrenCount > 0)
 	{
+		if(!Integer::canBeInlineValue(childrenCount)) // TODO
+		{
+			throw GCException(BEER_WIDEN("Not yet implemented"));
+		}
+
 		Object** children = reinterpret_cast<Object**>(reinterpret_cast<byte*>(obj) + staticSize);
 		memset(children, 0, childrenCount * sizeof(void*));
-		children[0] = mVM->createInteger(childrenCount); // TODO
+		children[0] = Integer::makeInlineValue(childrenCount); // TODO: if cannot be inlined, create full object!!!
 		obj->setChildren(children);
 	}
 #ifdef BEER_GC_DEBUGGING
@@ -153,6 +158,8 @@ void CopyGC::collect()
 	GC_DEBUG(BEER_WIDEN("Collect"));
 	GC_DEBUG(BEER_WIDEN("Used ") << mMemoryOld.getUsed() << " of " << mMemoryOld.getTotal());
 	
+	throw GCException(BEER_WIDEN("Collect temporary not working"));
+
 	mLastMoved = 0;
 	mLastCollected = 0;
 

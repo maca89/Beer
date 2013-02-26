@@ -13,7 +13,7 @@ using namespace Beer;
 struct BeerBoolean_CompareOperator##Name																				\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread,		 																							\
 		StackFrame* frame, 																								\
 		StackRef<Boolean> receiver, 																					\
 		StackRef<Param> arg, 																							\
@@ -37,12 +37,12 @@ struct BeerBoolean_CompareOperator##Name																				\
 
 
 
-void BEER_CALL BeerBoolean_init(VirtualMachine* vm, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret1)
+void BEER_CALL BeerBoolean_init(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL BeerBoolean_Negation(VirtualMachine* vm, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret)
+void BEER_CALL BeerBoolean_Negation(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(!receiver->getData());
 }

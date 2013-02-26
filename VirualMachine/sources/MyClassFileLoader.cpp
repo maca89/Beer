@@ -159,7 +159,6 @@ void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* cla
 	{
 		ClassDescriptor* classDescr = classFile->getDescriptor<ClassDescriptor>(classFile->getClassId(classFile->getExternalClassesLength() + classi));
 		const StringDescriptor* classNameDescr = classDescr->getName(classFile);
-		//const char8* className = classNameDescr->c_str();
 		loadClass(vm, classFile, classDescr); // lazy load because of parents and interfaces
 	}
 
@@ -167,9 +166,9 @@ void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* cla
 	{
 		ClassDescriptor* classDescr = classFile->getDescriptor<ClassDescriptor>(classFile->getClassId(classFile->getExternalClassesLength() + classi));
 		const StringDescriptor* classNameDescr = classDescr->getName(classFile);
-		const char16* className_narrow = classNameDescr->c_str();
-		Reference<String> className = vm->getStringClass<StringClass>()->translate(vm, className_narrow);
+		const char16* cclassName = classNameDescr->c_str();
+		Reference<String> className = vm->getStringClass<StringClass>()->translate(vm, cclassName);
 
-		vm->getClass(className.translate(vm->getHeap())->c_str()); // actual load
+		vm->getClass(*className); // actual load
 	}
 }

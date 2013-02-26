@@ -125,6 +125,7 @@ void Debugger::printObject(Object* object)
 
 			stringstream ss;
 			//klass->dump(object, ss); // TODO: call String()
+			ss << klass->getName()->c_str();
 			cout << ss.str();
 
 			if(klass->getPropertiesCount() > 0)

@@ -48,7 +48,7 @@ Class* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loa
 		propertiesLength += parent->getPropertiesCount();
 	}
 
-	return loader->createClass<LoadedObjectClass>(
+	return loader->createClass<Class>(
 		name, // classDescr->getName(classFile)->c_str()
 		mClassDescr->getParentsLength() == 0 ? 1 : mClassDescr->getParentsLength() /*+ (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0)*/, // + 1 for Object, TODO: Main in classfile
 		propertiesLength, 

@@ -10,22 +10,27 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerInteger_init(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> ret1)
+void BEER_CALL BeerInteger_init(Thread* thread, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL BeerInteger_toFloat(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Float> ret)
+void BEER_CALL BeerInteger_toFloat(Thread* thread, StackFrame* frame, StackRef<Integer> receiver, StackRef<Float> ret)
 {
-	ret = vm->createFloat(static_cast<Float::FloatData>(receiver->getData()));
+	thread->createFloat(ret, static_cast<Float::FloatData>(receiver->getData()));
 }
 
-void BEER_CALL BeerInteger_toString(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<String> ret)
+void BEER_CALL BeerInteger_div(Thread* thread, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> param, StackRef<Float> ret)
+{
+	thread->createFloat(ret, ((Float::FloatData)receiver->getData()) / ret->getData());
+}
+
+void BEER_CALL BeerInteger_toString(Thread* thread, StackFrame* frame, StackRef<Integer> receiver, StackRef<String> ret)
 {
 	stringstream ss;
 	ss << receiver->getData();
 	// TODO: check and throw Exception
-	ret = vm->createString(ss.str());
+	ret = thread->getVM()->createString(ss.str());
 }
 
 /*void BEER_CALL BeerInteger_equalInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Boolean> ret)
@@ -39,18 +44,18 @@ void BEER_CALL BeerInteger_toString(VirtualMachine* vm, StackFrame* frame, Stack
 struct UnaryOperator##Name																								\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Integer> receiver, 																					\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->create##Return(receiver->getData() Do);																\
+		thread->create##Return(ret, receiver->getData() Do);														\
 	}																													\
 };																														\
 
 #define BuildUnaryOperator(Class, Name, Operator, Return, Do)															\
 	BuildUnaryOperatorFn(Name, Do, Return);																				\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			0																											\
 		);																												\
@@ -68,13 +73,13 @@ struct UnaryOperator##Name																								\
 struct BinaryOperator##Name																								\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Integer> receiver, 																					\
 		StackRef<Param> arg, 																							\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->create##Return(static_cast<Return::Return##Data>(receiver->getData() Operator arg->getData()));		\
+		thread->create##Return(ret, static_cast<Return::Return##Data>(receiver->getData() Operator arg->getData()));		\
 	}																													\
 };																														\
 
@@ -97,7 +102,7 @@ struct BinaryOperator##Name																								\
 struct CompareOperator##Name																							\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Integer> receiver, 																					\
 		StackRef<Param> arg, 																							\
@@ -109,7 +114,7 @@ struct CompareOperator##Name																							\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			1																											\
 		);																												\
@@ -121,9 +126,14 @@ struct CompareOperator##Name																							\
 
 
 
+void BEER_CALL IntegerClass::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Integer> ret)
+{
+	ret = Integer::makeInlineValue(0);
+}
+
 Class* IntegerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<IntegerClass>(name, 1, 0, 15);
+	return loader->createClass<IntegerClass>(name, 1, 0, 16);
 }
 
 void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
@@ -146,7 +156,7 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	BuildBinaryOperator(klass, Add, +, Integer, Integer, +);
 	BuildBinaryOperator(klass, Sub, -, Integer, Integer, -);
 	BuildBinaryOperator(klass, Mul, *, Integer, Integer, *);
-	BuildBinaryOperator(klass, Div, /, Integer, Float, /);
+	//BuildBinaryOperator(klass, Div, /, Integer, Float, /);
 	BuildBinaryOperator(klass, Modulo, %, Integer, Integer, %);
 	
 	BuildUnaryOperator(klass, Minus, -, Integer, * (-1));
@@ -167,5 +177,15 @@ void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerInteger_toString);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::String()")), method));
+	
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN("/")));
+	method->setFunction(&BeerInteger_div);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::/(Integer)")), method));
+
+	method = loader->createMethod(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("createInstance")));
+	method->setFunction(&IntegerClass::createInstance);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }
 

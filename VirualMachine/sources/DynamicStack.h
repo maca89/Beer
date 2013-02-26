@@ -43,6 +43,12 @@ namespace Beer
 			mNext = 0;
 		}
 
+		INLINE uint32 push()
+		{
+			//check(1);
+			return mNext++;
+		}
+
 		INLINE uint32 push(T obj)
 		{
 			//check(1);
@@ -57,6 +63,10 @@ namespace Beer
 
 		INLINE T top(uint32 index)
 		{
+			/*if(index >= mNext)
+			{
+				int a = 0;
+			}*/
 			DBG_ASSERT(index < mNext, BEER_WIDEN("Stack index out of bounds"));
 			return mItems[index];
 		}

@@ -9,20 +9,11 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerPair_init(VirtualMachine* vm, StackFrame* frame, StackRef<Pair> receiver, StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret)
+void BEER_CALL BeerPair_init(Thread* thread, StackFrame* frame, StackRef<Pair> receiver, StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret)
 {
 	receiver->setFirst(*first);
 	receiver->setSecond(*second);
 	ret = receiver;
-}
-
-Object* PairClass::createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
-{
-	Pair* pair = gc->alloc<Pair>(
-		Object::OBJECT_CHILDREN_COUNT + 2
-	);
-	pair->setClass(this);
-	return pair;
 }
 
 Class* PairClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
@@ -37,7 +28,7 @@ void PairClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Cl
 	Method* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod(1, 1);
+	method = loader->createMethod(1, 2);
 	method->setName(vm->createString(BEER_WIDEN("Pair")));
 	//method->getReturn(0)->setType(klass);
 	//method->getParam(0)->setType(integerClass);

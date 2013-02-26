@@ -24,20 +24,6 @@ namespace Beer
 	{
 	};
 
-	class LoadedObjectClass : public Class
-	{
-	public:
-		// ClassReflection
-
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
-		{
-			LoadedObject* obj = gc->alloc<LoadedObject>(Object::OBJECT_CHILDREN_COUNT + getPropertiesCount());
-			obj->setClass(this);
-
-			return obj;
-		}
-	};
-
 	class LoadedObjectInitializer : public ClassInitializer
 	{
 	protected:

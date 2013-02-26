@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "TrampolineThread.h"
+#include "VirtualMachine.h"
 #include "Debugger.h"
 #include "ConsoleClass.h"
 #include "Method.h"
@@ -43,7 +44,7 @@ void TrampolineThread::work()
 			MethodReflection* oldMethod = method;
 		#endif // BEER_MEASURE_PERFORMANCE
 
-			method = method->call(mVM, frame);
+			method = method->call(this, frame);
 
 		#ifdef BEER_MEASURE_PERFORMANCE
 			oldMethod->addTimeSpent(timer.stop());

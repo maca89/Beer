@@ -57,9 +57,6 @@
     <ClCompile Include="sources\ObjectClass.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
-    <ClCompile Include="sources\Timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sources\InterlockedQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -165,6 +162,12 @@
     <ClCompile Include="sources\Property.cpp">
       <Filter>Source Files\Reflection</Filter>
     </ClCompile>
+    <ClCompile Include="sources\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MiliTimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\Bytecode.h">
@@ -194,9 +197,6 @@
     <ClInclude Include="sources\QuickSort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\Timer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sources\InterlockedQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -213,9 +213,6 @@
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\FixedStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Selector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\StackFrame.h">
@@ -293,9 +290,6 @@
     <ClInclude Include="sources\ClassTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\Object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sources\CharacterClass.h">
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
@@ -329,18 +323,6 @@
     <ClInclude Include="sources\PairClass.h">
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
-    <ClInclude Include="sources\Integer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\String.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Pair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Character.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sources\MetaClass.h">
       <Filter>Header Files\Reflection</Filter>
     </ClInclude>
@@ -358,6 +340,30 @@
     </ClInclude>
     <ClInclude Include="sources\Property.h">
       <Filter>Header Files\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\String.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Pair.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Object.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Character.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Integer.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MiliTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Float.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Boolean.h">
+      <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

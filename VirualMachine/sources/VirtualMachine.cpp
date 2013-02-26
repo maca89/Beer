@@ -75,7 +75,7 @@ Class* VirtualMachine::getClass(String* name)
 void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 {
 	mDebugger = new Debugger(this);
-	mStack = new WorkStack(stackInitSize);
+	//mStack = new WorkStack(stackInitSize);
 	mHeap = new CopyGC(this, heapInitSize);
 	mClassLoader = new ClassLoader(this, mHeap);
 
@@ -92,11 +92,11 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	);
 
 	new(mMetaClass) MetaClass(); // init v_table, TODO: get rid of
-	mMetaClass->setName(metaClassName);
 	mMetaClass->mFlags = 0;
 	mMetaClass->mParentsCount = 1;
 	mMetaClass->mPropertiesCount = 0;
 	mMetaClass->mMethodsCount = 2;
+	mMetaClass->setName(metaClassName);
 
 	Method* metaClassCtor = mClassLoader->createMethod(1, 0);
 	metaClassCtor->setFunction(&MetaClass::init);
@@ -124,21 +124,22 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	objectClassName->size(6); // 6 for "Object"
 	objectClassName->copyData(BEER_WIDEN("Object"));
 
-	mObjectClass = mClassLoader->createClass<ObjectClass>(objectClassName, 0, 0, 0);
+	mObjectClass = mClassLoader->createClass<ObjectClass>(objectClassName, 1, 0, 1); // extends Object, 1 method
 	// TODO: default methods
 	
 	// fix references
 	mMetaClass->extends(0, mObjectClass); // TODO
+	mObjectClass->extends(0, mObjectClass); // TODO
 
 	// create String class
 	String* stringClassName = ((GarbageCollector*)mHeap)->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "String", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
 	);
-	objectClassName->size(6); // 6 for "String"
-	objectClassName->copyData(BEER_WIDEN("String"));
+	stringClassName->size(6); // 6 for "String"
+	stringClassName->copyData(BEER_WIDEN("String"));
 
-	mStringClass = mClassLoader->createClass<StringClass>(stringClassName, 1, 0, 15);
+	mStringClass = mClassLoader->createClass<StringClass>(stringClassName, 1, 0, 16);
 	StringClassInitializer* stringInit = new StringClassInitializer();
 	stringInit->initClass(this, mClassLoader, mStringClass);
 	delete stringInit;
@@ -155,19 +156,25 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	metaClassFindMethod->setName(createString(BEER_WIDEN("open")));
 	mMetaClass->setMethod(1, createPair(createString(BEER_WIDEN("MetaClass::findMethod(String)")), metaClassFindMethod));
 
+	// default Object methods
+	Method* objectCreateInstance = mClassLoader->createMethod(1, 0);
+	objectCreateInstance->setFunction(&Class::createInstance);
+	objectCreateInstance->setName(createString(BEER_WIDEN("createInstance")));
+	mObjectClass->setMethod(0, createPair(createString(BEER_WIDEN("$Class::createInstance()")), objectCreateInstance));
+
 	// preloading of some classes
 	mPairClass = getClass(BEER_WIDEN("Pair"));
 	mFloatClass = getClass(BEER_WIDEN("Float"));
-	mCharacterClass = getClass(BEER_WIDEN("Character"));
 	mBooleanClass = getClass(BEER_WIDEN("Boolean"));
 	mIntegerClass = getClass(BEER_WIDEN("Integer"));
+	mArrayClass = getClass(BEER_WIDEN("Array"));
 	//mTaskClass = getClass(BEER_WIDEN("Task"));
 
 	// !!! the order is important !!!
-	////////////////////////////////////////////// xxxxxxx0 // Object
-	getClassTable()->add(mIntegerClass);		// xxxxxx01 // Integer
-	getClassTable()->add(mBooleanClass);		// xxxx0011 // Boolean
-	getClassTable()->add(mCharacterClass);		// xxxx0111 // Character
+	////////////////////////////////////////////////////// xxxxxxx0 // Object
+	getClassTable()->add(mIntegerClass);							// xxxxxx01 // Integer
+	getClassTable()->add(mBooleanClass);							// xxxx0011 // Boolean
+	getClassTable()->add(getClass(BEER_WIDEN("Character")));		// xxxx0111 // Character
 	
 	// other
 #ifdef BEER_INLINE_OPTIMALIZATION
@@ -181,122 +188,114 @@ void VirtualMachine::destroy()
 	mClasses.clear();
 
 	SMART_DELETE(mHeap);
-	SMART_DELETE(mStack);
 	SMART_DELETE(mClassLoader);
-	SMART_DELETE(mClassHeap);
 }
 
-void VirtualMachine::run()
+void VirtualMachine::work()
 {
-	typedef std::list<StackFrame> Frames;
-	Frames frames;
-	StackFrame* frame = NULL;
+	StackFrame* frame = getStackFrame();
 
-	frames.push_back(StackFrame(mStack));
-	frame = &frames.back();
+	StackRef<Class> mainClass(frame, frame->stackPush(getClass(BEER_WIDEN("Main")))); // TODO
+	StackRef<Object> main(frame, frame->stackPush(NULL));
 
-	StackRef<Object> main = StackRef<Object>(frame, frame->stackPush(getClass(BEER_WIDEN("Main"))->createInstance(this, frame, getHeap())));
-	Class* mainClass = main->getClass<Class>();
-
-	// call constructor
-	Method* mainCtor = NULL;
-	String* selector = createString(BEER_WIDEN("Main::Main()")); // TODO
-	if(mainCtor = mainClass->findMethod(selector))
+	// new Main
 	{
-		// ugly – create another trampoline
-		TrampolineThread* thread = new TrampolineThread(this);
-		getThreads().insert(thread);
+		StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("$Class::createInstance()")))); // TODO
+		StackRef<Method> method(frame, frame->stackPush(mainClass->findMethod(*selector))); // TODO
+		if(method.isNull())
+		{
+			throw MethodNotFoundException(*mainClass, mainClass->getClass<Class>(), *selector); // TODO
+		}
 
-		thread->openStackFrame()->stackMoveTop(1); // for return
-		thread->getStackFrame()->stackPush(*main); // push receiver
-		thread->openStackFrame()->method = mainCtor;
+		StackRef<Object> ret(frame, frame->stackPush(NULL));
+		frame->stackPush(*mainClass);
 
-		thread->run();
-		thread->wait();
+		StackFrame* nextFrame = openStackFrame();
+		method->call(this, nextFrame); // pops 2
+		closeStackFrame();
 
-		main = thread->getStack()->top(0); // fix main // TODO
+		main = ret;
+
+		frame->stackMoveTop(-3);
 	}
 
-	//openStackFrame(main, BEER_WIDEN("Main::run()"));
-
-	// ugly, TODO: some other way
-	//RUNTIME_ASSERT(mainClass->substituable(getTaskClass()), BEER_WIDEN("Main is not instance of Task"));
-
-
-	// push receiver
-	frames.push_back(StackFrame(frame));
-	frame = &frames.back();
-	frame->stackPush(*main);
-
-	frames.push_back(StackFrame(frame));
-	frame = &frames.back();
-	selector = createString(BEER_WIDEN("Task::dorun()")); // TODO
-	frame->method = mainClass->findMethod(selector);
-	
-	NULL_ASSERT(frame->method);
-	frame->method->call(this, frame);
-}
-
-Integer* VirtualMachine::createInteger(Integer::IntegerData value)
-{
-	if(Integer::canBeInlineValue(value))
+	// Main::Main()
 	{
-		return Integer::makeInlineValue(value);
+		StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Main::Main()")))); // TODO
+		StackRef<Method> method(frame, frame->stackPush(mainClass->findMethod(*selector))); // TODO
+
+		if(!method.isNull())
+		{
+			// ugly – create another trampoline
+			TrampolineThread* thread = new TrampolineThread(this);
+			getThreads().insert(thread);
+
+			thread->openStackFrame()->stackMoveTop(1); // for return
+			thread->getStackFrame()->stackPush(*main); // push receiver
+			thread->openStackFrame()->method = *method;
+
+			thread->run();
+			thread->wait();
+
+			main = thread->getStack()->top(0); // fix main // TODO
+		}
 	}
-	
-	Integer* object = getIntegerClass()->createInstance<Integer>(this, NULL, getHeap());
-	object->setNonInlineValue(value);
-	return object;
-}
 
-Float* VirtualMachine::createFloat(Float::FloatData value)
-{
-	Float* object = getFloatClass()->createInstance<Float>(this, NULL, getHeap());
-	object->setData(value);
-	return object;
-}
+	// Task::run()
+	{
+		frame = openStackFrame();
+		frame->stackPush(*main);
 
-String* VirtualMachine::createString(const Character::CharacterData* value)
-{
-	String* object = createString(strlen(value));
-	object->copyData(value);
-	return object;
+		frame = openStackFrame();
+
+		StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::dorun()")))); // TODO
+		StackRef<Method> method(frame, frame->stackPush(mainClass->findMethod(*selector))); // TODO
+
+		if(method.isNull())
+		{
+			throw MethodNotFoundException(*main, *mainClass, *selector); // TODO
+		}
+
+		frame->method = *method;
+		frame->method->call(this, frame);
+
+		closeStackFrame();
+	}
 }
 
 String* VirtualMachine::createString(const string& s)
 {
-	StackFrame frame(mStack); // TODO
-	frame.stackPush(createInteger(s.size())); // TODO
-	String* object = getStringClass()->createInstance<String>(this, &frame, getHeap());
-	object->copyData(s.c_str());
-	return object;
-}
+	StackFrame* frame = getStackFrame();
+	
+	StackRef<String> stringOnStack(frame, frame->stackPush(NULL));
+	
+	StackRef<Integer> lengthOnStack(frame, frame->stackPush(NULL));
+	createInteger(lengthOnStack, s.size());
 
-String* VirtualMachine::createString(String::LengthData length)
-{
-	StackFrame frame(mStack); // TODO
-	frame.stackPush(createInteger(length)); // TODO
-	String* object = getStringClass()->createInstance<String>(this, &frame, getHeap());
+	// TODO: why the cast???
+	((Thread*)this)->createString(lengthOnStack, stringOnStack);
+
+	//String* object = getStringClass()->createInstance<String>(this, frame, getHeap()); // pops length
+	String* object = *stringOnStack;
+
+	frame->stackMoveTop(-1); // pop string
+	object->copyData(s.c_str());
+
 	return object;
 }
 
 Pair* VirtualMachine::createPair(Object* first, Object* second)
 {
-	StackFrame frame(mStack);
-	Pair* pair = getPairClass()->createInstance<Pair>(this, &frame, getHeap());
+	StackFrame* frame = getStackFrame();
 
-	// TODO: call ctor
-	pair->setFirst(first);
-	DBG_ASSERT(pair->getFirst<Object>() == first, BEER_WIDEN("Object saved into Pair differs from the given"));
+	StackRef<Pair> ret(frame, frame->stackPush());
+	StackRef<Object> arg2(frame, frame->stackPush(second));
+	StackRef<Object> arg1(frame, frame->stackPush(first));
 
-	pair->setSecond(second);
-	DBG_ASSERT(pair->getSecond<Object>() == second, BEER_WIDEN("Object saved into Pair differs from the given"));
+	// TODO: why the cast???
+	((Thread*)this)->createPair(arg1, arg2, ret);
 
-	return pair;
+	Pair* p = *ret;
+	frame->stackMoveTop(-1);
+	return p;
 }
-
-/*void VirtualMachine::createInstance(StackFrame* frame, Class* klass)
-{
-	frame->stackPush(klass);
-	MethodReflection* method = klass->findMethod(createString(BEER_WIDEN("Class::createInstance()")));
-}*/

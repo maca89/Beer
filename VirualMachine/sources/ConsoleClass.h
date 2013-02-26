@@ -44,16 +44,6 @@ namespace Beer
 
 	class ConsoleClass : public Class
 	{
-	public:
-		// ClassReflection
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
-		{
-			Console* cons = gc->alloc<Console>(Object::OBJECT_CHILDREN_COUNT);
-			cons->setClass(this);
-			cons->setReadFailed(false);
-			//cons->setChildrenCount(vm->createInteger(getDefaultChildrenCount())); // TODO
-			return cons;
-		}
 	};
 
 	class ConsoleClassInitializer : public ClassInitializer

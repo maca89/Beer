@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "Selector.h"
+#include "StackFrame.h"
 #include "Pair.h"
 #include "Property.h"
 #include "String.h" // TODO
@@ -14,6 +14,7 @@ namespace Beer
 	struct GarbageCollector;
 	class StackFrame;
 	class VirtualMachine;
+	class Thread;
 
 	//#pragma pack(push, 1)
 	class Class : public Object
@@ -64,12 +65,6 @@ namespace Beer
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
-
-		// children count, TODO: get rid of
-		//INLINE void setDefaultChildrenCount(uint32 value) { mDefaultChildrenCount = value; }
-		//INLINE uint32 getDefaultChildrenCount() { return mDefaultChildrenCount; }
-
-		//virtual uint64 getChildrenCount(Object* object) { return mDefaultChildrenCount; }
 		
 		// name
 
@@ -146,19 +141,16 @@ namespace Beer
 		Method* findMethod(String* selector);
 		bool substituable(Class* otherClass) const;
 
-		// instance creation
-
-		// TODO: get rid of virtual methods
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc) = 0 { return NULL; }
-
-		template <typename T>
-		INLINE T* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc) { return static_cast<T*>(createInstance(vm,  frame, gc));}
+		static void BEER_CALL createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Object> ret);
 
 	protected: // TODO: private
 		INLINE ~Class()
 		{
 			// never called!
 		}
+
+		// TODO: get rid of virtual methods
+		
 	};
 	//#pragma pack(pop)
 };

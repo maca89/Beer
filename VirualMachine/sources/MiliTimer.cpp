@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Timer.h"
+#include "MiliTimer.h"
 
 using namespace Beer;
 

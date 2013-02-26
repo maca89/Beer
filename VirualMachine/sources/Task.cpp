@@ -7,18 +7,18 @@
 using namespace Beer;
 
 
-void BEER_CALL Task::dorun(VirtualMachine* vm, StackFrame* frame, StackRef<Object> receiver)
+void BEER_CALL Task::dorun(Thread* thread, StackFrame* frame, StackRef<Object> receiver)
 {
-	TrampolineThread* thread = new TrampolineThread(vm);
-	vm->getThreads().insert(thread);
+	TrampolineThread* thread2 = new TrampolineThread(thread->getVM());
+	thread->getVM()->getThreads().insert(thread2);
 
-	thread->openStackFrame()->stackPush(receiver.get()); // push receiver
+	thread2->openStackFrame()->stackPush(receiver.get()); // push receiver
 
-	String* selector = vm->createString(BEER_WIDEN("Task::run()")); // TODO: Task
+	String* selector = thread2->getVM()->createString(BEER_WIDEN("Task::run()")); // TODO: Task
 	Method* method = receiver->getClass<Class>()->findMethod(selector); // TODO
 	NULL_ASSERT(method); // TODO
-	thread->openStackFrame()->method = method;
+	thread2->openStackFrame()->method = method;
 
-	thread->run();
-	thread->wait(); // ugly
+	thread2->run();
+	thread2->wait(); // ugly
 }

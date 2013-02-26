@@ -64,12 +64,15 @@
     <ClCompile Include="sources\StringDescriptor.cpp" />
     <ClCompile Include="sources\Task.cpp" />
     <ClCompile Include="sources\NativeThread.cpp" />
-    <ClCompile Include="sources\Timer.cpp" />
+    <ClCompile Include="sources\Thread.cpp" />
+    <ClCompile Include="sources\MiliTimer.cpp" />
     <ClCompile Include="sources\TimerClass.cpp" />
     <ClCompile Include="sources\TrampolineThread.cpp" />
     <ClCompile Include="sources\VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sources\Boolean.h" />
+    <ClInclude Include="sources\Float.h" />
     <ClInclude Include="sources\MetaClass.h" />
     <ClInclude Include="sources\Character.h" />
     <ClInclude Include="sources\DebugMemoryAllocator.h" />
@@ -118,7 +121,6 @@
     <ClInclude Include="sources\prereq.h" />
     <ClInclude Include="sources\Property.h" />
     <ClInclude Include="sources\QuickSort.h" />
-    <ClInclude Include="sources\Selector.h" />
     <ClInclude Include="sources\SimpleMemoryAllocator.h" />
     <ClInclude Include="sources\StackFrame.h" />
     <ClInclude Include="sources\stdafx.h" />
@@ -129,7 +131,7 @@
     <ClInclude Include="sources\NativeThread.h" />
     <ClInclude Include="sources\Task.h" />
     <ClInclude Include="sources\Thread.h" />
-    <ClInclude Include="sources\Timer.h" />
+    <ClInclude Include="sources\MiliTimer.h" />
     <ClInclude Include="sources\TimerClass.h" />
     <ClInclude Include="sources\TrampolineThread.h" />
     <ClInclude Include="sources\VirtualMachine.h" />

@@ -1,7 +1,8 @@
 #pragma once
 #include "prereq.h"
 #include "Character.h"
-#include "ObjectClass.h"
+#include "Class.h"
+#include "ClassLoader.h"
 
 
 namespace Beer
@@ -11,11 +12,6 @@ namespace Beer
 	class CharacterClass : public Class
 	{
 	public:
-		// ClassReflection
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
-		{
-			return Character::makeInlineValue('\0');
-		}
 	};
 
 	class CharacterClassInitializer : public ClassInitializer

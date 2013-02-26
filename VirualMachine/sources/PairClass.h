@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Pair.h"
-#include "ObjectClass.h"
+#include "Class.h"
 #include "GarbageCollector.h"
 #include "ClassLoader.h"
 #include "IntegerClass.h"
@@ -12,8 +12,6 @@ namespace Beer
 
 	class PairClass : public Class
 	{
-	public:
-		virtual Object* createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc);
 	};
 
 	class PairClassInitializer : public ClassInitializer

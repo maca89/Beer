@@ -20,7 +20,7 @@ Console::ConsoleArguments Console::gArguments = Console::ConsoleArguments();
 struct BeerConsole_##Name##Param																						\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Console> receiver, 																					\
 		StackRef<Param> value) 																							\
@@ -31,7 +31,7 @@ struct BeerConsole_##Name##Param																						\
 
 #define BuildPrintMethod(Name, Param, Operation)																		\
 	BuildPrintMethodFn(Name, Param, Operation);																			\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			1																											\
 		);																												\
@@ -42,33 +42,34 @@ struct BeerConsole_##Name##Param																						\
 	klass->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Console::")) + BEER_WIDEN(#Name) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")")).c_str()), method));\
 
 
-void BEER_CALL BeerConsole_init(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Console> ret1)
+void BEER_CALL BeerConsole_init(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Console> ret)
 {
-	ret1 = receiver;
+	receiver->setReadFailed(false);
+	ret = receiver;
 }
 
-void BEER_CALL BeerConsole_println(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver)
+void BEER_CALL BeerConsole_println(Thread* thread, StackFrame* frame, StackRef<Console> receiver)
 {
 	Console::getOutput() << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
 }
 
-void BEER_CALL BeerConsole_printArray(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
+void BEER_CALL BeerConsole_printArray(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
 {
 	// TODO
 	string str;
-	arg->toString(vm, str);
+	arg->toString(thread->getVM(), str);
 	Console::getOutput() << str;
 }
 
-void BEER_CALL BeerConsole_printlnArray(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
+void BEER_CALL BeerConsole_printlnArray(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg)
 {
 	// TODO
 	string str;
-	arg->toString(vm, str);
+	arg->toString(thread->getVM(), str);
 	Console::getOutput() << str << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
 }
 
-void BEER_CALL BeerConsole_readInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> ret)
+void BEER_CALL BeerConsole_readInteger(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> ret)
 {
 	Console::getOutput().flush(cout); // important
 
@@ -76,10 +77,10 @@ void BEER_CALL BeerConsole_readInteger(VirtualMachine* vm, StackFrame* frame, St
 	cin >> n;
 	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
-	ret = vm->createInteger(n);
+	thread->createInteger(ret, n);
 }
 
-void BEER_CALL BeerConsole_readFloat(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Float> ret)
+void BEER_CALL BeerConsole_readFloat(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Float> ret)
 {
 	Console::getOutput().flush(cout); // important
 
@@ -87,10 +88,10 @@ void BEER_CALL BeerConsole_readFloat(VirtualMachine* vm, StackFrame* frame, Stac
 	cin >> n;
 	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
-	ret = vm->createFloat(n);
+	thread->createFloat(ret, n);
 }
 
-void BEER_CALL BeerConsole_readBoolean(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> ret)
+void BEER_CALL BeerConsole_readBoolean(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> ret)
 {
 	Console::getOutput().flush(cout); // important
 
@@ -98,10 +99,10 @@ void BEER_CALL BeerConsole_readBoolean(VirtualMachine* vm, StackFrame* frame, St
 	cin >> n;
 	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
-	ret = vm->createFloat(n);
+	ret = Boolean::makeInlineValue(n);
 }
 
-void BEER_CALL BeerConsole_readLine(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
+void BEER_CALL BeerConsole_readLine(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
 {
 	Console::getOutput().flush(cout); // important
 
@@ -109,19 +110,19 @@ void BEER_CALL BeerConsole_readLine(VirtualMachine* vm, StackFrame* frame, Stack
 	std::getline(cin, str);
 	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
-	ret = vm->createString(str);
+	ret = thread->getVM()->createString(str);
 }
 
-void BEER_CALL BeerConsole_readFailed(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
+void BEER_CALL BeerConsole_readFailed(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getReadFailed());
 }
 
-void BEER_CALL BeerConsole_getArg(VirtualMachine* vm, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> index, StackRef<String> ret)
+void BEER_CALL BeerConsole_getArg(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> index, StackRef<String> ret)
 {
 	Integer::IntegerData i = index->getData();
-	if(Console::hasArg(i)) ret = vm->createString(Console::getArg(i));
-	else ret = vm->createString(BEER_WIDEN(""));
+	if(Console::hasArg(i)) ret = thread->getVM()->createString(Console::getArg(i));
+	else ret = thread->getVM()->createString(BEER_WIDEN(""));
 }
 
 

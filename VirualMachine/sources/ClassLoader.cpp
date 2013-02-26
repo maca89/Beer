@@ -113,7 +113,7 @@ Method* ClassLoader::createMethod(uint16 returns, uint16 params)
 	// init flags, TODO: is it really needed?
 	method->mFlags = 0;
 
-	method->setMaxStack(100); // default value, TODO: get rid of
+	method->setMaxStack(20); // default value, TODO: get rid of
 	
 	// TODO: garbaged
 	method->mReturnsCount = returns;

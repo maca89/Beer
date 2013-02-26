@@ -15,7 +15,7 @@ using namespace Beer;
 struct CompareStringOperator##Name																						\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<String> receiver, 																						\
 		StackRef<String> arg, 																							\
@@ -27,12 +27,10 @@ struct CompareStringOperator##Name																						\
 
 #define BuildCompareStringOperator(Name, Operator, Operation)															\
 	BuildCompareStringOperatorFn(Name, Operation);																		\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			1																											\
 		);																												\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	/*Name##Method->getParam(0)->setType(integerClass);*/																\
 	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
 	method->setFunction(&(CompareStringOperator##Name::fn));															\
 	klass->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("String::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(String)")).c_str()), method));\
@@ -40,99 +38,120 @@ struct CompareStringOperator##Name																						\
 
 
 
-void BEER_CALL BeerString_init(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<String> ret)
+void BEER_CALL BeerString_init(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL BeerString_getLength(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> ret)
+void BEER_CALL BeerString_getLength(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> ret)
 {
-	ret = vm->createInteger(receiver->size());
+	thread->createInteger(ret, receiver->size());
 }
 
-void BEER_CALL BeerString_getCharacter(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
+void BEER_CALL BeerString_getCharacter(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
 {
 	Integer::IntegerData indexdata = index.get()->getData();
 	BOUNDS_ASSERT(indexdata, receiver->size());
 	ret = Character::makeInlineValue(receiver->c_str()[indexdata]);
 }
 
-void BEER_CALL BeerString_concatString(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
+void BEER_CALL BeerString_concatString(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
 {
-	ret = vm->createString(receiver->size() + arg->size());
+	StackRef<Integer> length(frame, frame->stackPush());
+	thread->createInteger(length, receiver->size() + arg->size());
+
+	thread->createString(length, ret);
+
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), arg->size(), arg->c_str());
 }
 
-void BEER_CALL BeerString_concatInteger(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
+void BEER_CALL BeerString_concatInteger(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
 {
+	// TODO
 	stringstream ss;
 	ss << arg->getData();
 	string argStr = ss.str();
 
-	ret = vm->createString(receiver->size() + argStr.size());
+	StackRef<Integer> length(frame, frame->stackPush());
+	thread->createInteger(length, receiver->size() + argStr.size());
+
+	thread->createString(length, ret);
+
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
 
 }
 
-void BEER_CALL BeerString_concatFloat(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
+void BEER_CALL BeerString_concatFloat(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
 {
+	// TODO
 	stringstream ss;
 	ss << std::setprecision(8) << std::fixed << arg->getData();
 	string argStr = ss.str();
 
-	ret = vm->createString(receiver->size() + argStr.size());
+	StackRef<Integer> length(frame, frame->stackPush());
+	thread->createInteger(length, receiver->size() + argStr.size());
+
+	thread->createString(length, ret);
+
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
 }
 
-void BEER_CALL BeerString_concatBoolean(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
+void BEER_CALL BeerString_concatBoolean(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
 {
+	// TODO
 	string str;
 	if(arg->getData()) str = BEER_WIDEN("true");
 	else str = BEER_WIDEN("false");
 
-	ret = vm->createString(receiver->size() + str.size());
+	StackRef<Integer> length(frame, frame->stackPush());
+	thread->createInteger(length, receiver->size() + str.size());
+
+	thread->createString(length, ret);
+
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
-void BEER_CALL BeerString_concatCharacter(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
+void BEER_CALL BeerString_concatCharacter(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
 {
-	ret = vm->createString(receiver->size() + 1);
+	StackRef<Integer> length(frame, frame->stackPush());
+	thread->createInteger(length, receiver->size() + 1);
+
+	thread->createString(length, ret);
+
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	Character::CharacterData c = arg->getData();
 	ret->copyData(receiver->size(), 1, &c);
 }
 
-void BEER_CALL BeerString_concatArray(VirtualMachine* vm, StackFrame* frame, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
+void BEER_CALL BeerString_concatArray(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
 {
+	// TODO
 	string str;
-	arg->toString(vm, str);
+	arg->toString(thread->getVM(), str);
 
-	ret = vm->createString(receiver->size() + str.size());
+	StackRef<Integer> length(frame, frame->stackPush());
+	thread->createInteger(length, receiver->size() + str.size());
+
+	thread->createString(length, ret);
+
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
-
-String* StringClass::createInstance(VirtualMachine* vm, StackFrame* frame, GarbageCollector* gc)
+void BEER_CALL StringClass::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<String> ret)
 {
-	Integer::IntegerData length = frame->stackTop<Integer>(frame->stackTopIndex())->getData();
-	frame->stackPop(); // pop size
-	String* str = gc->alloc<String>(
-		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (length + 1)), // +1 for \0
-		Object::OBJECT_CHILDREN_COUNT + getPropertiesCount()
-	);
-	str->size(length);
-	str->setClass(this);
-	return str;
+	// TODO: probably not working
+	StackRef<Integer> length = StackRef<Integer>(frame, -2);
+	thread->createString(length, ret);
 }
 
 Class* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<StringClass>(name, 1, 0, 15);
+	throw Exception(BEER_WIDEN("Implemented elsewehere"), __WFILE__, __LINE__);
 }
 
 void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
@@ -193,25 +212,37 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 	method->setName(vm->createString(BEER_WIDEN("get")));
 	method->setFunction(&BeerString_getCharacter);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::get(Integer)")), method));
+
+	method = loader->createMethod(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("createInstance")));
+	method->setFunction(&StringClass::createInstance);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }
 
 // string pool
 
-Reference<String> StringPool::translate(VirtualMachine* vm, const char16* str)
+Reference<String> StringPool::translate(Thread* thread, const char16* str)
 {
 	StringMap::iterator it = mStrings.find(str);
 	if(it == mStrings.end())
 	{
 		uint32 length = strlen(str);
-		CopyGC* heap = static_cast<CopyGC*>(vm->getHeap());
+		CopyGC* heap = static_cast<CopyGC*>(thread->getHeap());
 		
-		StackFrame frame(vm->getStack());
-		frame.stackPush(vm->createInteger(length));
+		StackFrame* frame = thread->getStackFrame();
 
-		String* result = vm->getStringClass()->createInstance<String>(vm, &frame, heap);
-		result->copyData(str, length);
+		StackRef<String> strOnStack(frame, frame->stackPush());
 
-		return Reference<String>(heap, result);
+		StackRef<Integer> lengthOnStack(frame, frame->stackPush());
+		thread->createInteger(lengthOnStack, length);
+
+		// TODO: why the cast??
+		thread->createString(lengthOnStack, strOnStack); // pops length
+		strOnStack->copyData(str, length);
+
+		Reference<String> result(heap, *strOnStack);
+		frame->stackMoveTop(-1); // pop string from stack
+		return result;
 	}
 
 	return it->second;

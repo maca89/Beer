@@ -192,7 +192,7 @@ int __cdecl main(int argc, const char** argv)
 		
 		if(settings.printClassFile) classFileLoader->printClassFile(classFile);
 		if(settings.loadClassFile) classFileLoader->loadClasses(vm, classFile);
-		if(settings.run) vm->run();
+		if(settings.run) { vm->run(); vm->wait(); }
 
 	#ifdef BEER_MEASURE_PERFORMANCE
 		typedef std::list<Method*> MethodList;

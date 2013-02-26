@@ -9,54 +9,28 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerFloat_init(VirtualMachine* vm, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> ret)
+void BEER_CALL BeerFloat_init(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL BeerFloat_toInteger(VirtualMachine* vm, StackFrame* frame, StackRef<Float> receiver, StackRef<Integer> ret)
+void BEER_CALL BeerFloat_toInteger(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Integer> ret)
 {
-	ret = vm->createInteger(static_cast<Integer::IntegerData>(receiver->getData()));
+	thread->createInteger(ret, static_cast<Integer::IntegerData>(receiver->getData()));
 }
 
-void BEER_CALL BeerFloat_toString(VirtualMachine* vm, StackFrame* frame, StackRef<Float> receiver, StackRef<String> ret)
+void BEER_CALL BeerFloat_toString(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<String> ret)
 {
 	stringstream ss;
 	ss << std::setprecision(8) << std::fixed << receiver->getData();
 	// TODO: check and throw Exception
-	ret = vm->createString(ss.str());
+	thread->createString(ret, ss.str());
 }
 
-
-// unary operator
-
-#define BuildUnaryOperatorFn(Name, Do, Return)																			\
-struct UnaryOperator##Name																								\
-{																														\
-	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
-		StackFrame* frame, 																								\
-		StackRef<Float> receiver, 																						\
-		StackRef<Return> ret)																							\
-	{																													\
-		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(vm, frame, vm->getHeap());						\
-		ret->setData(receiver->getData() Do);																			\
-	}																													\
-};																														\
-
-#define BuildUnaryOperator(Class, Name, Operator, Return, Do)															\
-	BuildUnaryOperatorFn(Name, Do, Return);																				\
-	method = loader->createMethod(																				\
-			1, 																											\
-			0																											\
-		);																												\
-	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
-	/*Name##Method->getReturn(0)->setType(integerClass);*/																\
-	method->setFunction((&(UnaryOperator##Name::fn)));																	\
-	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Float::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("()"))), method));\
-
-
-
+void BEER_CALL BeerFloat_minus(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> ret)
+{
+	thread->createFloat(ret, -receiver->getData());
+}
 
 // binary operator
 
@@ -64,20 +38,19 @@ struct UnaryOperator##Name																								\
 struct BinaryOperator##Name																								\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Float> receiver, 																						\
 		StackRef<Param> arg, 																							\
 		StackRef<Return> ret)																							\
 	{																													\
-		ret = vm->getClass(BEER_WIDEN(#Return))->createInstance<Return>(vm, frame, vm->getHeap());						\
-		ret->setData(static_cast<Return::Return##Data>(receiver->getData()) Operator arg->getData());					\
+		thread->createFloat(ret, receiver->getData() Operator arg->getData());											\
 	}																													\
 };																														\
 
 #define BuildBinaryOperator(Class, Name, Operator, Param, Return, Do)													\
 	BuildBinaryOperatorFn(Name, Do, Param, Return);																		\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			1																											\
 		);																												\
@@ -94,7 +67,7 @@ struct BinaryOperator##Name																								\
 struct CompareOperator##Name																							\
 {																														\
 	static void BEER_CALL fn(																							\
-		VirtualMachine* vm, 																							\
+		Thread* thread, 																								\
 		StackFrame* frame, 																								\
 		StackRef<Float> receiver, 																						\
 		StackRef<Param> arg, 																							\
@@ -106,7 +79,7 @@ struct CompareOperator##Name																							\
 
 #define BuildCompareOperator(Class, Name, Operator, Param, Do)															\
 	BuildCompareOperatorFn(Name, Do, Param);																			\
-	method = loader->createMethod(																				\
+	method = loader->createMethod(																						\
 			1, 																											\
 			1																											\
 		);																												\
@@ -115,9 +88,6 @@ struct CompareOperator##Name																							\
 	/*Name##Method->getParam(0)->setType(integerClass);*/																\
 	method->setFunction(&(CompareOperator##Name::fn));																	\
 	Class->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("Float::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(") + BEER_WIDEN(#Param) + BEER_WIDEN(")"))), method));\
-
-
-
 
 
 
@@ -142,8 +112,6 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	BuildBinaryOperator(klass, Mul, *, Float, Float, *);
 	BuildBinaryOperator(klass, Div, /, Float, Float, /);
 	
-	BuildUnaryOperator(klass, Minus, -, Float, * (-1));
-	
 	BuildCompareOperator(klass, Smaller, <, Float, <);
 	BuildCompareOperator(klass, Greater, >, Float, >);
 	BuildCompareOperator(klass, SmallerEqual, <=, Float, <=);
@@ -160,5 +128,10 @@ void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 	method->setName(vm->createString(BEER_WIDEN("String")));
 	method->setFunction(&BeerFloat_toString);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::String()")), method));
+	
+	method = loader->createMethod(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("-")));
+	method->setFunction(&BeerFloat_minus);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::-()")), method));
 	
 }

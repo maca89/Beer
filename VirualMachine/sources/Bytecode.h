@@ -9,6 +9,7 @@ namespace Beer
 	class StackFrame;
 	class ClassFileDescriptor;
 	class Method;
+	class Thread;
 
 	class Bytecode //: public Object, TODO
 	{
@@ -57,7 +58,7 @@ namespace Beer
 			INSTR_SPECIALINVOKE		= 53,
 			INSTR_RETURN			= 55,
 			
-			_INSTR_SIZE			= 127,
+			_INSTR_SIZE				= 127,
 
 			// inlined functions - the numbers may change!
 			// Boolean
@@ -84,6 +85,7 @@ namespace Beer
 			// optimalised instructions - the numbers may change!
 			// Integer
 			OPTIMAL_INTEGER_PUSH_INLINED,
+			OPTIMAL_ARRAY_ALLOC,
 		};
 
 		#pragma pack(push, 1)
@@ -143,7 +145,7 @@ namespace Beer
 			// *NO* deleting of mData or mDict !!!
 		}
 
-		Method* call(VirtualMachine* vm, StackFrame* frame);
+		Method* call(Thread* thread, StackFrame* frame);
 		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }

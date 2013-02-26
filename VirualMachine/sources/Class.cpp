@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "Class.h"
-#include "ObjectClass.h"
+#include "Object.h"
 #include "Method.h"
 #include "GarbageCollector.h"
 #include "Property.h"
-#include "StringClass.h"
+#include "String.h"
+#include "VirtualMachine.h"
 
 using namespace Beer;
 
@@ -65,11 +66,22 @@ Method* Class::findMethod(String* selector)
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
 		Class* parent = getParent(i);
+		if(parent == this) continue;
 		Method* method = parent->findMethod(selector);
 		if(method) return method;
 	}
 
 	return NULL;
+}
+
+void BEER_CALL Class::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Object> ret)
+{
+	ret = ((GarbageCollector*)thread->getHeap())->alloc<Object>(
+		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
+	);
+			
+	ret->setClass(*receiver); // TODO
+	//invoke(object, BEER_WIDEN("Object::setClass(Class)"));
 }
 
 bool Class::substituable(Class* otherClass) const

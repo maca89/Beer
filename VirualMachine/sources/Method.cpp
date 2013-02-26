@@ -2,12 +2,13 @@
 #include "Method.h"
 #include "ObjectClass.h"
 #include "GarbageCollector.h"
+#include "Thread.h"
 #include "StackFrame.h"
 
 using namespace Beer;
 
 
-Method* Method::runFunction(VirtualMachine* vm, StackFrame* frame)
+Method* Method::runFunction(Thread* thread, StackFrame* frame)
 {
 	Cb fn = mFunction;
 	if(fn == NULL)
@@ -28,7 +29,7 @@ Method* Method::runFunction(VirtualMachine* vm, StackFrame* frame)
 		+ sizeof(StackRef<Object>) * paramsCount						// params
 		+ sizeof(StackRef<Object>)										// receiver
 		+ sizeof(StackFrame*)											// stackframe
-		+ sizeof(VirtualMachine*);										// vm
+		+ sizeof(Thread*);												// thread
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////// within the next block you should not do anything with the stack 
@@ -62,8 +63,8 @@ Method* Method::runFunction(VirtualMachine* vm, StackFrame* frame)
 		// push StackFrame*
 		push frame;
 
-		// push VirtualMachine*
-		push vm;
+		// push Thread*
+		push thread;
 
 		// call function
 		call fn;
