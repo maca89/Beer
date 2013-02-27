@@ -1032,7 +1032,9 @@ Method* Bytecode::call(Thread* thread, StackFrame* frame)
 			{
 				StackRef<Integer> length(frame, frame->stackTopIndex());
 				StackRef<Array> instance(frame, frame->stackPush());
-				thread->createArray(length.copy(), instance); // pops copied length
+
+				StackRef<Integer> copiedLength(frame, frame->stackPush(*length)); // TODO: better syntax
+				thread->createArray(copiedLength, instance); // pops copied length
 			}
 			break;
 #endif // BEER_INLINE_OPTIMALIZATION

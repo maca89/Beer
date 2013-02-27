@@ -21,6 +21,12 @@ Method* Method::runFunction(Thread* thread, StackFrame* frame)
 
 	uint16 i = 0;
 	int32 elemi = 0;
+
+#ifdef BEER_STACK_DEBUGGING
+#else
+	Object** objPtr = NULL;
+#endif // BEER_STACK_DEBUGGING
+
 	uint16 returnCount = getReturnsCount();
 	uint16 paramsCount = getParamsCount();
 
@@ -38,28 +44,54 @@ Method* Method::runFunction(Thread* thread, StackFrame* frame)
 	{
 		elemi = -(static_cast<int32>(returnCount) - static_cast<int32>(i)) - static_cast<int32>(paramsCount);
 
+#ifdef BEER_STACK_DEBUGGING
 		__asm // push return
 		{
 			push elemi;
 			push frame;
 		}
+#else
+		objPtr = frame->stackTopPtr(elemi);
+		__asm // push return
+		{
+			push objPtr;
+		}
+#endif // BEER_STACK_DEBUGGING
 	}
 	for(i = 0; i < paramsCount; i++)
 	{
 		elemi = -(static_cast<int32>(paramsCount) - static_cast<int32>(i));
 
+#ifdef BEER_STACK_DEBUGGING
 		__asm // push param
 		{
 			push elemi;
 			push frame;
 		}
+#else
+		objPtr = frame->stackTopPtr(elemi);
+		__asm // push return
+		{
+			push objPtr;
+		}
+#endif // BEER_STACK_DEBUGGING
 	}
+#ifdef BEER_STACK_DEBUGGING
 	__asm
 	{
 		// push receiver
 		push 0;
 		push frame;
-
+	}
+#else
+	objPtr = frame->stackTopPtr(0);
+	__asm
+	{
+		push objPtr;
+	}
+#endif // BEER_STACK_DEBUGGING
+	__asm
+	{
 		// push StackFrame*
 		push frame;
 

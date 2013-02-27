@@ -79,7 +79,6 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mHeap = new CopyGC(this, heapInitSize);
 	mClassLoader = new ClassLoader(this, mHeap);
 
-	
 	String* metaClassName = ((GarbageCollector*)mHeap)->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 10 for "MetaClass", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size

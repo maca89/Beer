@@ -66,6 +66,11 @@ namespace Beer
 			return stack->top(translate(index));
 		}
 
+		INLINE Object** stackTopPtr(int32 index)
+		{
+			return stack->topPtr(translate(index));
+		}
+
 		template <typename T>
 		INLINE T* stackTop(int32 index)
 		{
@@ -102,8 +107,8 @@ namespace Beer
 			return static_cast<int64>(index) - frameOffset + 1;
 		}
 	};
-
-
+	
+#ifdef BEER_STACK_DEBUGGING
 	#pragma pack(push, 1)
 	template <typename T>
 	class StackRef
@@ -117,14 +122,14 @@ namespace Beer
 		{
 		}
 
-		INLINE void operator= (Object* obj)
+		INLINE void operator= (T* obj)
 		{
-			mFrame->stackStore(mIndex, obj);
+			set(obj);
 		}
 
 		INLINE void operator= (StackRef& ref)
 		{
-			mFrame->stackStore(mIndex, ref.get());
+			set(ref.get());
 		}
 
 		template <typename U>
@@ -143,12 +148,6 @@ namespace Beer
 			return get();
 		}
 
-		/*INLINE const T* operator-> () const
-		{
-			DBG_ASSERT(get() != NULL, BEER_WIDEN("Null pointer"));
-			return get();
-		}*/
-
 		INLINE T* operator-> ()
 		{
 			DBG_ASSERT(get() != NULL || Object::isInlineValue(get()), BEER_WIDEN("Null pointer")); // Object::isInlineValue is just a workaround TODO: not checking inline value
@@ -158,11 +157,6 @@ namespace Beer
 		INLINE int32 getIndex() const
 		{
 			return mIndex;
-		}
-
-		INLINE void setIndex(int32 index)
-		{
-			mIndex = index;
 		}
 
 		INLINE const T* get() const
@@ -175,9 +169,9 @@ namespace Beer
 			return mFrame->stackTop<T>(mIndex);
 		}
 
-		INLINE StackRef<T> copy()
+		INLINE void set(T* object)
 		{
-			return StackRef<T>(mFrame, mFrame->stackPush(get()));
+			mFrame->stackStore(mIndex, object);
 		}
 
 		INLINE bool isNull() const
@@ -188,9 +182,55 @@ namespace Beer
 		template<typename U>
 		INLINE StackRef<U> staticCast()
 		{
-			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cas
+			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cast
 			return StackRef<U>(mFrame, mIndex);
 		}
 	};
 	#pragma pack(pop)
+#else
+	#pragma pack(push, 1)
+	template <typename T>
+	class StackRef
+	{
+	protected:
+		Object** mPtr;
+		
+	public:
+		INLINE StackRef(StackFrame* frame, int32 index)
+		{
+			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
+			mPtr = frame->stackTopPtr(index);
+		}
+
+		INLINE StackRef(T** object) { mPtr = object; }
+
+		INLINE void operator= (T* obj) { set(obj); }
+		INLINE void operator= (StackRef& ref) { set(ref.get()); }
+
+		INLINE T* operator*() { return get(); }
+		INLINE const T* operator*() const { return get();}
+
+		INLINE T* operator-> ()
+		{
+			// Object::isInlineValue is just a workaround TODO: not checking inline value
+			DBG_ASSERT(get() != NULL || Object::isInlineValue(get()), BEER_WIDEN("Null pointer"));
+			return get();
+		}
+
+		INLINE const T* get() const { return reinterpret_cast<T*>(*mPtr); }
+		INLINE T* get() { return reinterpret_cast<T*>(*mPtr); }
+		INLINE void set(T* object) { *mPtr = object; }
+		INLINE bool isNull() const { return get() == NULL; }
+
+		INLINE Object** getPtr() { return mPtr; }
+
+		template<typename U>
+		INLINE StackRef<U> staticCast()
+		{
+			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cast
+			return StackRef<U>(reinterpret_cast<U**>(mPtr));
+		}
+	};
+	#pragma pack(pop)
+#endif // BEER_STACK_DEBUGGING
 };

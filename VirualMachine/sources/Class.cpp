@@ -76,6 +76,8 @@ Method* Class::findMethod(String* selector)
 
 void BEER_CALL Class::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Object> ret)
 {
+	Class* klass = *receiver;
+
 	ret = ((GarbageCollector*)thread->getHeap())->alloc<Object>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);

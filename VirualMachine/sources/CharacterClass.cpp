@@ -19,7 +19,7 @@ struct BeerCharacter_CompareOperator##Name																				\
 		StackRef<Param> arg, 																							\
 		StackRef<Boolean> ret)																							\
 	{																													\
-		ret = Character::makeInlineValue(receiver->getData() Operator arg->getData());									\
+		ret = Boolean::makeInlineValue(receiver->getData() Operator arg->getData());									\
 	}																													\
 };																														\
 

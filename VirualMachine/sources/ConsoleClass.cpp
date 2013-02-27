@@ -113,7 +113,7 @@ void BEER_CALL BeerConsole_readLine(Thread* thread, StackFrame* frame, StackRef<
 	ret = thread->getVM()->createString(str);
 }
 
-void BEER_CALL BeerConsole_readFailed(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret)
+void BEER_CALL BeerConsole_readFailed(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getReadFailed());
 }

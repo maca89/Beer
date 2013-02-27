@@ -7,7 +7,7 @@
 
 using namespace Beer;
 
-#ifdef BEER_DEBUG_MODE
+#if /*defined(BEER_DEBUG_MODE) &&*/ defined(BEER_STACK_DEBUGGING)
 #define ASSERT_STACK_START() int __startSize = frame->stack->size();
 #define ASSERT_STACK_END(params) DBG_ASSERT(__startSize - params == frame->stack->size(), BEER_WIDEN("Stack corrupted"));
 #define ASSERT_STACK_PARAMS_2(p1, p2) DBG_ASSERT(p1.getIndex() - 1 == p2.getIndex(), BEER_WIDEN("Given parameters have wrong indices"));
@@ -19,7 +19,7 @@ using namespace Beer;
 #define ASSERT_STACK_PARAMS_2(p1, p2)
 #define ASSERT_STACK_PARAMS_3(p1, p2, p3)
 #define ASSERT_STACK_PARAMS_4(p1, p2, p3, p4)
-#endif // BEER_DEBUG_MODE
+#endif // BEER_STACK_DEBUGGING
 
 
 Thread::Thread(VirtualMachine* vm)

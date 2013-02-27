@@ -314,6 +314,7 @@ namespace Beer
 		#define BEER_ASSERTS_ON
 		#define BEER_MEMORY_DEBUGGING
 		#define BEER_GC_DEBUGGING
+		#define BEER_STACK_DEBUGGING
 	#endif // BEER_DEBUG_MODE
 
 	#ifdef BEER_ASSERTS_ON
@@ -323,6 +324,7 @@ namespace Beer
 	//#define BEER_MEMORY_DEBUGGING
 	//#define BEER_GC_DEBUGGING
 	//#define BEER_DEBUG_ASSERTS_ON
+	//#define BEER_STACK_DEBUGGING
 
 	#define BEER_RUNTIME_ASSERS_ON
 	#define BEER_NULL_ASSERTS_ON
