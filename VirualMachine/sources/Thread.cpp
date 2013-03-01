@@ -104,13 +104,17 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 	StackFrame* frame = getStackFrame();
 	ASSERT_STACK_START();
 
-	StackRef<Class> floatClass(frame, frame->stackPush(NULL));
+	StackRef<Class> floatClass(frame, frame->stackPush());
 	getFloatClass(floatClass);
 
-	staticCreateObject(floatClass, ret.staticCast<Object>(), sizeof(Float)); // pops class
+	floatClass.push(frame);
+
+	staticCreateObject(floatClass, ret.staticCast<Object>(), sizeof(Float)); // pops copied class
 
 	ret->setClass(*floatClass);
 	ret->setData(value);
+
+	frame->stackMoveTop(-1); // pop class
 
 	ASSERT_STACK_END(0);
 }
@@ -119,7 +123,7 @@ void Thread::createString(StackRef<String> ret, string value)
 {
 	StackFrame* frame = getStackFrame();
 	ASSERT_STACK_START();
-	StackRef<Integer> length(frame, frame->stackPush(NULL));
+	StackRef<Integer> length(frame, frame->stackPush());
 	createInteger(length, value.size());
 
 	createString(length, ret); // pops length
@@ -134,7 +138,7 @@ void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 	// no need for ASSERT_STACK_PARAMS
 	ASSERT_STACK_START();
 
-	StackRef<Class> stringClass(frame, frame->stackPush(NULL));
+	StackRef<Class> stringClass(frame, frame->stackPush());
 	getStringClass(stringClass);
 
 	ret = ((GarbageCollector*)getHeap())->alloc<String>(
@@ -154,7 +158,7 @@ void Thread::createArray(StackRef<Integer> length, StackRef<Array> ret)
 	ASSERT_STACK_PARAMS_2(length, ret);
 	ASSERT_STACK_START();
 
-	StackRef<Class> arrayClass(frame, frame->stackPush(NULL));
+	StackRef<Class> arrayClass(frame, frame->stackPush());
 	getArrayClass(arrayClass);
 
 	staticCreateObject(arrayClass, ret.staticCast<Object>(), sizeof(Array), static_cast<int32>(length->getData())); // pops class

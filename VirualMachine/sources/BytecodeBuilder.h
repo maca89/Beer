@@ -85,17 +85,27 @@ namespace Beer
 			// TODO: check if can memory grow that much
 		}
 
-		NOINLINE Bytecode::OpCode/*Bytecode::Instruction**/ next()
+		NOINLINE Bytecode::OpCode next()
 		{
 			DBG_ASSERT(mInstri < mDictSize, BEER_WIDEN("Instruction counter out of range"));
 			mDict[mInstri++] = mNewDataIndex;
 		
-			copy(sizeof(uint8)); // copy opcode
+			//copy(sizeof(uint8)); // copy opcode
 
-			mOldInstr = reinterpret_cast<const Bytecode::Instruction*>(&mOldData[mOldDataIndex - sizeof(uint8)]);
-			mNewInstr = reinterpret_cast<Bytecode::Instruction*>(&mNewData[mNewDataIndex - sizeof(uint8)]);
+			mOldInstr = reinterpret_cast<const Bytecode::Instruction*>(&mOldData[mOldDataIndex]);
+			mNewInstr = reinterpret_cast<Bytecode::Instruction*>(&mNewData[mNewDataIndex]);
 
-			return getOldOpcode();
+			mOldDataIndex += sizeof(uint8); // omit old opcode
+
+			return mOldInstr->opcode;
+		}
+
+		template <typename T>
+		INLINE void add(T value)
+		{
+			enlarge(sizeof(T));
+			*((T*)&mNewData[mNewDataIndex]) = value;
+			mNewDataIndex += sizeof(T);
 		}
 
 		NOINLINE void finish(byte** data, uint32& dataSize, uint16** dict, uint16& dictSize)
@@ -117,22 +127,29 @@ namespace Beer
 
 		// opcode
 
-		INLINE Bytecode::OpCode getOldOpcode() { return static_cast<Bytecode::OpCode>(mOldInstr->opcode); }
-		INLINE Bytecode::OpCode getNewOpcode() { return static_cast<Bytecode::OpCode>(mNewInstr->opcode); }
+		//INLINE Bytecode::OpCode getOldOpcode() { return static_cast<Bytecode::OpCode>(mOldInstr->opcode); }
 
-		INLINE void setNewOpcode(Bytecode::OpCode value) { mNewInstr->opcode = value; }
+		INLINE const Bytecode::Instruction* getOldInstruction() const { return mOldInstr; }
+
+		//INLINE Bytecode::OpCode getNewOpcode() { return static_cast<Bytecode::OpCode>(mNewInstr->opcode); }
+
+		//INLINE void setNewOpcode(Bytecode::OpCode value) { mNewInstr->opcode = value; }
 
 		// data
 
 		template <typename T>
-		INLINE const T getData() const { return mOldInstr->getData<T>(); }
+		INLINE const T getData()
+		{
+			mOldDataIndex += sizeof(T);
+			return mOldInstr->getData<T>();
+		}
 
-		template <typename T>
+		/*template <typename T>
 		NOINLINE void setData(T value)
 		{
 			alloc(sizeof(T));
 			mOldDataIndex += sizeof(T);
 			mNewInstr->setData<T>(value);
-		}
+		}*/
 	};
 };

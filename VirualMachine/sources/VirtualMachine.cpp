@@ -79,6 +79,8 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mHeap = new CopyGC(this, heapInitSize);
 	mClassLoader = new ClassLoader(this, mHeap);
 
+	Bytecode::init(this);
+
 	String* metaClassName = ((GarbageCollector*)mHeap)->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 10 for "MetaClass", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
@@ -210,7 +212,7 @@ void VirtualMachine::work()
 		frame->stackPush(*mainClass);
 
 		StackFrame* nextFrame = openStackFrame();
-		method->call(this, nextFrame); // pops 2
+		method->call(this, nextFrame); // pops copied mainClass
 		closeStackFrame();
 
 		main = ret;
@@ -238,6 +240,8 @@ void VirtualMachine::work()
 
 			main = thread->getStack()->top(0); // fix main // TODO
 		}
+
+		frame->stackMoveTop(-2); // pop method & selector
 	}
 
 	// Task::run()
@@ -256,10 +260,16 @@ void VirtualMachine::work()
 		}
 
 		frame->method = *method;
+
+		frame->stackMoveTop(-2); // pop method & selector
+
 		frame->method->call(this, frame);
 
 		closeStackFrame();
 	}
+
+	frame->stackMoveTop(-2); // pop main & class
+	DBG_ASSERT(frame->stackSize() == 0, BEER_WIDEN("Stack was not properly cleaned"));
 }
 
 String* VirtualMachine::createString(const string& s)

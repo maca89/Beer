@@ -18,6 +18,7 @@ namespace Beer
 
 	#define SMART_DELETE(_i_) delete (_i_); (_i_) = NULL;
 	#define SMART_DELETE_ARR(_i_) delete[] (_i_); (_i_) = NULL;
+	#define BEER_BREAKPOINT() __asm { INT 3 }
 
 	typedef __int64 int64;
 	typedef __int32 int32;
@@ -311,25 +312,23 @@ namespace Beer
 	#define ArrayIndexOutOfBoundsException(index, size) ArrayIndexOutOfBoundsException(index, size, __WFILE__, __LINE__)
 
 	#ifdef BEER_DEBUG_MODE
-		#define BEER_ASSERTS_ON
+		#define BEER_DEBUG_ASSERTS_ON
 		#define BEER_MEMORY_DEBUGGING
 		#define BEER_GC_DEBUGGING
 		#define BEER_STACK_DEBUGGING
 	#endif // BEER_DEBUG_MODE
 
 	#ifdef BEER_ASSERTS_ON
-		#define BEER_DEBUG_ASSERTS_ON
+		#define BEER_RUNTIME_ASSERS_ON
+		#define BEER_NULL_ASSERTS_ON
+		#define BEER_BOUNDS_ASSERT_ON
+		#define BEER_CRITICAL_ASSERTS_ON
 	#endif // BEER_ASSERTS_ON
 
+	//#define BEER_DEBUG_ASSERTS_ON
 	//#define BEER_MEMORY_DEBUGGING
 	//#define BEER_GC_DEBUGGING
-	//#define BEER_DEBUG_ASSERTS_ON
 	//#define BEER_STACK_DEBUGGING
-
-	#define BEER_RUNTIME_ASSERS_ON
-	#define BEER_NULL_ASSERTS_ON
-	#define BEER_BOUNDS_ASSERT_ON
-	#define BEER_CRITICAL_ASSERTS_ON
 
 	// optimalizations
 	#define BEER_INLINE_OPTIMALIZATION

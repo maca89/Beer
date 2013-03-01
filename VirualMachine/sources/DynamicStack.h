@@ -16,7 +16,7 @@ namespace Beer
 
 	public:
 #ifdef BEER_DEBUG_MODE
-		INLINE DynamicStack(uint32 commitSize = 1000, uint32 reserveSize = 2000) // default commit ~4KB, default reserve ~8KB
+		INLINE DynamicStack(uint32 commitSize = 1000, uint32 reserveSize = 20000) // default commit ~4KB, default reserve ~8KB
 #else
 		INLINE DynamicStack(uint32 commitSize = 1000, uint32 reserveSize = 260000) // default commit ~4KB, default reserve ~1MB
 #endif
@@ -46,6 +46,7 @@ namespace Beer
 		INLINE uint32 push()
 		{
 			//check(1);
+			mItems[mNext] = NULL;
 			return mNext++;
 		}
 

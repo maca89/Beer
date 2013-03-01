@@ -60,7 +60,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " " << frame->method->getName() << "@" << frame->programCounter;// TODO: selector
+				cout << frame->method << " " << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
 			}
 			else
 			{
@@ -90,7 +90,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " " << frame->method->getName() << "@" << frame->programCounter;// TODO: selector
+				cout << frame->method << " " << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
 			}
 			else
 			{
@@ -168,8 +168,9 @@ void Debugger::printFrame(StackFrame* frame)
 
 	if(frame->method->isBytecode())
 	{
-		const Bytecode::Instruction* instr = frame->method->getBytecode()->getInstruction(frame->programCounter);
-		printInstruction(instr, frame->programCounter);
+		//const Bytecode::Instruction* instr = frame->method->getBytecode()->getInstruction(frame->programCounter);
+		const Bytecode::Instruction* instr = reinterpret_cast<const Bytecode::Instruction*>(frame->ip);
+		printInstruction(instr, 0/*frame->programCounter*/);
 	}
 	else
 	{

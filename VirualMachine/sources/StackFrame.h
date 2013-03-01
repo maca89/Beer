@@ -18,19 +18,21 @@ namespace Beer
 		StackFrame* prev;
 		WorkStack* stack;
 		Method* method;
-		uint16 programCounter;
+		//uint16 programCounter;
+		byte* ip;
+		uint32 vPC;
 
-		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), programCounter(0)
+		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), /*programCounter(0),*/ ip(NULL), vPC(0)
 		{
 		}
 
 		INLINE StackFrame(WorkStack* stack)
-			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), programCounter(0)
+			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), /*programCounter(0),*/ ip(NULL), vPC(0)
 		{
 		}
 		
 		INLINE StackFrame(StackFrame* prev)
-			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), programCounter(0)
+			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), /*programCounter(0),*/ ip(NULL), vPC(0)
 		{
 		}
 
@@ -79,6 +81,10 @@ namespace Beer
 
 		INLINE void stackMoveTop(int16 count)
 		{
+			/*if(count > 1000)
+			{
+				int a = 0;
+			}*/
 			stack->move(count);
 		}
 
@@ -185,6 +191,11 @@ namespace Beer
 			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cast
 			return StackRef<U>(mFrame, mIndex);
 		}
+
+		INLINE void push(StackFrame* frame)
+		{
+			frame->stackPush(get());
+		}
 	};
 	#pragma pack(pop)
 #else
@@ -230,6 +241,8 @@ namespace Beer
 			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cast
 			return StackRef<U>(reinterpret_cast<U**>(mPtr));
 		}
+
+		INLINE void push(StackFrame* frame) { frame->stackPush(get()); }
 	};
 	#pragma pack(pop)
 #endif // BEER_STACK_DEBUGGING
