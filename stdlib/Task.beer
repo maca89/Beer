@@ -1,0 +1,16 @@
+class Task
+{
+  interface
+  {
+    run;
+    
+    //native dorun;
+  }
+}
+
+class EntryPoint
+{
+  interface Task
+  {
+  }
+}
