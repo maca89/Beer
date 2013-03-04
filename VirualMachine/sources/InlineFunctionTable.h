@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Bytecode.h"
-#include "StringClass.h"
+#include "String.h"
 
 //#define BEER_INLINE_FUNCTION_TABLE_CHECK(name2, opcode) if(strcmp(name, name2) == 0) return opcode;
 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#include "TimerClass.h"
+#include "Timer.h"
 #include "Method.h"
-#include "FloatClass.h"
+#include "Float.h"
 #include "VirtualMachine.h"
 #include "StackFrame.h"
 
@@ -25,7 +25,7 @@ void BEER_CALL Timer::stop(Thread* thread, StackFrame* frame, StackRef<Timer> re
 	thread->createFloat(ret, static_cast<Float::FloatData>(receiver->mTimer.stop()));
 }
 
-void BEER_CALL TimerClass::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Timer> ret)
+void BEER_CALL Timer::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Timer> ret)
 {
 	ret = ((GarbageCollector*)thread->getHeap())->alloc<Timer>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
@@ -35,7 +35,7 @@ void BEER_CALL TimerClass::createInstance(Thread* thread, StackFrame* frame, Sta
 
 Class* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<TimerClass>(name, 1, 0, 4);
+	return loader->createClass<Class>(name, 1, 0, 4);
 }
 
 void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
@@ -62,6 +62,6 @@ void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, C
 
 	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&TimerClass::createInstance);
+	method->setFunction(&Timer::createInstance);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }

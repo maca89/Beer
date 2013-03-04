@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "CopyGCTest.h"
-#include "StringClass.h"
+#include "String.h"
 
 using namespace Beer;
 

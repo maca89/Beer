@@ -2,7 +2,7 @@
 #include "TrampolineThread.h"
 #include "VirtualMachine.h"
 #include "Debugger.h"
-#include "ConsoleClass.h"
+#include "Console.h"
 #include "Method.h"
 
 using namespace Beer;

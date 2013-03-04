@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Method.h"
-#include "ObjectClass.h"
+#include "Object.h"
 #include "GarbageCollector.h"
 #include "Thread.h"
 #include "StackFrame.h"

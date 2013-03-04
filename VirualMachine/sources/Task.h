@@ -1,6 +1,6 @@
 #pragma once
 #include "prereq.h"
-#include "ObjectClass.h"
+#include "Object.h"
 #include "GarbageCollector.h"
 #include "VirtualMachine.h"
 

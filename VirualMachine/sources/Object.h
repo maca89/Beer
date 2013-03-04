@@ -1,11 +1,13 @@
 #pragma once
 #include "prereq.h"
+#include "StackFrame.h"
 
 
 namespace Beer
 {
 	struct GarbageCollector;
 	//class Class;
+	class Thread;
 
 	#pragma pack(push, 1)
 	class Object
@@ -86,12 +88,10 @@ namespace Beer
 		INLINE T* getChild(int64 index) const { return static_cast<T*>(getChild(index)); }
 
 		// casts
-		
-		/*template <typename T>
-		INLINE T* getInstance()
-		{
-			return static_cast<T*>(this);
-		}*/
+
+		static void BEER_CALL init(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> ret1);
+		static void BEER_CALL setClass(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> param);
+		static void BEER_CALL getClass(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> ret);
 	};
 	#pragma pack(pop)
 };

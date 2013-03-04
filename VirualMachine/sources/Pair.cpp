@@ -1,9 +1,9 @@
 #include "stdafx.h"
-#include "PairClass.h"
+#include "Pair.h"
 #include "Method.h"
 #include "VirtualMachine.h"
 #include "StackFrame.h"
-#include "IntegerClass.h"
+#include "Integer.h"
 #include "Param.h"
 
 using namespace Beer;
@@ -18,7 +18,7 @@ void BEER_CALL BeerPair_init(Thread* thread, StackFrame* frame, StackRef<Pair> r
 
 Class* PairClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<PairClass>(name, 1, 2, 5); // TODO: at least methods: Pair(Object,Object) getFirst, setFirst, getSecond, setSecond
+	return loader->createClass<Class>(name, 1, 2, 5); // TODO: at least methods: Pair(Object,Object) getFirst, setFirst, getSecond, setSecond
 }
 
 void PairClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)

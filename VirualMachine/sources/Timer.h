@@ -17,16 +17,12 @@ namespace Beer
 		MiliTimer mTimer;
 
 	public:
+		
+		static void BEER_CALL createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Timer> ret);
+
 		static void BEER_CALL init(Thread* thread, StackFrame* frame, StackRef<Timer> receiver, StackRef<Timer> ret);
 		static void BEER_CALL start(Thread* thread, StackFrame* frame, StackRef<Timer> receiver);
 		static void BEER_CALL stop(Thread* thread, StackFrame* frame, StackRef<Timer> receiver, StackRef<Float> ret);	
-	};
-
-	class TimerClass : public Class
-	{
-	public:
-
-		static void BEER_CALL createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Timer> ret);
 	};
 
 	class TimerClassInitializer : public ClassInitializer

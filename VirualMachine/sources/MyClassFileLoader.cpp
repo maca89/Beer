@@ -15,7 +15,7 @@
 #include "StringDescriptor.h"
 #include "BytecodeDescriptor.h"
 
-//#include "StringClass.h"
+//#include "String.h"
 
 using namespace Beer;
 
@@ -143,7 +143,7 @@ void MyClassFileLoader::loadClass(VirtualMachine* vm, ClassFileDescriptor* class
 {
 	ClassLoader* loader = vm->getClassLoader();
 	const char16* name_narrow = classDescr->getName(classFile)->c_str();
-	Reference<String> name = vm->getStringClass<StringClass>()->translate(vm, name_narrow);
+	Reference<String> name = String::gTranslate(vm, name_narrow);
 
 	loader->addClassInitializer(
 		name.translate(vm->getHeap())->c_str(), 
@@ -167,7 +167,7 @@ void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* cla
 		ClassDescriptor* classDescr = classFile->getDescriptor<ClassDescriptor>(classFile->getClassId(classFile->getExternalClassesLength() + classi));
 		const StringDescriptor* classNameDescr = classDescr->getName(classFile);
 		const char16* cclassName = classNameDescr->c_str();
-		Reference<String> className = vm->getStringClass<StringClass>()->translate(vm, cclassName);
+		Reference<String> className = String::gTranslate(vm, cclassName);
 
 		vm->getClass(*className); // actual load
 	}

@@ -48,26 +48,11 @@
     <ClCompile Include="sources\VirtualMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\ConsoleClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\IntegerClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ObjectClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
     <ClCompile Include="sources\InterlockedQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sources\Interlocked.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\BooleanClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\StringClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\CopyGC.cpp">
       <Filter>Source Files</Filter>
@@ -99,32 +84,14 @@
     <ClCompile Include="sources\LoadedObject.cpp">
       <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
-    <ClCompile Include="sources\FloatClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
     <ClCompile Include="sources\BytecodeDescriptor.cpp">
       <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ArrayClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\Debugger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\TimerClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\FileReaderClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\FileWriterClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
     <ClCompile Include="sources\ClassTable.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\CharacterClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\TrampolineThread.cpp">
       <Filter>Source Files</Filter>
@@ -140,9 +107,6 @@
     </ClCompile>
     <ClCompile Include="sources\BytecodeBuilder.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\PairClass.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\Task.cpp">
       <Filter>Source Files\InternalClasses</Filter>
@@ -168,6 +132,42 @@
     <ClCompile Include="sources\MiliTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\Object.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Boolean.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Array.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Character.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Console.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Integer.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\String.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Float.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Timer.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Pair.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\FileReader.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\FileWriter.cpp">
+      <Filter>Source Files\InternalClasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\Bytecode.h">
@@ -181,18 +181,6 @@
     </ClInclude>
     <ClInclude Include="sources\VirtualMachine.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ConsoleClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ObjectClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\StringClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\IntegerClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\QuickSort.h">
       <Filter>Header Files</Filter>
@@ -208,9 +196,6 @@
     </ClInclude>
     <ClInclude Include="sources\Interlocked.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\BooleanClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\FixedStack.h">
       <Filter>Header Files</Filter>
@@ -257,14 +242,8 @@
     <ClInclude Include="sources\LoadedObject.h">
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
-    <ClInclude Include="sources\FloatClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
     <ClInclude Include="sources\BytecodeDescriptor.h">
       <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ArrayClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\DynamicStack.h">
       <Filter>Header Files</Filter>
@@ -278,20 +257,8 @@
     <ClInclude Include="sources\CachedOutput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\TimerClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\FileReaderClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\FileWriterClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
     <ClInclude Include="sources\ClassTable.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\CharacterClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\InlineFunctionTable.h">
       <Filter>Header Files</Filter>
@@ -319,9 +286,6 @@
     </ClInclude>
     <ClInclude Include="sources\StringBuilder.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\PairClass.h">
-      <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\MetaClass.h">
       <Filter>Header Files\Reflection</Filter>
@@ -363,6 +327,21 @@
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\Boolean.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Array.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Console.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Timer.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FileWriter.h">
+      <Filter>Header Files\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FileReader.h">
       <Filter>Header Files\InternalClasses</Filter>
     </ClInclude>
   </ItemGroup>

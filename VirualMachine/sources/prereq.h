@@ -20,6 +20,12 @@ namespace Beer
 	#define SMART_DELETE_ARR(_i_) delete[] (_i_); (_i_) = NULL;
 	#define BEER_BREAKPOINT() __asm { INT 3 }
 
+#ifdef BEER_DEBUG
+	#define BEER_DBG_BREAKPOINT() BEER_BREAKPOINT()
+#else
+	#define BEER_DBG_BREAKPOINT()
+#endif
+
 	typedef __int64 int64;
 	typedef __int32 int32;
 	typedef __int16 int16;
@@ -336,11 +342,14 @@ namespace Beer
 	// measure performance
 	//#define BEER_MEASURE_PERFORMANCE
 
+	// workarounds
+	#define BEER_VALUE_TYPES_WORKAROUND
+
 
 	// usually bytecode/virutal-runtime related errors
 	// without these checks runtime should be faster, but less error-prone
 	#ifdef BEER_RUNTIME_ASSERS_ON	
-		#define RUNTIME_ASSERT(_cond_, _msg_) if(!(_cond_)) throw RuntimeAssertException((_msg_));
+#define RUNTIME_ASSERT(_cond_, _msg_) if(!(_cond_)) { BEER_DBG_BREAKPOINT(); throw RuntimeAssertException((_msg_)); }
 	#else
 		#define RUNTIME_ASSERT(cond, msg)
 	#endif
@@ -348,31 +357,28 @@ namespace Beer
 	// virtual machine crucial errors
 	// without these checks runtime could work, but may behave unexpectedly (threads!)
 	#ifdef BEER_CRITICAL_ASSERTS_ON	
-		#define CRITICAL_ASSERT(_cond_, _msg_) if(!(_cond_)) throw CriticalAssertException((_msg_));
+		#define CRITICAL_ASSERT(_cond_, _msg_) if(!(_cond_)) { BEER_DBG_BREAKPOINT(); throw CriticalAssertException((_msg_)); }
 	#else
 		#define CRITICAL_ASSERT(cond, msg)
 	#endif
 
 	// bugs => should not happen in release!
 	#ifdef BEER_DEBUG_ASSERTS_ON
-		#define DBG_ASSERT(_cond_, _msg_) if(!(_cond_)) throw CriticalAssertException((_msg_));
+		#define DBG_ASSERT(_cond_, _msg_) if(!(_cond_)) { BEER_DBG_BREAKPOINT(); throw CriticalAssertException((_msg_)); }
 	#else
 		#define DBG_ASSERT(cond, msg)
 	#endif
 
 	// checks => should be in debug for performance reasons
 	#ifdef BEER_NULL_ASSERTS_ON
-		#define NULL_ASSERT(var) if(!(var))														\
-		{																						\
-			throw NullReferenceException(BEER_WIDEN("Object is null"));							\
-		}
+		#define NULL_ASSERT(var) if(!(var)) { BEER_DBG_BREAKPOINT(); throw NullReferenceException(BEER_WIDEN("Object is null")); }
 	#else
 		#define NULL_ASSERT(var)
 	#endif
 
 	// array bounds check => important
 	#ifdef BEER_BOUNDS_ASSERT_ON
-	#define BOUNDS_ASSERT(index, size) { Integer::IntegerData __index = index; if(__index < 0 || __index >= size) throw ArrayIndexOutOfBoundsException(__index, size); }
+	#define BOUNDS_ASSERT(index, size) { Integer::IntegerData __index = index; if(__index < 0 || __index >= size) { BEER_DBG_BREAKPOINT(); throw ArrayIndexOutOfBoundsException(__index, size); } }
 	#else
 		#define BOUNDS_ASSERT(index, size)
 	#endif

@@ -1,61 +1,35 @@
 #include "stdafx.h"
-#include "StringClass.h"
-#include "FloatClass.h"
-#include "BooleanClass.h"
+#include "String.h"
+#include "Float.h"
+#include "Boolean.h"
 #include "Method.h"
 #include "VirtualMachine.h"
-#include "ArrayClass.h"
+#include "Array.h"
 
 using namespace Beer;
 
 
-// compare operator
-
-#define BuildCompareStringOperatorFn(Name, Operation)																	\
-struct CompareStringOperator##Name																						\
-{																														\
-	static void BEER_CALL fn(																							\
-		Thread* thread, 																								\
-		StackFrame* frame, 																								\
-		StackRef<String> receiver, 																						\
-		StackRef<String> arg, 																							\
-		StackRef<Boolean> ret)																							\
-	{																													\
-		ret = Boolean::makeInlineValue(receiver->compare(arg.get()) Operation);											\
-	}																													\
-};																														\
-
-#define BuildCompareStringOperator(Name, Operator, Operation)															\
-	BuildCompareStringOperatorFn(Name, Operation);																		\
-	method = loader->createMethod(																						\
-			1, 																											\
-			1																											\
-		);																												\
-	method->setName(vm->createString(BEER_WIDEN(#Operator)));															\
-	method->setFunction(&(CompareStringOperator##Name::fn));															\
-	klass->setMethod(methodi++, vm->createPair(vm->createString((string(BEER_WIDEN("String::")) + BEER_WIDEN(#Operator) + BEER_WIDEN("(String)")).c_str()), method));\
+StringPool String::gPool = StringPool(); // TODO: get rid of
 
 
-
-
-void BEER_CALL BeerString_init(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> ret)
+void BEER_CALL String::init(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL BeerString_getLength(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> ret)
+void BEER_CALL String::getLength(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, receiver->size());
 }
 
-void BEER_CALL BeerString_getCharacter(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
+void BEER_CALL String::operatorGet(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
 {
 	Integer::IntegerData indexdata = index.get()->getData();
 	BOUNDS_ASSERT(indexdata, receiver->size());
 	ret = Character::makeInlineValue(receiver->c_str()[indexdata]);
 }
 
-void BEER_CALL BeerString_concatString(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddString(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
 {
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + arg->size());
@@ -66,7 +40,7 @@ void BEER_CALL BeerString_concatString(Thread* thread, StackFrame* frame, StackR
 	ret->copyData(receiver->size(), arg->size(), arg->c_str());
 }
 
-void BEER_CALL BeerString_concatInteger(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddInteger(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
 {
 	// TODO
 	stringstream ss;
@@ -83,7 +57,7 @@ void BEER_CALL BeerString_concatInteger(Thread* thread, StackFrame* frame, Stack
 
 }
 
-void BEER_CALL BeerString_concatFloat(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddFloat(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
 {
 	// TODO
 	stringstream ss;
@@ -99,7 +73,7 @@ void BEER_CALL BeerString_concatFloat(Thread* thread, StackFrame* frame, StackRe
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
 }
 
-void BEER_CALL BeerString_concatBoolean(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddBoolean(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
 {
 	// TODO
 	string str;
@@ -115,7 +89,7 @@ void BEER_CALL BeerString_concatBoolean(Thread* thread, StackFrame* frame, Stack
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
-void BEER_CALL BeerString_concatCharacter(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddCharacter(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
 {
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + 1);
@@ -127,7 +101,7 @@ void BEER_CALL BeerString_concatCharacter(Thread* thread, StackFrame* frame, Sta
 	ret->copyData(receiver->size(), 1, &c);
 }
 
-void BEER_CALL BeerString_concatArray(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddArray(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
 {
 	// TODO
 	string str;
@@ -142,7 +116,37 @@ void BEER_CALL BeerString_concatArray(Thread* thread, StackFrame* frame, StackRe
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
-void BEER_CALL StringClass::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<String> ret)
+void BEER_CALL String::operatorEqual(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) == 0);
+}
+
+void BEER_CALL String::operatorNotEqual(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) != 0);
+}
+
+void BEER_CALL String::operatorSmaller(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) < 0);
+}
+
+void BEER_CALL String::operatorSmallerEqual(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) <= 0);
+}
+
+void BEER_CALL String::operatorGreater(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) > 0);
+}
+
+void BEER_CALL String::operatorGreaterEqual(Thread* thread, StackFrame* frame, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) >= 0);
+}
+
+void BEER_CALL String::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<String> ret)
 {
 	// TODO: probably not working
 	StackRef<Integer> length = StackRef<Integer>(frame, -2);
@@ -163,59 +167,82 @@ void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, 
 
 	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("String")));
-	method->setFunction(&BeerString_init);
+	method->setFunction(&String::init);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::String()")), method));
 
-	BuildCompareStringOperator(Lower, <, < 0);
-	BuildCompareStringOperator(LowerEqual, <=, <= 0);
-	BuildCompareStringOperator(Greater, >, > 0);
-	BuildCompareStringOperator(GreaterEqual, >=, >= 0);
-	BuildCompareStringOperator(Equal, ==, == 0);
-	BuildCompareStringOperator(NotEqual, !=, != 0);
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN("<")));
+	method->setFunction(&String::operatorSmaller);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::<(String)")), method));
+
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN("<=")));
+	method->setFunction(&String::operatorSmallerEqual);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::<=(String)")), method));
+
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN(">")));
+	method->setFunction(&String::operatorGreater);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::>(String)")), method));
+
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN(">=")));
+	method->setFunction(&String::operatorGreaterEqual);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::>=(String)")), method));
+
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN("==")));
+	method->setFunction(&String::operatorEqual);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::==(String)")), method));
+
+	method = loader->createMethod(1, 1);
+	method->setName(vm->createString(BEER_WIDEN("!=")));
+	method->setFunction(&String::operatorNotEqual);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::!=(String)")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&BeerString_concatString);
+	method->setFunction(&String::operatorAddString);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(String)")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&BeerString_concatInteger);
+	method->setFunction(&String::operatorAddInteger);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Integer)")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&BeerString_concatFloat);
+	method->setFunction(&String::operatorAddFloat);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Float)")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&BeerString_concatBoolean);
+	method->setFunction(&String::operatorAddBoolean);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Boolean)")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&BeerString_concatCharacter);
+	method->setFunction(&String::operatorAddCharacter);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Character)")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&BeerString_concatArray);
+	method->setFunction(&String::operatorAddArray);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Array)")), method));
 
 	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("getLength")));
-	method->setFunction(&BeerString_getLength);
+	method->setFunction(&String::getLength);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::getLength()")), method));
 
 	method = loader->createMethod(1, 1);
 	method->setName(vm->createString(BEER_WIDEN("get")));
-	method->setFunction(&BeerString_getCharacter);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::get(Integer)")), method));
+	method->setFunction(&String::operatorGet);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::get(Integer)")), method)); // TODO: String::[](Integer)
 
 	method = loader->createMethod(1, 0);
 	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&StringClass::createInstance);
+	method->setFunction(&String::createInstance);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }
 

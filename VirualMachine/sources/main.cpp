@@ -5,7 +5,7 @@
 #include "VirtualMachine.h"
 #include "Debugger.h"
 
-#include "ConsoleClass.h"
+#include "Console.h"
 
 #include "Thread.h"
 #include "InterlockedQueue.h"

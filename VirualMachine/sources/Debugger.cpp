@@ -2,7 +2,7 @@
 #include "Debugger.h"
 #include "VirtualMachine.h"
 #include "Method.h"
-#include "ConsoleClass.h"
+#include "Console.h"
 #include "Property.h"
 #include "Class.h"
 

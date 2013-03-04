@@ -1,13 +1,12 @@
 #include "stdafx.h"
 #include "Bytecode.h"
 #include "VirtualMachine.h"
-#include "ObjectClass.h"
-#include "StringClass.h"
-#include "BooleanClass.h"
-#include "IntegerClass.h"
-#include "BooleanClass.h"
-#include "FloatClass.h"
-#include "ConsoleClass.h"
+#include "Object.h"
+#include "String.h"
+#include "Boolean.h"
+#include "Integer.h"
+#include "Float.h"
+#include "Console.h"
 #include "Method.h"
 #include "ClassFileDescriptor.h"
 #include "StringDescriptor.h"
@@ -15,7 +14,7 @@
 #include "MonomorphicInlineCache.h"
 #include "PolymorphicInlineCache.h"
 #include "Debugger.h"
-#include "ArrayClass.h"
+#include "Array.h"
 
 using namespace Beer;
 
@@ -501,7 +500,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 					BEER_BC_SAVE_OPCODE(BEER_INSTR_PUSH_STRING);
 					// TODO!!!
 					const char16* cstring = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> string = vm->getStringClass<StringClass>()->translate(vm, cstring);
+					Reference<String> string = String::gTranslate(vm, cstring);
 					builder.add((int32)string.getId());
 				}
 				break;
@@ -518,7 +517,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 #endif // BEER_INLINE_OPTIMALIZATION
 					{
 						BEER_BC_SAVE_OPCODE(BEER_INSTR_NEW);
-						Reference<String> name = vm->getStringClass<StringClass>()->translate(vm, cstring);
+						Reference<String> name = String::gTranslate(vm, cstring);
 						Class* klass = vm->getClass(name);
 						builder.add((Object*)klass); // TODO: pass Reference
 					}
@@ -530,7 +529,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 			case BEER_INSTR_SPECIALINVOKE:
 				{
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> selector = vm->getStringClass<StringClass>()->translate(vm, cselector);
+					Reference<String> selector = String::gTranslate(vm, cselector);
 #ifdef BEER_INLINE_OPTIMALIZATION
 					Bytecode::OpCode newOpcode = vm->getInlineFunctionTable()->find(selector.get());
 					if(newOpcode != BEER_INSTR_NOP)
@@ -556,7 +555,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 					BEER_BC_SAVE_OPCODE(BEER_INSTR_INTERFACEINVOKE);
 
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> selector = vm->getStringClass<StringClass>()->translate(vm, cselector);
+					Reference<String> selector = String::gTranslate(vm, cselector);
 					builder.add((int32)selector.getId());
 					
 					PolymorphicInlineCache* cache = PolymorphicInlineCache::from(builder.alloc(PolymorphicInlineCache::countSize(mMethodCachesLength)));
@@ -610,7 +609,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_GC_RETURN(method) return method;
 
-#define BEER_BC_START while(cont) { BEER_BC_FETCH(); switch(BEER_BC_OPCODE()) {
+#define BEER_BC_START bool cont = true; while(cont) { BEER_BC_FETCH(); switch(BEER_BC_OPCODE()) {
 
 #define BEER_BC_END }} return NULL;
 
@@ -635,9 +634,9 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_BC_NEXT(skip) BEER_BC_MOVE(skip); BEER_BC_PASS();
 
-#define BEER_BC_FETCH() frame->vPC++; jumpAddr = *(reinterpret_cast<void**>(ip)); BEER_BC_MOVE(sizeof(void*));
+#define BEER_BC_FETCH() jumpAddr = *(reinterpret_cast<void**>(ip)); BEER_BC_MOVE(sizeof(void*));
 
-#define BEER_BC_PASS() BEER_BC_FETCH(); __asm jmp jumpAddr
+#define BEER_BC_PASS() frame->vPC++; BEER_BC_FETCH(); __asm jmp jumpAddr;
 
 #define BEER_GC_RETURN(method) return method;
 
@@ -658,6 +657,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_BC_LABEL(name) LABEL_##name
 
+// TODO
 #define BEER_BC_DEFAULT_LABEL() BEER_BC_LABEL(UNKNOWN_OPCODE)
 
 #endif // BEER_BC_DISPATCH
@@ -665,8 +665,6 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 Method* Bytecode::call(Thread* thread, StackFrame* frame)
 {
-	//Method* ret = NULL;
-	bool cont = true;
 	void* jumpAddr = NULL;
 	byte* ip = NULL;
 
@@ -1009,14 +1007,7 @@ BEER_BC_LABEL(INLINE_ARRAY_GET_ITEM):
 		StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
 
 		BOUNDS_ASSERT(index->getData(), receiver->getSize());
-		Integer* value = static_cast<Integer*>(receiver->getItem(index->getData()));
-
-		if(value) ret = value;
-		else
-		{
-			// just a temporary solution to missing value types
-			ret = Integer::makeInlineValue(0);
-		}
+		ret = static_cast<Integer*>(receiver->getItem(index->getData()));
 
 		frame->stackMoveTop(-2);
 	}

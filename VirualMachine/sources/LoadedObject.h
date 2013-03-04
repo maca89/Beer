@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
-#include "ObjectClass.h"
-#include "StringClass.h"
+#include "Object.h"
+#include "String.h"
 #include "VirtualMachine.h"
 #include "StringDescriptor.h"
 //#include "ClassFileDescriptor.h"

@@ -1,6 +1,8 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
+#include "ClassLoader.h"
+
 
 namespace Beer
 {
@@ -30,5 +32,13 @@ namespace Beer
 		{
 			setChild(OBJECT_CHILDREN_COUNT + 1, object);
 		}
+	};
+
+	class PairClassInitializer : public ClassInitializer
+	{
+	public:
+		// ClassInitializer
+		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
+		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
 	};
 };

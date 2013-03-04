@@ -2,7 +2,7 @@
 #include "Thread.h"
 #include "VirtualMachine.h"
 #include "Method.h"
-#include "ArrayClass.h"
+#include "Array.h"
 //#include "PolymorphicInlineCache.h"
 
 using namespace Beer;
@@ -197,7 +197,7 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 
 	// find method
 	{
-		static Reference<String> selectorRef = mVM->getStringClass<StringClass>()->translate(mVM, BEER_WIDEN("$Class::createInstance()")); // TODO;
+		static Reference<String> selectorRef = String::gTranslate(mVM, BEER_WIDEN("$Class::createInstance()")); // TODO;
 		StackRef<String> selector(frame, frame->stackPush(selectorRef.get()));
 			String* rawSelector = *selectorRef;///
 
@@ -229,7 +229,7 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 		StackFrame* nextFrame = openStackFrame();
 
 		// TODO: new StackFrame
-		rawmethod->call(mVM, nextFrame); // pops class
+		rawmethod->call(this, nextFrame); // pops class
 
 		DBG_ASSERT(!ret.isNull(), BEER_WIDEN("No instance created"));
 

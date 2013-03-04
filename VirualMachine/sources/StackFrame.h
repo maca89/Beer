@@ -2,11 +2,12 @@
 #include "prereq.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
-#include "Object.h"
+//#include "Object.h"
 
 
 namespace Beer
 {
+	class Object;
 	class Method;
 	//typedef FixedStack<Object*> WorkStack;
 	typedef DynamicStack<Object*> WorkStack;
@@ -156,7 +157,10 @@ namespace Beer
 
 		INLINE T* operator-> ()
 		{
-			DBG_ASSERT(get() != NULL || Object::isInlineValue(get()), BEER_WIDEN("Null pointer")); // Object::isInlineValue is just a workaround TODO: not checking inline value
+			DBG_ASSERT(get() != NULL
+#ifdef BEER_VALUE_TYPES_WORKAROUND
+				|| Object::isInlineValue(get()), BEER_WIDEN("Null pointer")); // Object::isInlineValue is just a workaround TODO: not checking inline value
+#endif // BEER_VALUE_TYPES_WORKAROUND
 			return get();
 		}
 
@@ -192,9 +196,9 @@ namespace Beer
 			return StackRef<U>(mFrame, mIndex);
 		}
 
-		INLINE void push(StackFrame* frame)
+		INLINE StackRef push(StackFrame* frame)
 		{
-			frame->stackPush(get());
+			return StackRef(frame, frame->stackPush(get()));
 		}
 	};
 	#pragma pack(pop)
@@ -224,7 +228,11 @@ namespace Beer
 		INLINE T* operator-> ()
 		{
 			// Object::isInlineValue is just a workaround TODO: not checking inline value
-			DBG_ASSERT(get() != NULL || Object::isInlineValue(get()), BEER_WIDEN("Null pointer"));
+			DBG_ASSERT(get() != NULL
+#ifdef BEER_VALUE_TYPES_WORKAROUND
+				|| Object::isInlineValue(get()), BEER_WIDEN("Null pointer")
+#endif // BEER_VALUE_TYPES_WORKAROUND
+			);
 			return get();
 		}
 
@@ -242,7 +250,7 @@ namespace Beer
 			return StackRef<U>(reinterpret_cast<U**>(mPtr));
 		}
 
-		INLINE void push(StackFrame* frame) { frame->stackPush(get()); }
+		INLINE StackRef push(StackFrame* frame) { return StackRef(frame, frame->stackPush(get())); }
 	};
 	#pragma pack(pop)
 #endif // BEER_STACK_DEBUGGING

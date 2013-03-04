@@ -126,7 +126,7 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 		for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
 		{
 			ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
-			selector += vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(paramDescr->getTypeId())->c_str())->c_str();
+			selector += String::gTranslate(vm, mClassFile->getClassName(paramDescr->getTypeId())->c_str())->c_str();
 			if(parami < methodDescr->getParamsLength() - 1) selector += BEER_WIDEN(",");
 		}
 		selector += BEER_WIDEN(")");
@@ -183,7 +183,7 @@ Param* LoadedObjectInitializer::makeParam(VirtualMachine* vm, ClassLoader* loade
 
 Method* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
-	string name = vm->getStringClass<StringClass>()->translate(vm, methodDescr->getName(mClassFile)->c_str())->c_str();
+	string name = String::gTranslate(vm, methodDescr->getName(mClassFile)->c_str())->c_str();
 	Method* method = loader->createMethod(methodDescr->getReturnsLength(), methodDescr->getParamsLength());
 	method->setName(vm->createString(name));
 	method->setMaxStack(20); // TODO: methodDescr->getMaxStack()
@@ -218,7 +218,7 @@ Method* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loa
 
 const char_t* LoadedObjectInitializer::getParentClassName(VirtualMachine* vm, uint16 i)
 {
-	return vm->getStringClass<StringClass>()->translate(vm, mClassFile->getClassName(mClassDescr->getParentId(i))->c_str())->c_str();
+	return String::gTranslate(vm, mClassFile->getClassName(mClassDescr->getParentId(i))->c_str())->c_str();
 }
 
 Class* LoadedObjectInitializer::getType(const StringDescriptor* name, VirtualMachine* vm)

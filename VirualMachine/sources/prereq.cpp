@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "prereq.h"
-#include "StringClass.h"
+#include "String.h"
 #include "VirtualMachine.h"
 #include "Object.h"
 #include "Class.h"

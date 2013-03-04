@@ -1,10 +1,11 @@
 #pragma once
 #include "prereq.h"
-#include "ObjectClass.h"
+#include "Object.h"
 #include "GarbageCollector.h"
 #include "ClassLoader.h"
-#include "IntegerClass.h"
-#include "FloatClass.h"
+#include "Class.h"
+#include "Integer.h"
+#include "Float.h"
 
 
 namespace Beer

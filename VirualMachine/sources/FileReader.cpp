@@ -1,12 +1,12 @@
 #include "stdafx.h"
-#include "FileReaderClass.h"
+#include "FileReader.h"
 #include "Method.h"
 #include "VirtualMachine.h"
 #include "StackFrame.h"
-#include "StringClass.h"
-#include "BooleanClass.h"
-#include "FloatClass.h"
-#include "StringClass.h"
+#include "String.h"
+#include "Boolean.h"
+#include "Float.h"
+#include "String.h"
 
 using namespace Beer;
 

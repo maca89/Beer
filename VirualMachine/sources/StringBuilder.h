@@ -1,6 +1,6 @@
 #pragma once
 #include "prereq.h"
-#include "StringClass.h"
+#include "String.h"
 #include "VirtualMachine.h"
 
 

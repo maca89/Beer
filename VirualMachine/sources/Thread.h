@@ -12,6 +12,7 @@ namespace Beer
 {
 	class VirtualMachine;
 	class Array;
+	class Pair;
 	typedef CopyGC Heap;
 
 	class Thread : public NativeThread

@@ -8,19 +8,19 @@
 #include "MetaClass.h"
 #include "Method.h"
 
-#include "ObjectClass.h"
-#include "StringClass.h"
-#include "BooleanClass.h"
-#include "IntegerClass.h"
-#include "FloatClass.h"
-#include "ConsoleClass.h"
-#include "ArrayClass.h"
-#include "TimerClass.h"
-#include "FileReaderClass.h"
-#include "FileWriterClass.h"
+#include "Object.h"
+#include "String.h"
+#include "Boolean.h"
+#include "Integer.h"
+#include "Float.h"
+#include "Console.h"
+#include "Array.h"
+#include "Timer.h"
+#include "FileReader.h"
+#include "FileWriter.h"
 #include "Task.h"
 #include "LoadedObject.h"
-#include "PairClass.h"
+#include "Pair.h"
 
 using namespace Beer;
 
@@ -125,7 +125,7 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	objectClassName->size(6); // 6 for "Object"
 	objectClassName->copyData(BEER_WIDEN("Object"));
 
-	mObjectClass = mClassLoader->createClass<ObjectClass>(objectClassName, 1, 0, 1); // extends Object, 1 method
+	mObjectClass = mClassLoader->createClass<Class>(objectClassName, 1, 0, 1); // extends Object, 1 method
 	// TODO: default methods
 	
 	// fix references
@@ -140,7 +140,7 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	stringClassName->size(6); // 6 for "String"
 	stringClassName->copyData(BEER_WIDEN("String"));
 
-	mStringClass = mClassLoader->createClass<StringClass>(stringClassName, 1, 0, 16);
+	mStringClass = mClassLoader->createClass<Class>(stringClassName, 1, 0, 16);
 	StringClassInitializer* stringInit = new StringClassInitializer();
 	stringInit->initClass(this, mClassLoader, mStringClass);
 	delete stringInit;
