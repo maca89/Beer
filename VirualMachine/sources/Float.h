@@ -23,13 +23,6 @@ namespace Beer
 	public:
 		INLINE FloatData getData() const
 		{
-#ifdef BEER_VALUE_TYPES_WORKAROUND
-			if(this == NULL)
-			{
-				return 0.0f; // just a workaround, TODO
-			}
-#endif // BEER_VALUE_TYPES_WORKAROUND
-
 			return mData;
 		}
 
@@ -38,23 +31,25 @@ namespace Beer
 			mData = data;
 		}
 
-		static void BEER_CALL init(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> ret);
+		static void BEER_CALL createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Float> ret);
 
-		static void BEER_CALL operatorString(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<String> ret);
-		static void BEER_CALL operatorInteger(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Integer> ret);
+		static void BEER_CALL init(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> ret);
 
-		static void BEER_CALL operatorAdd(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
-		static void BEER_CALL operatorSub(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
-		static void BEER_CALL operatorMul(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
-		static void BEER_CALL operatorDiv(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
-		static void BEER_CALL operatorMinus(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> ret);
+		static void BEER_CALL operatorString(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<String> ret);
+		static void BEER_CALL operatorInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Integer> ret);
 
-		static void BEER_CALL operatorEqual(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorNotEqual(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorSmaller(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorSmallerEqual(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorGreater(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorGreaterEqual(Thread* thread, StackFrame* frame, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorAdd(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
+		static void BEER_CALL operatorSub(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
+		static void BEER_CALL operatorMul(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
+		static void BEER_CALL operatorDiv(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret);
+		static void BEER_CALL operatorMinus(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> ret);
+
+		static void BEER_CALL operatorEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorNotEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorSmaller(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorSmallerEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorGreater(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorGreaterEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret);
 	};
 	
 	class FloatClassInitializer : public ClassInitializer

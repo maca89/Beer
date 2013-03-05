@@ -8,24 +8,24 @@
 using namespace Beer;
 
 
-void BEER_CALL Timer::init(Thread* thread, StackFrame* frame, StackRef<Timer> receiver, StackRef<Timer> ret)
+void BEER_CALL Timer::init(Thread* thread/*, StackFrame* frame*/, StackRef<Timer> receiver, StackRef<Timer> ret)
 {
 	receiver->mTimer = MiliTimer();
 	receiver->mTimer.start(); // TODO
 	ret = receiver;
 }
 
-void BEER_CALL Timer::start(Thread* thread, StackFrame* frame, StackRef<Timer> receiver)
+void BEER_CALL Timer::start(Thread* thread/*, StackFrame* frame*/, StackRef<Timer> receiver)
 {
 	receiver->mTimer.start();
 }
 
-void BEER_CALL Timer::stop(Thread* thread, StackFrame* frame, StackRef<Timer> receiver, StackRef<Float> ret)
+void BEER_CALL Timer::stop(Thread* thread/*, StackFrame* frame*/, StackRef<Timer> receiver, StackRef<Float> ret)
 {
 	thread->createFloat(ret, static_cast<Float::FloatData>(receiver->mTimer.stop()));
 }
 
-void BEER_CALL Timer::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Timer> ret)
+void BEER_CALL Timer::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Timer> ret)
 {
 	ret = ((GarbageCollector*)thread->getHeap())->alloc<Timer>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()

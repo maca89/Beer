@@ -157,10 +157,7 @@ namespace Beer
 
 		INLINE T* operator-> ()
 		{
-			DBG_ASSERT(get() != NULL
-#ifdef BEER_VALUE_TYPES_WORKAROUND
-				|| Object::isInlineValue(get()), BEER_WIDEN("Null pointer")); // Object::isInlineValue is just a workaround TODO: not checking inline value
-#endif // BEER_VALUE_TYPES_WORKAROUND
+			NULL_ASSERT(get());
 			return get();
 		}
 
@@ -227,12 +224,7 @@ namespace Beer
 
 		INLINE T* operator-> ()
 		{
-			// Object::isInlineValue is just a workaround TODO: not checking inline value
-			DBG_ASSERT(get() != NULL
-#ifdef BEER_VALUE_TYPES_WORKAROUND
-				|| Object::isInlineValue(get()), BEER_WIDEN("Null pointer")
-#endif // BEER_VALUE_TYPES_WORKAROUND
-			);
+			NULL_ASSERT(get());
 			return get();
 		}
 

@@ -7,13 +7,14 @@
 using namespace Beer;
 
 
-void BEER_CALL Character::init(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> ret1)
+void BEER_CALL Character::init(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL Character::operatorString(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<String> ret)
+void BEER_CALL Character::operatorString(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<String> ret)
 {
+	StackFrame* frame = thread->getStackFrame();
 	StackRef<Integer> one(frame, frame->stackPush(Integer::makeInlineValue(1)));
 	thread->createString(one, ret);
 
@@ -21,24 +22,29 @@ void BEER_CALL Character::operatorString(Thread* thread, StackFrame* frame, Stac
 	ret->copyData(&c, 1);
 }
 
-void BEER_CALL Character::operatorInteger(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Integer> ret)
+void BEER_CALL Character::operatorInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, receiver->getData());
 }
 
-void BEER_CALL Character::operatorEqual(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
+void BEER_CALL Character::operatorEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 }
 
-void BEER_CALL Character::operatorNotEqual(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
+void BEER_CALL Character::operatorNotEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
+}
+
+void BEER_CALL Character::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Character> ret)
+{
+	ret = Character::makeInlineValue(' ');
 }
 
 Class* CharacterClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(name, 1, 0, 5);
+	return loader->createClass<Class>(name, 1, 0, 6);
 }
 
 void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
@@ -73,4 +79,9 @@ void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loade
 	method->setName(vm->createString(BEER_WIDEN("!=")));
 	method->setFunction(&Character::operatorNotEqual);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::!=(Character)")), method));
+
+	method = loader->createMethod(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("createInstance")));
+	method->setFunction(&Character::createInstance);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }

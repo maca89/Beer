@@ -41,27 +41,27 @@ namespace Beer
 		INLINE static const char_t* gGetArg(Integer::IntegerData i) { return gArguments.args[i]; }
 		INLINE static void gSetArgs(const char_t** args, Integer::IntegerData length) { gArguments.args = args; gArguments.length = length; }
 
-		static void BEER_CALL init(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Console> ret);
+		static void BEER_CALL init(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Console> ret);
 
-		static void BEER_CALL println(Thread* thread, StackFrame* frame, StackRef<Console> receiver);
+		static void BEER_CALL println(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver);
 		
-		static void BEER_CALL printInteger(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> arg);
-		static void BEER_CALL printlnInteger(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> arg);
-		static void BEER_CALL printFloat(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Float> arg);
-		static void BEER_CALL printlnFloat(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Float> arg);
-		static void BEER_CALL printString(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<String> arg);
-		static void BEER_CALL printlnString(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<String> arg);
-		static void BEER_CALL printBoolean(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> arg);
-		static void BEER_CALL printlnBoolean(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> arg);
-		static void BEER_CALL printArray(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg);
-		static void BEER_CALL printlnArray(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Array> arg);
+		static void BEER_CALL printInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Integer> arg);
+		static void BEER_CALL printlnInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Integer> arg);
+		static void BEER_CALL printFloat(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Float> arg);
+		static void BEER_CALL printlnFloat(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Float> arg);
+		static void BEER_CALL printString(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<String> arg);
+		static void BEER_CALL printlnString(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<String> arg);
+		static void BEER_CALL printBoolean(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Boolean> arg);
+		static void BEER_CALL printlnBoolean(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Boolean> arg);
+		static void BEER_CALL printArray(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Array> arg);
+		static void BEER_CALL printlnArray(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Array> arg);
 
-		static void BEER_CALL readInteger(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> ret);
-		static void BEER_CALL readFloat(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Float> ret);
-		static void BEER_CALL readBoolean(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> ret);
-		static void BEER_CALL readLine(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<String> ret);
-		static void BEER_CALL readFailed(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Boolean> ret);
-		static void BEER_CALL getArg(Thread* thread, StackFrame* frame, StackRef<Console> receiver, StackRef<Integer> index, StackRef<String> ret);
+		static void BEER_CALL readInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Integer> ret);
+		static void BEER_CALL readFloat(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Float> ret);
+		static void BEER_CALL readBoolean(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Boolean> ret);
+		static void BEER_CALL readLine(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<String> ret);
+		static void BEER_CALL readFailed(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Boolean> ret);
+		static void BEER_CALL getArg(Thread* thread/*, StackFrame* frame*/, StackRef<Console> receiver, StackRef<Integer> index, StackRef<String> ret);
 	};
 
 	class ConsoleClassInitializer : public ClassInitializer

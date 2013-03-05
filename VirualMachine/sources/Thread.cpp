@@ -227,8 +227,6 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 		//klass.copy(); // receiver
 
 		StackFrame* nextFrame = openStackFrame();
-
-		// TODO: new StackFrame
 		rawmethod->call(this, nextFrame); // pops class
 
 		DBG_ASSERT(!ret.isNull(), BEER_WIDEN("No instance created"));

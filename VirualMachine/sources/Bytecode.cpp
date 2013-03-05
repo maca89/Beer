@@ -490,7 +490,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 #endif // BEER_INLINE_OPTIMALIZATION
 					{
 						BEER_BC_SAVE_OPCODE(BEER_INSTR_PUSH_INT32);
-						builder.copy(sizeof(int32));
+						builder.add(static_cast<int32>(value));
 					}
 				}
 				break;
@@ -665,6 +665,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 Method* Bytecode::call(Thread* thread, StackFrame* frame)
 {
+	//StackFrame* frame = thread->getStackFrame();
 	void* jumpAddr = NULL;
 	byte* ip = NULL;
 

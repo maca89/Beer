@@ -10,6 +10,7 @@ using namespace Beer;
 
 Method* Method::runFunction(Thread* thread, StackFrame* frame)
 {
+	//StackFrame* frame = thread->getStackFrame();
 	Cb fn = mFunction;
 	if(fn == NULL)
 	{
@@ -34,7 +35,7 @@ Method* Method::runFunction(Thread* thread, StackFrame* frame)
 		= sizeof(StackRef<Object>) * returnCount						// returns
 		+ sizeof(StackRef<Object>) * paramsCount						// params
 		+ sizeof(StackRef<Object>)										// receiver
-		+ sizeof(StackFrame*)											// stackframe
+		//+ sizeof(StackFrame*)											// stackframe
 		+ sizeof(Thread*);												// thread
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +94,7 @@ Method* Method::runFunction(Thread* thread, StackFrame* frame)
 	__asm
 	{
 		// push StackFrame*
-		push frame;
+		//push frame;
 
 		// push Thread*
 		push thread;

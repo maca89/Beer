@@ -195,80 +195,108 @@ void VirtualMachine::destroy()
 void VirtualMachine::work()
 {
 	StackFrame* frame = getStackFrame();
+	StackRef<Class> entryPointClass(frame, frame->stackPush(getClass(BEER_WIDEN("EntryPoint")))); // TODO
 
-	StackRef<Class> mainClass(frame, frame->stackPush(getClass(BEER_WIDEN("Main")))); // TODO
-	StackRef<Object> main(frame, frame->stackPush(NULL));
-
-	// new Main
+	if(entryPointClass.isNull())
 	{
-		StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("$Class::createInstance()")))); // TODO
-		StackRef<Method> method(frame, frame->stackPush(mainClass->findMethod(*selector))); // TODO
-		if(method.isNull())
-		{
-			throw MethodNotFoundException(*mainClass, mainClass->getClass<Class>(), *selector); // TODO
-		}
-
-		StackRef<Object> ret(frame, frame->stackPush(NULL));
-		frame->stackPush(*mainClass);
-
-		StackFrame* nextFrame = openStackFrame();
-		method->call(this, nextFrame); // pops copied mainClass
-		closeStackFrame();
-
-		main = ret;
-
-		frame->stackMoveTop(-3);
+		throw ClassNotFoundException(BEER_WIDEN("Class EntryPoint not found"));
 	}
 
-	// Main::Main()
+	for(ClassReflectionTable::iterator it = mClasses.begin(); it != mClasses.end(); it++)
 	{
-		StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Main::Main()")))); // TODO
-		StackRef<Method> method(frame, frame->stackPush(mainClass->findMethod(*selector))); // TODO
+		StackRef<Class> klass(frame, frame->stackPush(it->second)); // TODO
+		//cout << BEER_WIDEN("Class: ") << klass->getName()->c_str() << BEER_WIDEN("\n");
 
-		if(!method.isNull())
+		if(klass.get() != entryPointClass.get() && klass->substituable(*entryPointClass))  // TODO
 		{
-			// ugly – create another trampoline
-			TrampolineThread* thread = new TrampolineThread(this);
-			getThreads().insert(thread);
+			StackRef<Object> instance(frame, frame->stackPush(NULL));
 
-			thread->openStackFrame()->stackMoveTop(1); // for return
-			thread->getStackFrame()->stackPush(*main); // push receiver
-			thread->openStackFrame()->method = *method;
+			// new Main
+			{
+				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("$Class::createInstance()")))); // TODO
+				StackRef<Method> method(frame, frame->stackPush(klass->findMethod(*selector))); // TODO
+				if(method.isNull())
+				{
+					throw MethodNotFoundException(*klass, klass->getClass<Class>(), *selector); // TODO
+				}
 
-			thread->run();
-			thread->wait();
+				StackRef<Object> ret(frame, frame->stackPush(NULL));
+				frame->stackPush(*klass);
 
-			main = thread->getStack()->top(0); // fix main // TODO
+				StackFrame* nextFrame = openStackFrame();
+				method->call(this, nextFrame); // pops copied mainClass
+				closeStackFrame();
+
+				instance = ret;
+
+				frame->stackMoveTop(-3);
+			}
+
+			// Main::Main()
+			{
+				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Main::Main()")))); // TODO
+				StackRef<Method> method(frame, frame->stackPush(klass->findMethod(*selector))); // TODO
+
+				if(!method.isNull())
+				{
+					// ugly – create another trampoline
+					TrampolineThread* thread = new TrampolineThread(this);
+					getThreads().insert(thread);
+
+					thread->openStackFrame()->stackMoveTop(1); // for return
+					thread->getStackFrame()->stackPush(*instance); // push receiver
+					thread->openStackFrame()->method = *method;
+
+					thread->run();
+					thread->wait();
+
+					instance = thread->getStack()->top(0); // fix main // TODO
+				}
+
+				frame->stackMoveTop(-2); // pop method & selector
+			}
+
+			// Task::run()
+			{
+				frame = openStackFrame();
+				frame->stackPush(*instance);
+
+				frame = openStackFrame();
+
+				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::dorun()")))); // TODO
+				StackRef<Method> method(frame, frame->stackPush(klass->findMethod(*selector))); // TODO
+
+				if(method.isNull())
+				{
+					throw MethodNotFoundException(*instance, *klass, *selector); // TODO
+				}
+
+				frame->method = *method;
+				frame->stackMoveTop(-2); // pop method & selector
+				frame->method->call(this, frame);
+
+				closeStackFrame();
+			}
+
+			frame->stackMoveTop(-1); // pop instance
 		}
 
-		frame->stackMoveTop(-2); // pop method & selector
+		frame->stackMoveTop(-1); // pop class
 	}
 
-	// Task::run()
+	frame->stackMoveTop(-1); // pop entrypoint class
+	
+	// wait for all threads
+	for(ThreadSet::iterator it = mThreads.begin(); it != mThreads.end(); it++)
 	{
-		frame = openStackFrame();
-		frame->stackPush(*main);
-
-		frame = openStackFrame();
-
-		StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::dorun()")))); // TODO
-		StackRef<Method> method(frame, frame->stackPush(mainClass->findMethod(*selector))); // TODO
-
-		if(method.isNull())
+		Thread* thread = *it;
+		if(thread != static_cast<Thread*>(this))
 		{
-			throw MethodNotFoundException(*main, *mainClass, *selector); // TODO
+			(*it)->wait();
 		}
-
-		frame->method = *method;
-
-		frame->stackMoveTop(-2); // pop method & selector
-
-		frame->method->call(this, frame);
-
-		closeStackFrame();
 	}
-
-	frame->stackMoveTop(-2); // pop main & class
+	
+	
 	DBG_ASSERT(frame->stackSize() == 0, BEER_WIDEN("Stack was not properly cleaned"));
 }
 

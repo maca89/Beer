@@ -28,11 +28,11 @@ void Array::toString(VirtualMachine* vm, string& out)
 	out += BEER_WIDEN("]");
 }
 
-void BEER_CALL Array::init(Thread* thread, StackFrame* frame, StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret)
+void BEER_CALL Array::init(Thread* thread/*, StackFrame* frame*/, StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret)
 {
 	receiver->setSize(length->getData());
 
-#ifdef BEER_VALUE_TYPES_WORKAROUND
+	/////////////////////////////////////////////////////////
 	// fix missing value types (limited to integers)
 	Array::LengthData realLength = length->getData();
 	Integer* zero = Integer::makeInlineValue(0);
@@ -41,30 +41,31 @@ void BEER_CALL Array::init(Thread* thread, StackFrame* frame, StackRef<Array> re
 	{
 		receiver->setItem(i, zero);
 	}
-#endif // BEER_VALUE_TYPES_WORKAROUND
+	/////////////////////////////////////////////////////////
 
 	ret = receiver;
 }
 
-void BEER_CALL Array::getLength(Thread* thread, StackFrame* frame, StackRef<Array> receiver, StackRef<Integer> ret)
+void BEER_CALL Array::getLength(Thread* thread/*, StackFrame* frame*/, StackRef<Array> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, receiver->getSize());
 }
 
-void BEER_CALL Array::operatorGet(Thread* thread, StackFrame* frame, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> ret)
+void BEER_CALL Array::operatorGet(Thread* thread/*, StackFrame* frame*/, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> ret)
 {
 	BOUNDS_ASSERT(index->getData(), receiver->getSize());
 	ret = static_cast<Integer*>(receiver->getItem(index->getData()));
 }
 
-void BEER_CALL Array::operatorSet(Thread* thread, StackFrame* frame, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> object)
+void BEER_CALL Array::operatorSet(Thread* thread/*, StackFrame* frame*/, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> object)
 {
 	BOUNDS_ASSERT(index->getData(), receiver->getSize());
 	receiver->setItem(index->getData(), object.get());
 }
 
-void BEER_CALL Array::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Array> ret)
+void BEER_CALL Array::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Array> ret)
 {
+	StackFrame* frame = thread->getStackFrame();
 	StackRef<Integer> length = StackRef<Integer>(frame, -2); // ctor parameter
 	
 	StackRef<Array> object(frame, frame->stackPush());

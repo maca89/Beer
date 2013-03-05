@@ -6,11 +6,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/benchmark.class --heapsize:404857600</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/valuetypes.class --heapsize:404857600</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/benchmark.class --heapsize:504857600</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/valuetypes.class --heapsize:504857600</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

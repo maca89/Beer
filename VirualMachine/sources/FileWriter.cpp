@@ -10,54 +10,54 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerFileWriter_init(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<FileWriter> ret)
+void BEER_CALL BeerFileWriter_init(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<FileWriter> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL BeerFileWriter_open(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<String> filename, StackRef<Boolean> ret)
+void BEER_CALL BeerFileWriter_open(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<String> filename, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->open(filename->c_str()));
 }
 
-void BEER_CALL BeerFileWriter_close(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver)
+void BEER_CALL BeerFileWriter_close(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver)
 {
 	receiver->close();
 }
 
-void BEER_CALL BeerFileWriter_writeInteger(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Integer> arg)
+void BEER_CALL BeerFileWriter_writeInteger(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Integer> arg)
 {
 	receiver->write(arg->getData());
 }
 
-void BEER_CALL BeerFileWriter_writeFloat(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Float> arg)
+void BEER_CALL BeerFileWriter_writeFloat(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Float> arg)
 {
 	receiver->write(arg->getData());
 }
 
-void BEER_CALL BeerFileWriter_writeString(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<String> arg)
+void BEER_CALL BeerFileWriter_writeString(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<String> arg)
 {
 	receiver->write(arg->c_str());
 }
 
-void BEER_CALL BeerFileWriter_writeBoolean(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Boolean> arg)
+void BEER_CALL BeerFileWriter_writeBoolean(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Boolean> arg)
 {
 	receiver->write(arg->getData());
 }
 
-void BEER_CALL BeerFileWriter_writeArray(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Array> arg)
+void BEER_CALL BeerFileWriter_writeArray(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Array> arg)
 {
 	string str;
 	arg->toString(thread->getVM(), str);
 	receiver->write(str.c_str());
 }
 
-void BEER_CALL BeerFileWriter_writeLn(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver)
+void BEER_CALL BeerFileWriter_writeLn(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver)
 {
 	receiver->write(BEER_WIDEN("\n"));
 }
 
-void BEER_CALL BeerFileWriter_writeFailed(Thread* thread, StackFrame* frame, StackRef<FileWriter> receiver, StackRef<Boolean> ret)
+void BEER_CALL BeerFileWriter_writeFailed(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->failed());
 }

@@ -25,11 +25,6 @@ namespace Beer
 	public:
 		INLINE CharacterData getData() const
 		{
-			if(this == NULL)
-			{
-				return '\0'; // just a workaround, TODO
-			}
-
 			return (reinterpret_cast<uint32>(this) >> SignatureBits);
 		}
 
@@ -38,12 +33,14 @@ namespace Beer
 			return reinterpret_cast<Character*>((data << SignatureBits) | 7);
 		}
 
+		static void BEER_CALL createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Character> ret);
 
-		static void BEER_CALL init(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> ret1);
-		static void BEER_CALL operatorString(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<String> ret);
-		static void BEER_CALL operatorInteger(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Integer> ret);
-		static void BEER_CALL operatorEqual(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorNotEqual(Thread* thread, StackFrame* frame, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
+		static void BEER_CALL init(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> ret1);
+
+		static void BEER_CALL operatorString(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<String> ret);
+		static void BEER_CALL operatorInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Integer> ret);
+		static void BEER_CALL operatorEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorNotEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
 	};
 
 	class CharacterClassInitializer : public ClassInitializer

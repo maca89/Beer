@@ -141,7 +141,7 @@ namespace Beer
 		Method* findMethod(String* selector);
 		bool substituable(Class* otherClass) const;
 
-		static void BEER_CALL createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Object> ret);
+		static void BEER_CALL createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret);
 
 	protected: // TODO: private
 		INLINE ~Class()

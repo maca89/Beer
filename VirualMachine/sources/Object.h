@@ -89,9 +89,9 @@ namespace Beer
 
 		// casts
 
-		static void BEER_CALL init(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> ret1);
-		static void BEER_CALL setClass(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> param);
-		static void BEER_CALL getClass(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> ret);
+		static void BEER_CALL init(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> ret1);
+		static void BEER_CALL setClass(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> param);
+		static void BEER_CALL getClass(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> ret);
 	};
 	#pragma pack(pop)
 };

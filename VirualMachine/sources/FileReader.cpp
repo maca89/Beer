@@ -11,48 +11,48 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerFileReader_init(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<FileReader> ret)
+void BEER_CALL BeerFileReader_init(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<FileReader> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL BeerFileReader_open(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<String> filename, StackRef<Boolean> ret)
+void BEER_CALL BeerFileReader_open(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<String> filename, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->open(filename->c_str()));
 }
 
-void BEER_CALL BeerFileReader_close(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver)
+void BEER_CALL BeerFileReader_close(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver)
 {
 	receiver->close();
 }
 
-void BEER_CALL BeerFileReader_readInteger(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<Integer> ret)
+void BEER_CALL BeerFileReader_readInteger(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Integer> ret)
 {
 	Integer::IntegerData data;
 	receiver->read(data);
 	thread->createInteger(ret, data);
 }
 
-void BEER_CALL BeerFileReader_readFloat(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<Float> ret)
+void BEER_CALL BeerFileReader_readFloat(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Float> ret)
 {
 	Float::FloatData data;
 	receiver->read(data);
 	thread->createFloat(ret, data);
 }
 
-void BEER_CALL BeerFileReader_readString(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<String> ret)
+void BEER_CALL BeerFileReader_readString(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<String> ret)
 {
 	string data;
 	receiver->read(data);
 	ret = thread->getVM()->createString(data);
 }
 
-void BEER_CALL BeerFileReader_readFailed(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<Boolean> ret)
+void BEER_CALL BeerFileReader_readFailed(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->failed());
 }
 
-void BEER_CALL BeerFileReader_readEnded(Thread* thread, StackFrame* frame, StackRef<FileReader> receiver, StackRef<Boolean> ret)
+void BEER_CALL BeerFileReader_readEnded(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->atEnd());
 }

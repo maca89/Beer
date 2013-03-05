@@ -20,6 +20,35 @@
 
 using namespace Beer;
 
+void BEER_CALL LoadedObject::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret)
+{
+	StackFrame* frame = thread->getStackFrame();
+	Class::createInstance(thread, receiver, ret); // call super method
+
+	/////////////////////////////////////////////////////////
+	// fix missing value types
+	for(uint32 i = 0; i < receiver->getPropertiesCount(); i++)
+	{
+		Property* prop = receiver->getProperty(i);
+		if(prop)
+		{
+			StackRef<Class> propType(frame, frame->stackPush(prop->getType()));
+			if(propType->isValueType())
+			{
+				StackRef<Object> child(frame, frame->stackPush());
+				StackRef<Class> klass(propType.push(frame));
+
+				thread->createInstance(klass, child); // pops class
+
+				ret->setChild(Object::OBJECT_CHILDREN_COUNT + i, *child); // TODO: via stack
+				frame->stackPop(); // pop child
+			}
+			frame->stackPop(); // pop type
+		}
+	}
+	/////////////////////////////////////////////////////////
+}
+
 
 Class* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
@@ -52,12 +81,13 @@ Class* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loa
 		name, // classDescr->getName(classFile)->c_str()
 		mClassDescr->getParentsLength() == 0 ? 1 : mClassDescr->getParentsLength() /*+ (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0)*/, // + 1 for Object, TODO: Main in classfile
 		propertiesLength, 
-		methodsLength
+		methodsLength + 1 // +1 for createInstance
 	);
 }
 
 void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass) // TODO: add parents properties into properties size
 {
+	Method* method = NULL;
 	mClass = klass; // ugly
 
 	uint16 propStart = 0;
@@ -101,7 +131,6 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
 		MethodDescriptor* methodDescr = getMethod(i);
-		Method* method = NULL;
 		
 		/*dif(methodDescr->isNative())
 		{
@@ -144,11 +173,16 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 
 	if(strcmp(klass->getName()->c_str(), BEER_WIDEN("Task")) == 0)
 	{
-		Method* method = loader->createMethod(0, 0);
+		method = loader->createMethod(0, 0);
 		method->setName(vm->createString(BEER_WIDEN("dorun")));
 		method->setFunction(&Task::dorun);
-		klass->setMethod(mClassDescr->getMethodsLength(), vm->createPair(vm->createString(BEER_WIDEN("Task::dorun()")), method));
+		klass->setMethod(methodStart++, vm->createPair(vm->createString(BEER_WIDEN("Task::dorun()")), method));
 	}
+
+	method = loader->createMethod(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("createInstance")));
+	method->setFunction(&LoadedObject::createInstance);
+	klass->setMethod(methodStart++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }
 
 AttributeDescriptor* LoadedObjectInitializer::getAtribute(uint16 i)

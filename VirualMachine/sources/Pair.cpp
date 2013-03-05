@@ -9,7 +9,7 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerPair_init(Thread* thread, StackFrame* frame, StackRef<Pair> receiver, StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret)
+void BEER_CALL BeerPair_init(Thread* thread/*, StackFrame* frame*/, StackRef<Pair> receiver, StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret)
 {
 	receiver->setFirst(*first);
 	receiver->setSecond(*second);

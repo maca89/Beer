@@ -119,7 +119,6 @@
     <ClInclude Include="sources\StackFrame.h" />
     <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\String.h" />
-    <ClInclude Include="sources\StringBuilder.h" />
     <ClInclude Include="sources\StringDescriptor.h" />
     <ClInclude Include="sources\NativeThread.h" />
     <ClInclude Include="sources\Task.h" />

@@ -8,39 +8,44 @@
 using namespace Beer;
 
 
-void BEER_CALL Boolean::init(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret1)
+void BEER_CALL Boolean::init(Thread* thread/*, StackFrame* frame*/, StackRef<Boolean> receiver, StackRef<Boolean> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL Boolean::operatorNegation(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> ret)
+void BEER_CALL Boolean::operatorNegation(Thread* thread/*, StackFrame* frame*/, StackRef<Boolean> receiver, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(!receiver->getData());
 }
 
-void BEER_CALL Boolean::operatorEqual(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
+void BEER_CALL Boolean::operatorEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 }
 
-void BEER_CALL Boolean::operatorNotEqual(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
+void BEER_CALL Boolean::operatorNotEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() != arg->getData());
 }
 
-void BEER_CALL Boolean::operatorAnd(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
+void BEER_CALL Boolean::operatorAnd(Thread* thread/*, StackFrame* frame*/, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() && arg->getData());
 }
 
-void BEER_CALL Boolean::operatorOr(Thread* thread, StackFrame* frame, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
+void BEER_CALL Boolean::operatorOr(Thread* thread/*, StackFrame* frame*/, StackRef<Boolean> receiver, StackRef<Boolean> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() || arg->getData());
 }
 
+void BEER_CALL Boolean::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(false);
+}
+
 Class* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(name, 1, 0, 6);
+	return loader->createClass<Class>(name, 1, 0, 7);
 }
 
 void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
@@ -75,4 +80,9 @@ void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	method->setName(vm->createString(BEER_WIDEN("||")));
 	method->setFunction(&Boolean::operatorOr);
 	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Boolean::||(Boolean)")), method));
+
+	method = loader->createMethod(1, 0);
+	method->setName(vm->createString(BEER_WIDEN("createInstance")));
+	method->setFunction(&Boolean::createInstance);
+	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
 }

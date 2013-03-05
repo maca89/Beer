@@ -7,17 +7,17 @@
 using namespace Beer;
 
 
-void BEER_CALL Object::init(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> ret1)
+void BEER_CALL Object::init(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL Object::setClass(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> param)
+void BEER_CALL Object::setClass(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> param)
 {
 	receiver->setChild(1, param.get()); // TODO
 }
 
-void BEER_CALL Object::getClass(Thread* thread, StackFrame* frame, StackRef<Object> receiver, StackRef<Object> ret)
+void BEER_CALL Object::getClass(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> ret)
 {
 	ret = receiver->getChild(1); // TODO
 }

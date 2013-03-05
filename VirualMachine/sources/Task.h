@@ -13,6 +13,6 @@ namespace Beer
 	class Task
 	{
 	public:
-		static void BEER_CALL dorun(Thread* thread, StackFrame* frame, StackRef<Object> receiver);
+		static void BEER_CALL dorun(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver);
 	};
 };

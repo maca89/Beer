@@ -284,9 +284,6 @@
     <ClInclude Include="sources\GrowableMemoryAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\StringBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sources\MetaClass.h">
       <Filter>Header Files\Reflection</Filter>
     </ClInclude>

@@ -74,7 +74,7 @@ Method* Class::findMethod(String* selector)
 	return NULL;
 }
 
-void BEER_CALL Class::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Object> ret)
+void BEER_CALL Class::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret)
 {
 	Class* klass = *receiver;
 
@@ -88,6 +88,8 @@ void BEER_CALL Class::createInstance(Thread* thread, StackFrame* frame, StackRef
 
 bool Class::substituable(Class* otherClass) const
 {
+	if(this == otherClass) return true;
+
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
 		if(getParent(i) == otherClass) return true;
@@ -95,6 +97,8 @@ bool Class::substituable(Class* otherClass) const
 			
 	for(uint16 i = 0; i < mParentsCount; i++)
 	{
+		Class* parent = getParent(i);
+		if(parent == this) continue;
 		if(getParent(i)->substituable(otherClass)) return true;
 	}
 

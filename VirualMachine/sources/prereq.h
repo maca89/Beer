@@ -20,7 +20,7 @@ namespace Beer
 	#define SMART_DELETE_ARR(_i_) delete[] (_i_); (_i_) = NULL;
 	#define BEER_BREAKPOINT() __asm { INT 3 }
 
-#ifdef BEER_DEBUG
+#ifdef BEER_DEBUG_MODE
 	#define BEER_DBG_BREAKPOINT() BEER_BREAKPOINT()
 #else
 	#define BEER_DBG_BREAKPOINT()
@@ -54,7 +54,7 @@ namespace Beer
 	#define cout std::wcout
 	#define cin std::wcin
 
-	#define BEER_WIDEN(x) L ## x
+	#define BEER_WIDEN(x) (L##x)
 	#define __WFILE__ _T(__FILE__)
 #else
 	typedef char8 char_t;
@@ -319,10 +319,19 @@ namespace Beer
 
 	#ifdef BEER_DEBUG_MODE
 		#define BEER_DEBUG_ASSERTS_ON
-		#define BEER_MEMORY_DEBUGGING
-		#define BEER_GC_DEBUGGING
+		//#define BEER_MEMORY_DEBUGGING
+		//#define BEER_GC_DEBUGGING
 		#define BEER_STACK_DEBUGGING
 	#endif // BEER_DEBUG_MODE
+
+	// debug asserts
+	//#define BEER_DEBUG_ASSERTS_ON
+	//#define BEER_MEMORY_DEBUGGING
+	//#define BEER_GC_DEBUGGING
+	//#define BEER_STACK_DEBUGGING
+
+	// important asserts
+	#define BEER_ASSERTS_ON
 
 	#ifdef BEER_ASSERTS_ON
 		#define BEER_RUNTIME_ASSERS_ON
@@ -331,19 +340,11 @@ namespace Beer
 		#define BEER_CRITICAL_ASSERTS_ON
 	#endif // BEER_ASSERTS_ON
 
-	//#define BEER_DEBUG_ASSERTS_ON
-	//#define BEER_MEMORY_DEBUGGING
-	//#define BEER_GC_DEBUGGING
-	//#define BEER_STACK_DEBUGGING
-
 	// optimalizations
 	#define BEER_INLINE_OPTIMALIZATION
 
 	// measure performance
 	//#define BEER_MEASURE_PERFORMANCE
-
-	// workarounds
-	#define BEER_VALUE_TYPES_WORKAROUND
 
 
 	// usually bytecode/virutal-runtime related errors
@@ -369,7 +370,7 @@ namespace Beer
 		#define DBG_ASSERT(cond, msg)
 	#endif
 
-	// checks => should be in debug for performance reasons
+	// null pointer checks => important!
 	#ifdef BEER_NULL_ASSERTS_ON
 		#define NULL_ASSERT(var) if(!(var)) { BEER_DBG_BREAKPOINT(); throw NullReferenceException(BEER_WIDEN("Object is null")); }
 	#else
