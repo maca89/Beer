@@ -2,11 +2,10 @@
 #include "prereq.h"
 #include "String.h"
 #include "Class.h"
-#include "GarbageCollector.h"
 #include "ClassLoader.h"
 #include "IntegerClass.h"
 #include "CharacterClass.h"
-#include "CopyGC.h"
+#include "GenerationalGC.h"
 
 
 namespace Beer

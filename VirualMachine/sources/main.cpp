@@ -169,7 +169,9 @@ int __cdecl main(int argc, const char** argv)
 	if(!loadSettings(argc, argv, settings)) return 1;
 
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
-	VirtualMachine* vm = new VirtualMachine;
+	GenerationalGC* gc = new GenerationalGC(15, 4096);
+	gc->init();
+	VirtualMachine* vm = new VirtualMachine(gc);
 	ClassFileDescriptor* classFile = NULL;
 
 //	Console::setArgs(&argv[2], argc - 2); // TODO

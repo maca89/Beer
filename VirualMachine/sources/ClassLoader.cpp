@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ClassLoader.h"
 #include "VirtualMachine.h"
-
+#include "Heap.h"
 #include "Class.h"
 #include "Method.h"
 #include "Param.h"
@@ -9,7 +9,7 @@
 using namespace Beer;
 
 
-ClassLoader::ClassLoader(VirtualMachine* vm, GarbageCollector* heap) : mVM(vm), mClassHeap(heap)
+ClassLoader::ClassLoader(VirtualMachine* vm, Heap* heap) : mVM(vm), mClassHeap(heap)
 {
 }
 

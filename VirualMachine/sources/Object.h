@@ -4,7 +4,7 @@
 
 namespace Beer
 {
-	struct GarbageCollector;
+	//struct GarbageCollector;
 	//class Class;
 
 	#pragma pack(push, 1)

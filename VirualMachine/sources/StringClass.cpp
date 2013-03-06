@@ -227,7 +227,6 @@ Reference<String> StringPool::translate(Thread* thread, const char16* str)
 	if(it == mStrings.end())
 	{
 		uint32 length = strlen(str);
-		CopyGC* heap = static_cast<CopyGC*>(thread->getHeap());
 		
 		StackFrame* frame = thread->getStackFrame();
 
@@ -240,7 +239,7 @@ Reference<String> StringPool::translate(Thread* thread, const char16* str)
 		thread->createString(lengthOnStack, strOnStack); // pops length
 		strOnStack->copyData(str, length);
 
-		Reference<String> result(heap, *strOnStack);
+		Reference<String> result(thread->getGC(), *strOnStack);
 		frame->stackMoveTop(-1); // pop string from stack
 		return result;
 	}

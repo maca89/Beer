@@ -19,7 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sources\AlignedHeap.cpp" />
+    <ClCompile Include="sources\AllocationBlock.cpp" />
+    <ClCompile Include="sources\DynamicHeap.cpp" />
+    <ClCompile Include="sources\FixedHeap.cpp" />
+    <ClCompile Include="sources\GenerationalGC.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
+    <ClCompile Include="sources\NurseryGC.cpp" />
     <ClCompile Include="sources\Param.cpp" />
     <ClCompile Include="sources\ArrayClass.cpp" />
     <ClCompile Include="sources\BytecodeBuilder.cpp" />
@@ -71,8 +77,14 @@
     <ClCompile Include="sources\VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sources\AllocationBlock.h" />
     <ClInclude Include="sources\Boolean.h" />
+    <ClInclude Include="sources\DynamicHeap.h" />
+    <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />
+    <ClInclude Include="sources\GenerationalGC.h" />
+    <ClInclude Include="sources\Heap.h" />
+    <ClInclude Include="sources\MemoryAllocator.h" />
     <ClInclude Include="sources\MetaClass.h" />
     <ClInclude Include="sources\Character.h" />
     <ClInclude Include="sources\DebugMemoryAllocator.h" />
@@ -90,6 +102,8 @@
     <ClInclude Include="sources\FileReaderClass.h" />
     <ClInclude Include="sources\FileWriterClass.h" />
     <ClInclude Include="sources\FloatClass.h" />
+    <ClInclude Include="sources\AlignedHeap.h" />
+    <ClInclude Include="sources\NurseryGC.h" />
     <ClInclude Include="sources\Pair.h" />
     <ClInclude Include="sources\PairClass.h" />
     <ClInclude Include="sources\PolymorphicInlineCache.h" />

@@ -5,12 +5,12 @@
 namespace Beer
 {
 	class VirtualMachine;
-	struct GarbageCollector;
 	class ClassLoader;
 	class Class;
 	class Method;
 	class Param;
 	class Property;
+	class Heap;
 
 	class ClassInitializer
 	{
@@ -28,12 +28,12 @@ namespace Beer
 		typedef std::list<string> StringList;
 
 		VirtualMachine* mVM;
-		GarbageCollector* mClassHeap;
+		Heap* mClassHeap;
 		ClassInitializerMap mClassInitializers;
 		StringList mBeingLoaded;
 
 	public:
-		ClassLoader(VirtualMachine* vm, GarbageCollector* heap);
+		ClassLoader(VirtualMachine* vm, Heap* heap);
 		virtual ~ClassLoader();
 
 		void addClassInitializer(string classname, ClassInitializer* initializer);

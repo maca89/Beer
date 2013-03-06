@@ -76,17 +76,17 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 {
 	mDebugger = new Debugger(this);
 	//mStack = new WorkStack(stackInitSize);
-	mHeap = new CopyGC(this, heapInitSize);
+	//mHeap = new CopyGC(this, heapInitSize);
 	mClassLoader = new ClassLoader(this, mHeap);
 
-	String* metaClassName = ((GarbageCollector*)mHeap)->alloc<String>(
+	String* metaClassName = mHeap->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 10 for "MetaClass", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
 	);
 	metaClassName->size(9); // 9 for "MetaClass"
 	metaClassName->copyData(BEER_WIDEN("MetaClass"));
 
-	mMetaClass = static_cast<GarbageCollector*>(mHeap)->alloc<MetaClass>(
+	mMetaClass = mHeap->alloc<MetaClass>(
 		Class::CLASS_CHILDREN_COUNT + 3 // 1 parent, 2 methods
 	);
 
@@ -116,7 +116,7 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mClassLoader->addClassInitializer(BEER_WIDEN("Pair"), new PairClassInitializer);
 
 	// create Object class
-	String* objectClassName = ((GarbageCollector*)mHeap)->alloc<String>(
+	String* objectClassName = mHeap->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Object", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
 	);
@@ -131,7 +131,7 @@ void VirtualMachine::init(uint32 stackInitSize, uint32 heapInitSize)
 	mObjectClass->extends(0, mObjectClass); // TODO
 
 	// create String class
-	String* stringClassName = ((GarbageCollector*)mHeap)->alloc<String>(
+	String* stringClassName = mHeap->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "String", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
 	);
@@ -226,7 +226,7 @@ void VirtualMachine::work()
 		if(!method.isNull())
 		{
 			// ugly – create another trampoline
-			TrampolineThread* thread = new TrampolineThread(this);
+			TrampolineThread* thread = new TrampolineThread(this, mGC);
 			getThreads().insert(thread);
 
 			thread->openStackFrame()->stackMoveTop(1); // for return

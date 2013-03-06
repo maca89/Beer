@@ -1,6 +1,5 @@
 #pragma once
 #include "prereq.h"
-#include "CopyGC.h"
 #include "NativeThread.h"
 #include "StackFrame.h"
 #include "Integer.h"
@@ -12,12 +11,16 @@ namespace Beer
 {
 	class VirtualMachine;
 	class Array;
-	typedef CopyGC Heap;
+	class GenerationalGC;
+	class Heap;
+
+	typedef GenerationalGC GC;
 
 	class Thread : public NativeThread
 	{
 	protected:
 		VirtualMachine* mVM;
+		GC* mGC;
 		//StackFrame* mLastFrame;
 		WorkStack mStack;
 		DynamicStack<StackFrame> mFrames;
@@ -30,7 +33,7 @@ namespace Beer
 		byte createInstanceMethodCacheBytes[sizeof(PolymorphicInlineCache::CachedMethod) * CREATE_INSTANCE_CACHE_SIZE];
 
 	public:
-		Thread(VirtualMachine* vm);
+		Thread(VirtualMachine* vm, GC * gc);
 
 		virtual ~Thread()
 		{
@@ -39,6 +42,8 @@ namespace Beer
 		INLINE WorkStack* getStack() { return &mStack; }
 
 		INLINE VirtualMachine* getVM() { return mVM; }
+
+		INLINE GC* getGC() { return mGC; } // does every thread need GC?
 
 		INLINE Heap* getHeap() { return mHeap; }
 
@@ -63,7 +68,7 @@ namespace Beer
 
 		void getClass(StackRef<String> name, StackRef<Class> ret);
 		void getMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> method);
-		
+
 		void createInteger(StackRef<Integer> ret, Integer::IntegerData value);
 		void createFloat(StackRef<Float> ret, Float::FloatData value);
 		void createString(StackRef<String> ret, string value);

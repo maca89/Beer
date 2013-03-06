@@ -1,0 +1,6 @@
+namespace Beer
+{
+	class Heap
+	{
+	};
+}

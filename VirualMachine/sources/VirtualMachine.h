@@ -20,7 +20,7 @@ namespace Beer
 	class Class;
 	class Pair;
 
-	struct GarbageCollector;
+	class GarbageCollector;
 	class ClassFileLoader;
 	class ClassLoader;
 	class Thread;
@@ -53,9 +53,9 @@ namespace Beer
 		Class* mArrayClass;
 
 	public:
-		INLINE VirtualMachine()
-			: Thread(this),
-			mClassLoader(NULL), mDebugger(NULL), 
+		INLINE VirtualMachine(GC * gc)
+			: Thread(this, gc),
+			mClassLoader(NULL), mDebugger(NULL),
 			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mPairClass(NULL), mArrayClass(NULL)
 		{
 		}

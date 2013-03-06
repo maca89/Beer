@@ -243,7 +243,7 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case Beer::Bytecode::INSTR_PUSH_STRING:
 		{
-			Reference<String> str(vm->getHeap(), getData<uint32>());
+			Reference<String> str(vm->getGC(), getData<uint32>());
 			cout << "PUSH_STRING \"" << str->c_str() << "\"";
 		}
 		break;
@@ -279,28 +279,28 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case Beer::Bytecode::INSTR_INVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case Beer::Bytecode::INSTR_INTERFACEINVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case Beer::Bytecode::INSTR_STATIC_INVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "STATIC_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case Beer::Bytecode::INSTR_SPECIALINVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
@@ -640,7 +640,7 @@ Method* Bytecode::call(Thread* thread, StackFrame* frame)
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_STRING:
-			frame->stackPush(thread->getHeap()->translate(instr->getData<int32>()));
+			frame->stackPush(thread->getGC()->translate(instr->getData<int32>()));
 			break;
 
 		case Beer::Bytecode::INSTR_PUSH_CHAR:
@@ -715,7 +715,7 @@ Method* Bytecode::call(Thread* thread, StackFrame* frame)
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
-				Reference<String> selector(vm->getHeap(), instr->getData<int32>());
+				Reference<String> selector(vm->getGC(), instr->getData<int32>());
 
 				// find method using inline cache
 				MonomorphicInlineCache* cache = MonomorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));
@@ -742,7 +742,7 @@ Method* Bytecode::call(Thread* thread, StackFrame* frame)
 				StackRef<Object> object(frame, frame->stackTopIndex());
 				NULL_ASSERT(object.get());
 
-				Reference<String> selector(thread->getHeap(), instr->getData<int32>());
+				Reference<String> selector(thread->getGC(), instr->getData<int32>());
 
 				// find method using inline cache
 				PolymorphicInlineCache* cache = PolymorphicInlineCache::from(reinterpret_cast<byte*>(instr) + sizeof(uint8) + sizeof(int32));

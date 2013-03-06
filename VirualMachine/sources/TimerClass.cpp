@@ -4,6 +4,7 @@
 #include "FloatClass.h"
 #include "VirtualMachine.h"
 #include "StackFrame.h"
+#include "Heap.h"
 
 using namespace Beer;
 
@@ -27,7 +28,7 @@ void BEER_CALL Timer::stop(Thread* thread, StackFrame* frame, StackRef<Timer> re
 
 void BEER_CALL TimerClass::createInstance(Thread* thread, StackFrame* frame, StackRef<Class> receiver, StackRef<Timer> ret)
 {
-	ret = ((GarbageCollector*)thread->getHeap())->alloc<Timer>(
+	ret = thread->getHeap()->alloc<Timer>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
 	ret->setClass(*receiver);

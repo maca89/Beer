@@ -4,6 +4,8 @@
 #include "Method.h"
 #include "ArrayClass.h"
 //#include "PolymorphicInlineCache.h"
+#include "GenerationalGC.h"
+#include "Heap.h"
 
 using namespace Beer;
 
@@ -22,13 +24,13 @@ using namespace Beer;
 #endif // BEER_STACK_DEBUGGING
 
 
-Thread::Thread(VirtualMachine* vm)
-	: mVM(vm), mStack(1024), mFrames(50)
+Thread::Thread(VirtualMachine* vm, GC * gc)
+	: mVM(vm), mStack(1024), mFrames(50), mGC(gc)
 {
 	StackFrame frame(&mStack);
 	mFrames.push(frame);
 
-	mHeap = mVM->getHeap();
+	mHeap = mGC->createHeap();
 
 	PolymorphicInlineCache* methodCache = PolymorphicInlineCache::from(createInstanceMethodCacheBytes);
 	methodCache->clear(CREATE_INSTANCE_CACHE_SIZE);
@@ -137,7 +139,7 @@ void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 	StackRef<Class> stringClass(frame, frame->stackPush(NULL));
 	getStringClass(stringClass);
 
-	ret = ((GarbageCollector*)getHeap())->alloc<String>(
+	ret = getHeap()->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (length->getData() + 1)), // +1 for \0
 		Object::OBJECT_CHILDREN_COUNT + stringClass->getPropertiesCount()
 	);

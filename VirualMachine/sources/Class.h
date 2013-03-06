@@ -11,7 +11,7 @@ namespace Beer
 {
 	class EventReflection;
 	class Method;
-	struct GarbageCollector;
+	//struct GarbageCollector;
 	class StackFrame;
 	class VirtualMachine;
 	class Thread;
