@@ -22,6 +22,7 @@ namespace Beer
 		//StackFrame* mLastFrame;
 		WorkStack mStack;
 		DynamicStack<StackFrame> mFrames;
+		StackFrame* mTopFrame;
 		Heap* mHeap;
 
 		enum
@@ -47,14 +48,15 @@ namespace Beer
 		{
 			StackFrame frame(getStackFrame());
 			mFrames.push(frame);
+			fetchTopStackFrame();
 			return getStackFrame();
 		}
 
 		INLINE bool hasStackFrame() { return mFrames.size() != 0; }
 
-		INLINE void closeStackFrame() { mFrames.pop(); }
+		INLINE void closeStackFrame() { mFrames.pop(); fetchTopStackFrame(); }
 
-		INLINE StackFrame* getStackFrame() { return mFrames.topPtr(mFrames.topIndex()); }
+		INLINE StackFrame* getStackFrame() { return mTopFrame; }
 
 		void getIntegerClass(StackRef<Class> ret);
 		void getFloatClass(StackRef<Class> ret);
@@ -75,5 +77,7 @@ namespace Beer
 
 	protected:
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
+
+		INLINE void fetchTopStackFrame() { mTopFrame = mFrames.topPtr(mFrames.topIndex()); }
 	};
 };

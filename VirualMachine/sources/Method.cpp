@@ -8,9 +8,9 @@
 using namespace Beer;
 
 
-Method* Method::runFunction(Thread* thread, StackFrame* frame)
+Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 {
-	//StackFrame* frame = thread->getStackFrame();
+	StackFrame* frame = thread->getStackFrame();
 	Cb fn = mFunction;
 	if(fn == NULL)
 	{

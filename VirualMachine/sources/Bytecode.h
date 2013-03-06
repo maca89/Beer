@@ -154,7 +154,7 @@ namespace Beer
 			// *NO* deleting of mData or mDict !!!
 		}
 
-		Method* call(Thread* thread, StackFrame* frame);
+		Method* call(Thread* thread);
 		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }

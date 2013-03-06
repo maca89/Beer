@@ -44,7 +44,7 @@ void TrampolineThread::work()
 			MethodReflection* oldMethod = method;
 		#endif // BEER_MEASURE_PERFORMANCE
 
-			method = method->call(this, frame);
+			method = method->call(this);
 
 		#ifdef BEER_MEASURE_PERFORMANCE
 			oldMethod->addTimeSpent(timer.stop());

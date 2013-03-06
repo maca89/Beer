@@ -663,9 +663,9 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 #endif // BEER_BC_DISPATCH
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Method* Bytecode::call(Thread* thread, StackFrame* frame)
+Method* Bytecode::call(Thread* thread)
 {
-	//StackFrame* frame = thread->getStackFrame();
+	StackFrame* frame = thread->getStackFrame();
 	void* jumpAddr = NULL;
 	byte* ip = NULL;
 

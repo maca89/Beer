@@ -224,7 +224,7 @@ void VirtualMachine::work()
 				frame->stackPush(*klass);
 
 				StackFrame* nextFrame = openStackFrame();
-				method->call(this, nextFrame); // pops copied mainClass
+				method->call(this); // pops copied mainClass
 				closeStackFrame();
 
 				instance = ret;
@@ -273,7 +273,7 @@ void VirtualMachine::work()
 
 				frame->method = *method;
 				frame->stackMoveTop(-2); // pop method & selector
-				frame->method->call(this, frame);
+				frame->method->call(this);
 
 				closeStackFrame();
 			}

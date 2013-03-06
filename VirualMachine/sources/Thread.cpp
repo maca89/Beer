@@ -23,10 +23,11 @@ using namespace Beer;
 
 
 Thread::Thread(VirtualMachine* vm)
-	: mVM(vm), mStack(1024), mFrames(50)
+	: mVM(vm), mStack(1024), mFrames(50), mTopFrame(NULL)
 {
 	StackFrame frame(&mStack);
 	mFrames.push(frame);
+	fetchTopStackFrame();
 
 	mHeap = mVM->getHeap();
 
@@ -227,7 +228,7 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 		//klass.copy(); // receiver
 
 		StackFrame* nextFrame = openStackFrame();
-		rawmethod->call(this, nextFrame); // pops class
+		rawmethod->call(this); // pops class
 
 		DBG_ASSERT(!ret.isNull(), BEER_WIDEN("No instance created"));
 

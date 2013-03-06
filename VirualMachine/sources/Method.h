@@ -157,20 +157,20 @@ namespace Beer
 
 		// calls
 
-		INLINE Method* call(Thread* thread, StackFrame* frame)
+		INLINE Method* call(Thread* thread/*, StackFrame* frame*/)
 		{
 			if(isBytecode())
 			{
-				return mBytecode->call(thread, frame);
+				return mBytecode->call(thread/*, frame*/);
 			}
 			else
 			{
-				return runFunction(thread, frame);
+				return runFunction(thread/*, frame*/);
 			}
 		}
 
 	protected:
-		Method* runFunction(Thread* thread, StackFrame* frame);
+		Method* runFunction(Thread* thread/*, StackFrame* frame*/);
 
 	private:
 		INLINE ~Method()
