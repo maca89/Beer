@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Method.h"
 #include "Object.h"
-#include "GarbageCollector.h"
+#include "GenerationalGC.h"
 #include "Thread.h"
 #include "StackFrame.h"
 

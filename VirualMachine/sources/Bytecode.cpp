@@ -15,6 +15,7 @@
 #include "PolymorphicInlineCache.h"
 #include "Debugger.h"
 #include "Array.h"
+#include "GenerationalGC.h"
 
 using namespace Beer;
 
@@ -227,7 +228,7 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case BEER_INSTR_PUSH_STRING:
 		{
-			Reference<String> str(vm->getHeap(), getData<uint32>());
+			Reference<String> str(vm->getGC(), getData<uint32>());
 			cout << "PUSH_STRING \"" << str->c_str() << "\"";
 		}
 		break;
@@ -263,28 +264,28 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case BEER_INSTR_INVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_INTERFACEINVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_STATIC_INVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "STATIC_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_SPECIALINVOKE:
 		{
-			Reference<String> selector(vm->getHeap(), getData<uint32>());
+			Reference<String> selector(vm->getGC(), getData<uint32>());
 			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
@@ -769,7 +770,7 @@ BEER_BC_LABEL(INSTR_PUSH_FLOAT):
 	BEER_BC_NEXT(sizeof(float64));
 
 BEER_BC_LABEL(INSTR_PUSH_STRING):
-	frame->stackPush(thread->getHeap()->translate(BEER_BC_DATA(int32)));
+	frame->stackPush(thread->getGC()->translate(BEER_BC_DATA(int32)));
 	BEER_BC_NEXT(sizeof(int32));
 
 BEER_BC_LABEL(INSTR_PUSH_CHAR):
@@ -831,7 +832,7 @@ BEER_BC_LABEL(INSTR_SPECIALINVOKE):
 		StackRef<Object> object(frame, frame->stackTopIndex());
 		NULL_ASSERT(object.get());
 
-		Reference<String> selector(thread->getHeap(), BEER_BC_DATA(int32));
+		Reference<String> selector(thread->getGC(), BEER_BC_DATA(int32));
 
 		// find method using inline cache
 		MonomorphicInlineCache* cache = MonomorphicInlineCache::from(ip + sizeof(int32));
@@ -858,7 +859,7 @@ BEER_BC_LABEL(INSTR_INTERFACEINVOKE):
 		StackRef<Object> object(frame, frame->stackTopIndex());
 		NULL_ASSERT(object.get());
 
-		Reference<String> selector(thread->getHeap(), BEER_BC_DATA(int32));
+		Reference<String> selector(thread->getGC(), BEER_BC_DATA(int32));
 
 		// find method using inline cache
 		PolymorphicInlineCache* cache = PolymorphicInlineCache::from(ip + sizeof(int32));

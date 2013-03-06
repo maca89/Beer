@@ -4,8 +4,7 @@
 #include "Integer.h"
 #include "ClassLoader.h"
 #include "StackFrame.h"
-#include "GarbageCollector.h"
-#include "CopyGC.h"
+#include "GenerationalGC.h"
 #include "Character.h"
 
 

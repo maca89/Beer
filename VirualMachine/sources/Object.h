@@ -5,7 +5,7 @@
 
 namespace Beer
 {
-	struct GarbageCollector;
+	//struct GarbageCollector;
 	//class Class;
 	class Thread;
 

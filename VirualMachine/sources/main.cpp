@@ -169,14 +169,16 @@ int __cdecl main(int argc, const char** argv)
 	if(!loadSettings(argc, argv, settings)) return 1;
 
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
-	VirtualMachine* vm = new VirtualMachine;
+	GenerationalGC* gc = new GenerationalGC(27, 4096);
+	VirtualMachine* vm = new VirtualMachine(gc);
 	ClassFileDescriptor* classFile = NULL;
 
 //	Console::setArgs(&argv[2], argc - 2); // TODO
 
 	try
 	{
-		vm->init(settings.stackSize, settings.heapSize);
+		gc->init();
+		vm->init(settings.stackSize);
 		vm->getDebugger()->setEnabled(settings.debuggerEnabled);
 		vm->getDebugger()->setSteppingMode(settings.debuggerStepping);
 

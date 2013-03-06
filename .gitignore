@@ -8,3 +8,6 @@ backup/
 *.opensdf
 /*.sdf
 
+/*.suo
+
+/Beer.v11.suo

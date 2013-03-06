@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Class.h"
-#include "GarbageCollector.h"
+#include "GenerationalGC.h"
 #include "ClassLoader.h"
 #include "MiliTimer.h"
 #include "Float.h"

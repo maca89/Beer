@@ -2,10 +2,11 @@
 #include "Class.h"
 #include "Object.h"
 #include "Method.h"
-#include "GarbageCollector.h"
 #include "Property.h"
 #include "String.h"
 #include "VirtualMachine.h"
+#include "Thread.h"
+#include "Heap.h"
 
 using namespace Beer;
 
@@ -78,7 +79,7 @@ void BEER_CALL Class::createInstance(Thread* thread/*, StackFrame* frame*/, Stac
 {
 	Class* klass = *receiver;
 
-	ret = ((GarbageCollector*)thread->getHeap())->alloc<Object>(
+	ret = thread->getHeap()->alloc<Object>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
 			

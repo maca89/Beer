@@ -1,7 +1,8 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "GarbageCollector.h"
+#include "Thread.h"
+#include "Heap.h"
 #include "ClassLoader.h"
 #include "Integer.h"
 #include "Float.h"
@@ -69,10 +70,11 @@ namespace Beer
 	{
 	public:
 		// ClassReflection
-		Object* createInstance(Thread* thread, StackFrame* frame, GarbageCollector* gc) // TODO!!!
+		Object* createInstance(Thread* thread, StackFrame* frame) // TODO!!!
 		{
 			// TODO: constructor
-			FileWriter* writer = gc->alloc<FileWriter>(Object::OBJECT_CHILDREN_COUNT);
+			
+			FileWriter* writer = thread->getHeap()->alloc<FileWriter>(Object::OBJECT_CHILDREN_COUNT);
 			writer->setClass(this);
 			writer->mFile = new std::ofstream(); // memory leak!
 			return writer;

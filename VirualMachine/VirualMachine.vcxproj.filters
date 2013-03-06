@@ -1,345 +1,408 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Header Files\Reflection">
-      <UniqueIdentifier>{33587d18-ce85-4203-9606-e7d6c427b967}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Reflection">
-      <UniqueIdentifier>{3a86024b-d7e0-4ee7-b30d-4ea9297b2f17}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\InternalClasses">
-      <UniqueIdentifier>{6671efb7-3704-42c3-bf2b-25d9c6e60983}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\InternalClasses">
-      <UniqueIdentifier>{dcf077c0-7e83-4596-9f5d-b6b821829abf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ClassFile">
-      <UniqueIdentifier>{1a424f93-d166-4df1-a25f-7dbac6bc7d25}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ClassFile">
-      <UniqueIdentifier>{0ff0a15a-1994-4d5e-9358-7e1f5bc43bc1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="sources\Bytecode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\prereq.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\VirtualMachine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\InterlockedQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Interlocked.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\CopyGC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sources\ClassLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ClassFileDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ClassDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\StringDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\AttributeDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\MethodDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\ParamDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\MyClassFileLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\LoadedObject.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\BytecodeDescriptor.cpp">
-      <Filter>Source Files\ClassFile</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Debugger.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\ClassTable.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\TrampolineThread.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="sources\Debugger.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\NativeThread.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="sources\main.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\PolymorphicInlineCache.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="sources\prereq.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\GrowableMemoryAllocator.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="sources\stdafx.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\BytecodeBuilder.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="sources\VirtualMachine.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\Task.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+    <ClCompile Include="sources\Interlocked.cpp">
+      <Filter>Sources\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="sources\Class.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\MetaClass.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Method.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Param.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Property.cpp">
-      <Filter>Source Files\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Thread.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="sources\InterlockedQueue.cpp">
+      <Filter>Sources\Utils</Filter>
     </ClCompile>
     <ClCompile Include="sources\MiliTimer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Sources\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="sources\Object.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+    <ClCompile Include="sources\NativeThread.cpp">
+      <Filter>Sources\Thread</Filter>
     </ClCompile>
-    <ClCompile Include="sources\Boolean.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+    <ClCompile Include="sources\Thread.cpp">
+      <Filter>Sources\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\TrampolineThread.cpp">
+      <Filter>Sources\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\GrowableMemoryAllocator.cpp">
+      <Filter>Sources\MemoryAllocator</Filter>
     </ClCompile>
     <ClCompile Include="sources\Array.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Boolean.cpp">
+      <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\Character.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+      <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\Console.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Integer.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\String.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Float.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Timer.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Pair.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+      <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\FileReader.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+      <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\FileWriter.cpp">
-      <Filter>Source Files\InternalClasses</Filter>
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Float.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Integer.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\LoadedObject.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Object.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Pair.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\String.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Task.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Timer.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\AlignedHeap.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\AllocationBlock.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\DynamicHeap.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\FixedHeap.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\GenerationalGC.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\NurseryGC.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Class.cpp">
+      <Filter>Sources\ClassModel</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MetaClass.cpp">
+      <Filter>Sources\ClassModel</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Method.cpp">
+      <Filter>Sources\ClassModel</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Param.cpp">
+      <Filter>Sources\ClassModel</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Property.cpp">
+      <Filter>Sources\ClassModel</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\AttributeDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BytecodeDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ClassDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ClassFileDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MethodDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MyClassFileLoader.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ParamDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\StringDescriptor.cpp">
+      <Filter>Sources\ClassFile</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Bytecode.cpp">
+      <Filter>Sources\Bytecode</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BytecodeBuilder.cpp">
+      <Filter>Sources\Bytecode</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\PolymorphicInlineCache.cpp">
+      <Filter>Sources\Bytecode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sources\Bytecode.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="sources\AlignedHeap.h">
+      <Filter>Headers\GarbageCollector</Filter>
     </ClInclude>
-    <ClInclude Include="sources\prereq.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\VirtualMachine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\QuickSort.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\InterlockedQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\InterlockedStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\GarbageCollector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Interlocked.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\FixedStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\StackFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\CopyGC.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\SimpleMemoryAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ClassLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ClassFileDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\FileFormatConverter.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ClassDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\StringDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\AttributeDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MethodDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ParamDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ClassFileLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MyClassFileLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\LoadedObject.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\BytecodeDescriptor.h">
-      <Filter>Header Files\ClassFile</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\DynamicStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\BytecodeBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Debugger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\CachedOutput.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\ClassTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\InlineFunctionTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\TrampolineThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\NativeThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\PolymorphicInlineCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MonomorphicInlineCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\DebugMemoryAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\GrowableMemoryAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MetaClass.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Task.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Class.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Method.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Param.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Property.h">
-      <Filter>Header Files\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\String.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Pair.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Object.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Character.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Integer.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\MiliTimer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Float.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Boolean.h">
-      <Filter>Header Files\InternalClasses</Filter>
+    <ClInclude Include="sources\AllocationBlock.h">
+      <Filter>Headers\GarbageCollector</Filter>
     </ClInclude>
     <ClInclude Include="sources\Array.h">
-      <Filter>Header Files\InternalClasses</Filter>
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Boolean.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\AttributeDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Character.h">
+      <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\Console.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Timer.h">
-      <Filter>Header Files\InternalClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\FileWriter.h">
-      <Filter>Header Files\InternalClasses</Filter>
+      <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\FileReader.h">
-      <Filter>Header Files\InternalClasses</Filter>
+      <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
+    <ClInclude Include="sources\FileWriter.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Float.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Timer.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Task.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\String.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Pair.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Object.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Integer.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StringDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MethodDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassFileDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassFileLoader.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ParamDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MetaClass.h">
+      <Filter>Headers\ClassModel</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Class.h">
+      <Filter>Headers\ClassModel</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Param.h">
+      <Filter>Headers\ClassModel</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Method.h">
+      <Filter>Headers\ClassModel</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Bytecode.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodeBuilder.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodeDescriptor.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FixedHeap.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\GenerationalGC.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DynamicHeap.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FixedStack.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DynamicStack.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\NurseryGC.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\SimpleMemoryAllocator.h">
+      <Filter>Headers\MemoryAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DebugMemoryAllocator.h">
+      <Filter>Headers\MemoryAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\GrowableMemoryAllocator.h">
+      <Filter>Headers\MemoryAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Heap.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MiliTimer.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MemoryAllocator.h">
+      <Filter>Headers\MemoryAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MonomorphicInlineCache.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\PolymorphicInlineCache.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StackFrame.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\LoadedObject.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\NativeThread.h">
+      <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\TrampolineThread.h">
+      <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Thread.h">
+      <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Property.h">
+      <Filter>Headers\ClassModel</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\QuickSort.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InterlockedStack.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Interlocked.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InterlockedQueue.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MyClassFileLoader.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FileFormatConverter.h">
+      <Filter>Headers\ClassFile</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CachedOutput.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassLoader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassTable.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Debugger.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InlineFunctionTable.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\prereq.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\stdafx.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\VirtualMachine.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{bc7bd1ac-40fb-4331-af9e-38f21ed1c113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Bytecode">
+      <UniqueIdentifier>{a32d9c20-83a2-42cd-9ee3-da28da0ded13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\ClassFile">
+      <UniqueIdentifier>{df3d3a3d-b31e-4d46-9792-61a8be71a831}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\ClassModel">
+      <UniqueIdentifier>{596c0d36-a4b8-4189-ab4e-94bfc110a521}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\GarbageCollector">
+      <UniqueIdentifier>{0f7da87f-f959-4a00-b900-6d9ef813c751}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\InternalClasses">
+      <UniqueIdentifier>{6a8126dc-41e4-4f51-9e0d-06f63bb7ff4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\MemoryAllocator">
+      <UniqueIdentifier>{dd020575-7a4a-4b7e-ab5a-255b2b31f5c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Stack">
+      <UniqueIdentifier>{3fefb390-b50d-43db-a2cd-dd206078d703}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Thread">
+      <UniqueIdentifier>{f7099da5-3a11-47a0-b627-25208c3cb522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Utils">
+      <UniqueIdentifier>{849fab95-c940-4fd1-a069-dca44d8f7856}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{14e63aa5-ba12-40a7-ae39-2467afa7b790}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Bytecode">
+      <UniqueIdentifier>{7042c805-685f-48c5-888d-0b3a41a5479b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ClassFile">
+      <UniqueIdentifier>{8a561a2e-7b7f-4a45-baf7-997449e49381}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ClassModel">
+      <UniqueIdentifier>{c04a1824-da5c-4f03-b8e0-c40721b2c6fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\GarbageCollector">
+      <UniqueIdentifier>{96e5aead-c51d-4c88-8cfa-d5af1a356d2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\InternalClasses">
+      <UniqueIdentifier>{dda67e4d-06dc-4267-bdfe-8420f1beb8ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\MemoryAllocator">
+      <UniqueIdentifier>{a93c5e1b-560c-4b4f-a46c-2aabe7f78155}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Stack">
+      <UniqueIdentifier>{bf061b20-dd12-4b61-9ff7-cc5e0242ed59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Thread">
+      <UniqueIdentifier>{77615a45-8495-47d5-b183-2ee047767a14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Utils">
+      <UniqueIdentifier>{ab388042-39e5-4055-91b5-bd95c45a6fb4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

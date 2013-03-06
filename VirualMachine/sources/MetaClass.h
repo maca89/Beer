@@ -2,7 +2,6 @@
 #include "prereq.h"
 #include "Class.h"
 #include "ClassLoader.h"
-#include "GarbageCollector.h"
 #include "VirtualMachine.h"
 
 

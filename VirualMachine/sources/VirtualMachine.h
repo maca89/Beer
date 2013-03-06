@@ -3,7 +3,6 @@
 #include "Thread.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
-#include "CopyGC.h"
 #include "StackFrame.h"
 #include "Integer.h"
 #include "Float.h"
@@ -20,7 +19,7 @@ namespace Beer
 	class Class;
 	class Pair;
 
-	struct GarbageCollector;
+	class GarbageCollector;
 	class ClassFileLoader;
 	class ClassLoader;
 	class Thread;
@@ -53,9 +52,9 @@ namespace Beer
 		Class* mArrayClass;
 
 	public:
-		INLINE VirtualMachine()
-			: Thread(this),
-			mClassLoader(NULL), mDebugger(NULL), 
+		INLINE VirtualMachine(GC * gc)
+			: Thread(this, gc),
+			mClassLoader(NULL), mDebugger(NULL),
 			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mPairClass(NULL), mArrayClass(NULL)
 		{
 		}
@@ -83,7 +82,7 @@ namespace Beer
 		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
 		INLINE ClassReflectionTable& getClasses() { return mClasses; }
 
-		void init(uint32 stackInitSize = 1*1024, uint32 heapInitSize = 2*1024*1024);
+		void init(uint32 stackInitSize);
 		void destroy();
 
 		// TODO: get rid of these

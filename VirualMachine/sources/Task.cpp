@@ -9,7 +9,8 @@ using namespace Beer;
 
 void BEER_CALL Task::dorun(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver)
 {
-	TrampolineThread* thread2 = new TrampolineThread(thread->getVM());
+	TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
+
 	thread->getVM()->getThreads().insert(thread2);
 
 	thread2->openStackFrame()->stackPush(receiver.get()); // push receiver

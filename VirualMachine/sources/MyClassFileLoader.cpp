@@ -146,7 +146,7 @@ void MyClassFileLoader::loadClass(VirtualMachine* vm, ClassFileDescriptor* class
 	Reference<String> name = String::gTranslate(vm, name_narrow);
 
 	loader->addClassInitializer(
-		name.translate(vm->getHeap())->c_str(), 
+		name.translate(vm->getGC())->c_str(), 
 		new LoadedObjectInitializer(classFile, classDescr)
 	);
 }
