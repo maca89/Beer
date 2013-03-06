@@ -1,0 +1,314 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="EXE – Debug|Win32">
+      <Configuration>EXE – Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EXE – Release|Win32">
+      <Configuration>EXE – Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="LIB – Debug|Win32">
+      <Configuration>LIB – Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="LIB – Release|Win32">
+      <Configuration>LIB – Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sources\AlignedHeap.cpp" />
+    <ClCompile Include="sources\AllocationBlock.cpp" />
+    <ClCompile Include="sources\DynamicHeap.cpp" />
+    <ClCompile Include="sources\FixedHeap.cpp" />
+    <ClCompile Include="sources\GenerationalGC.cpp" />
+    <ClCompile Include="sources\MetaClass.cpp" />
+    <ClCompile Include="sources\NurseryGC.cpp" />
+    <ClCompile Include="sources\Param.cpp" />
+    <ClCompile Include="sources\Array.cpp" />
+    <ClCompile Include="sources\BytecodeBuilder.cpp" />
+    <ClCompile Include="sources\BytecodeDescriptor.cpp" />
+    <ClCompile Include="sources\Character.cpp" />
+    <ClCompile Include="sources\ClassTable.cpp" />
+    <ClCompile Include="sources\Debugger.cpp" />
+    <ClCompile Include="sources\FileReader.cpp" />
+    <ClCompile Include="sources\FileWriter.cpp" />
+    <ClCompile Include="sources\Float.cpp" />
+    <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
+    <ClCompile Include="sources\Pair.cpp" />
+    <ClCompile Include="sources\PolymorphicInlineCache.cpp" />
+    <ClCompile Include="sources\Method.cpp" />
+    <ClCompile Include="sources\AttributeDescriptor.cpp" />
+    <ClCompile Include="sources\Boolean.cpp" />
+    <ClCompile Include="sources\ClassDescriptor.cpp" />
+    <ClCompile Include="sources\ClassFileDescriptor.cpp" />
+    <ClCompile Include="sources\ClassLoader.cpp" />
+    <ClCompile Include="sources\LoadedObject.cpp" />
+    <ClCompile Include="sources\Bytecode.cpp" />
+    <ClCompile Include="sources\Class.cpp" />
+    <ClCompile Include="sources\Interlocked.cpp" />
+    <ClCompile Include="sources\Console.cpp" />
+    <ClCompile Include="sources\Integer.cpp" />
+    <ClCompile Include="sources\InterlockedQueue.cpp" />
+    <ClCompile Include="sources\main.cpp" />
+    <ClCompile Include="sources\MethodDescriptor.cpp" />
+    <ClCompile Include="sources\MyClassFileLoader.cpp" />
+    <ClCompile Include="sources\Object.cpp" />
+    <ClCompile Include="sources\ParamDescriptor.cpp" />
+    <ClCompile Include="sources\prereq.cpp" />
+    <ClCompile Include="sources\Property.cpp" />
+    <ClCompile Include="sources\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='LIB – Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\String.cpp" />
+    <ClCompile Include="sources\StringDescriptor.cpp" />
+    <ClCompile Include="sources\Task.cpp" />
+    <ClCompile Include="sources\NativeThread.cpp" />
+    <ClCompile Include="sources\Thread.cpp" />
+    <ClCompile Include="sources\MiliTimer.cpp" />
+    <ClCompile Include="sources\Timer.cpp" />
+    <ClCompile Include="sources\TrampolineThread.cpp" />
+    <ClCompile Include="sources\VirtualMachine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sources\AllocationBlock.h" />
+    <ClInclude Include="sources\Boolean.h" />
+    <ClInclude Include="sources\DynamicHeap.h" />
+    <ClInclude Include="sources\FixedHeap.h" />
+    <ClInclude Include="sources\Float.h" />
+    <ClInclude Include="sources\GenerationalGC.h" />
+    <ClInclude Include="sources\Heap.h" />
+    <ClInclude Include="sources\MemoryAllocator.h" />
+    <ClInclude Include="sources\MetaClass.h" />
+    <ClInclude Include="sources\Character.h" />
+    <ClInclude Include="sources\DebugMemoryAllocator.h" />
+    <ClInclude Include="sources\GrowableMemoryAllocator.h" />
+    <ClInclude Include="sources\Integer.h" />
+    <ClInclude Include="sources\MonomorphicInlineCache.h" />
+    <ClInclude Include="sources\ClassTable.h" />
+    <ClInclude Include="sources\Array.h" />
+    <ClInclude Include="sources\BytecodeBuilder.h" />
+    <ClInclude Include="sources\BytecodeDescriptor.h" />
+    <ClInclude Include="sources\CachedOutput.h" />
+    <ClInclude Include="sources\Debugger.h" />
+    <ClInclude Include="sources\DynamicStack.h" />
+    <ClInclude Include="sources\FileReader.h" />
+    <ClInclude Include="sources\FileWriter.h" />
+    <ClInclude Include="sources\AlignedHeap.h" />
+    <ClInclude Include="sources\NurseryGC.h" />
+    <ClInclude Include="sources\Pair.h" />
+    <ClInclude Include="sources\PolymorphicInlineCache.h" />
+    <ClInclude Include="sources\InlineFunctionTable.h" />
+    <ClInclude Include="sources\Param.h" />
+    <ClInclude Include="sources\AttributeDescriptor.h" />
+    <ClInclude Include="sources\ClassDescriptor.h" />
+    <ClInclude Include="sources\ClassFileDescriptor.h" />
+    <ClInclude Include="sources\ClassFileLoader.h" />
+    <ClInclude Include="sources\ClassLoader.h" />
+    <ClInclude Include="sources\FileFormatConverter.h" />
+    <ClInclude Include="sources\Object.h" />
+    <ClInclude Include="sources\LoadedObject.h" />
+    <ClInclude Include="sources\Bytecode.h" />
+    <ClInclude Include="sources\Class.h" />
+    <ClInclude Include="sources\Interlocked.h" />
+    <ClInclude Include="sources\Console.h" />
+    <ClInclude Include="sources\InterlockedQueue.h" />
+    <ClInclude Include="sources\InterlockedStack.h" />
+    <ClInclude Include="sources\MethodDescriptor.h" />
+    <ClInclude Include="sources\Method.h" />
+    <ClInclude Include="sources\MyClassFileLoader.h" />
+    <ClInclude Include="sources\ParamDescriptor.h" />
+    <ClInclude Include="sources\prereq.h" />
+    <ClInclude Include="sources\Property.h" />
+    <ClInclude Include="sources\QuickSort.h" />
+    <ClInclude Include="sources\SimpleMemoryAllocator.h" />
+    <ClInclude Include="sources\StackFrame.h" />
+    <ClInclude Include="sources\stdafx.h" />
+    <ClInclude Include="sources\String.h" />
+    <ClInclude Include="sources\StringDescriptor.h" />
+    <ClInclude Include="sources\NativeThread.h" />
+    <ClInclude Include="sources\Task.h" />
+    <ClInclude Include="sources\Thread.h" />
+    <ClInclude Include="sources\MiliTimer.h" />
+    <ClInclude Include="sources\Timer.h" />
+    <ClInclude Include="sources\TrampolineThread.h" />
+    <ClInclude Include="sources\VirtualMachine.h" />
+    <ClInclude Include="sources\FixedStack.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5AD3E299-9451-4D7E-B1A4-0693AE600112}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>VirualMachine</RootNamespace>
+    <ProjectName>VirtualMachine</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)$(Configuration)\</IntDir>
+    <TargetName>beer-run-d</TargetName>
+    <PostBuildEventUseInBuild>
+    </PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)$(Configuration)\</IntDir>
+    <PostBuildEventUseInBuild>
+    </PostBuildEventUseInBuild>
+    <TargetName>beer-run</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <CallingConvention>FastCall</CallingConvention>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LargeAddressAware>true</LargeAddressAware>
+      <SetChecksum>true</SetChecksum>
+      <TurnOffAssemblyGeneration>
+      </TurnOffAssemblyGeneration>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='LIB – Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
