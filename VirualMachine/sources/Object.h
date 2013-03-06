@@ -92,6 +92,8 @@ namespace Beer
 		static void BEER_CALL init(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> ret1);
 		static void BEER_CALL setClass(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> param);
 		static void BEER_CALL getClass(Thread* thread/*, StackFrame* frame*/, StackRef<Object> receiver, StackRef<Object> ret);
+
+		friend class GenerationalGC;
 	};
 	#pragma pack(pop)
 };

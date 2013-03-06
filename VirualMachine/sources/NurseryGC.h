@@ -49,7 +49,7 @@ namespace Beer
 
 		virtual void work()
 		{
-			int e = 9;
+
 		}
 
 		INLINE void switchHeaps()
@@ -58,7 +58,6 @@ namespace Beer
 			mAlloc = mPromote;
 			mPromote = mCollect;
 			mCollect = temp;
-			work();
 			run();
 		}
 	};

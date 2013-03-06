@@ -84,6 +84,27 @@ namespace Beer
 			mReferences.push_back(object);
 			return mReferencesNext++;
 		}
+
+		INLINE Object* getChild(Object* parent, int64 index)
+		{
+			return parent->mChildren[index];
+		}
+
+		INLINE void pushChild(StackFrame* stack, int64 index)
+		{
+			Object* obj = stack->stackTop();
+			stack->stackPop();
+			stack->stackPush(obj->mChildren[index]);
+		}
+
+		INLINE void setChild(StackFrame* stack, int64 index)
+		{
+			Object* child = stack->stackTop();
+			stack->stackPop();
+			Object* parent = stack->stackTop();
+			stack->stackPop();
+			parent->mChildren[index] = child; 
+		}
 	};
 
 	template <class T>

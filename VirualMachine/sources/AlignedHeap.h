@@ -8,7 +8,7 @@ namespace Beer
 	{
 	protected:
 
-		uint8 mBitShift;
+		uint8 mBitSize;
 
 	public:
 

@@ -6,9 +6,8 @@
 using namespace Beer;
 
 AlignedHeap::AlignedHeap(unsigned char bitSize)
-	:	FixedHeap(2 << (bitSize - 1))
+	:	FixedHeap(1 << bitSize), mBitSize(bitSize)
 {
-	mBitShift = bitSize - 1;
 }
 
 AlignedHeap::~AlignedHeap()
@@ -18,7 +17,7 @@ AlignedHeap::~AlignedHeap()
 
 void AlignedHeap::init()
 {
-	mMemory = ::_aligned_malloc(mSize, 2 >> mBitShift);
+	mMemory = ::_aligned_malloc(mSize, 1 >> mBitSize);
 
 #ifdef BEER_MEMORY_DEBUGGING
 	ZeroMemory(mMemory, mSize);
