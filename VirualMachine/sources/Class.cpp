@@ -11,97 +11,187 @@
 using namespace Beer;
 
 
-/*Object* Class::cloneShallow(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
+void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret)
 {
-	DBG_ASSERT(!isInlineValue(object), BEER_WIDEN("Cannot clone an inline value"));
-
-	Object* copy = createInstance(vm, frame, gc);
-	for(uint32 i = 0; i < getPropertiesCount(); i++)
-	{
-		copy->setChild(i, object->getChild(i));
-	}
-	return copy;
-}
-
-Object* ClassReflection::cloneDeep(VirtualMachine* vm, Object* object, StackFrame* frame, GarbageCollector* gc)
-{
-	throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
-}*/
-
-void Class::extends(uint16 i, Class* klass)
-{
-	DBG_ASSERT(i < mParentsCount, BEER_WIDEN("Unable to add more parents"));
-
-	// copy parent
-	setParent(i, klass);
-
-	// copy properties
-	for(uint16 i = 0; i < klass->getPropertiesCount(); i++)
-	{
-		setProperty(i, klass->getProperty(i));
-	}
-
-	// copy methods
-	/*for(uint16 i = 0; i < klass->mMethodsCount; i++)
-	{
-		setMethod(i, klass->mMethods[i]);
-	}*/
-}
-
-Method* Class::findMethod(String* selector)
-{
-	for(uint16 i = 0; i < mMethodsCount; i++)
-	{
-		Pair* method = getMethod(i);
-		if(method)
-		{
-			String* s2 = method->getFirst<String>();
-			//Object* o = method->getFirst<Object>();
-			if(selector->compare(s2) == 0)
-			{
-				return method->getSecond<Method>();
-			}
-		}
-	}
-
-	for(uint16 i = 0; i < mParentsCount; i++)
-	{
-		Class* parent = getParent(i);
-		if(parent == this) continue;
-		Method* method = parent->findMethod(selector);
-		if(method) return method;
-	}
-
-	return NULL;
-}
-
-void BEER_CALL Class::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret)
-{
-	Class* klass = *receiver;
-
 	ret = thread->getHeap()->alloc<Object>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
-			
-	ret->setClass(*receiver); // TODO
-	//invoke(object, BEER_WIDEN("Object::setClass(Class)"));
+
+	StackFrame* frame = thread->getStackFrame();
+	
+	//StackRef<Object> object(frame, frame->stackPush()); // push object
+	StackRef<Object> klass(frame, frame->stackPush(*receiver)); // push class
+
+	frame = thread->openStackFrame();
+	Object::setClass(thread, ret, klass);
+	frame->stackMoveTop(-1); // pop class
+	thread->closeStackFrame();
 }
 
-bool Class::substituable(Class* otherClass) const
+void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret)
 {
-	if(this == otherClass) return true;
+	StackFrame* frame = thread->getStackFrame();
 
-	for(uint16 i = 0; i < mParentsCount; i++)
+	// try myself
 	{
-		if(getParent(i) == otherClass) return true;
-	}
+		StackRef<String> otherSelector(frame, frame->stackPush());
+		StackRef<Pair> pair(frame, frame->stackPush());
+		StackRef<Integer> index(frame, frame->stackPush());
+
+		for(uint16 i = 0; i < receiver->getMethodsCount(); i++)
+		{
+			thread->createInteger(index, i);
+			Class::getMethod(thread, receiver, index, pair);
+
+			if(!pair.isNull())
+			{
+				Pair::getFirst(thread, pair, otherSelector);
 			
-	for(uint16 i = 0; i < mParentsCount; i++)
-	{
-		Class* parent = getParent(i);
-		if(parent == this) continue;
-		if(getParent(i)->substituable(otherClass)) return true;
+				if(selector->compare(*otherSelector) == 0)
+				{
+					Pair::getSecond(thread, pair, ret);
+					frame->stackMoveTop(-3); // pop otherSelector, pair, index
+					return; // found!
+				}
+			}
+		}
+
+		frame->stackMoveTop(-3); // pop otherSelector, pair, index
 	}
 
-	return false;
+	// try parents
+	{
+		StackRef<Integer> index(frame, frame->stackPush());
+		StackRef<Class> parent(frame, frame->stackPush());
+
+		for(uint16 i = 0; i < receiver->getParentsCount(); i++)
+		{
+			thread->createInteger(index, i);
+			Class::getParent(thread, receiver, index, parent);
+
+			if(*parent == *receiver)
+			{
+				continue;
+			}
+
+			Class::findMethod(thread, parent, selector, ret);
+
+			if(!ret.isNull())
+			{
+				break; // found!
+			}
+		}
+
+		frame->stackMoveTop(-2); // pop index, parent
+	}
+}
+
+void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret)
+{
+	StackFrame* frame = thread->getStackFrame();
+
+	// is otherClass the same class?
+	if(*receiver == *otherClass)
+	{
+		ret = Boolean::makeInlineValue(true);
+		return;
+	}
+
+	// check parents
+	{
+		StackRef<Integer> index(frame, frame->stackPush());
+		StackRef<Class> parent(frame, frame->stackPush());
+		StackRef<Boolean> substituable(frame, frame->stackPush());
+
+		for(uint16 i = 0; i < receiver->getParentsCount(); i++)
+		{
+			thread->createInteger(index, i);
+			Class::getParent(thread, receiver, index, parent);
+
+			// parent of myself
+			if(*parent == *receiver)
+			{
+				continue;
+			}
+
+			Class::substituable(thread, parent, otherClass, substituable);
+
+			// is parent substituable?
+			if(substituable->getData())
+			{
+				ret = Boolean::makeInlineValue(true);
+				frame->stackMoveTop(-3); // pop index, parent, substituable
+				return;
+			}
+		}
+
+		frame->stackMoveTop(-3); // pop index, parent, substituable
+	}
+
+	// is not substituable
+	ret = Boolean::makeInlineValue(false);
+}
+
+void BEER_CALL Class::getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret)
+{
+	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME);
+}
+
+void BEER_CALL Class::setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value)
+{
+	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME);
+}
+
+void BEER_CALL Class::getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret)
+{
+	DBG_ASSERT(index->getData() < receiver->getParentsCount(), BEER_WIDEN("Unknown parent"));
+	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME + 1 + index->getData()); // 1 for name 
+}
+
+void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value)
+{
+	DBG_ASSERT(receiver->mParentNext < receiver->getParentsCount(), BEER_WIDEN("Unable to add more parents"));
+	StackFrame* frame = thread->getStackFrame();
+
+	// set child
+	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + (receiver->mParentNext++)); // 1 for name
+
+	// copy properties
+	{
+		StackRef<Integer> index(frame, frame->stackPush());
+		StackRef<Property> prop(frame, frame->stackPush());
+
+		for(uint16 i = 0; i < value->getPropertiesCount(); i++)
+		{
+			thread->createInteger(index, i);
+			Class::getProperty(thread, value, index, prop);
+			Class::addProperty(thread, receiver, prop);
+		}
+
+		frame->stackMoveTop(-2); // pop prop, index
+	}
+}
+
+void BEER_CALL Class::getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret)
+{
+	DBG_ASSERT(index->getData() < receiver->getMethodsCount(), BEER_WIDEN("Unknown method"));
+	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME + 1 + receiver->getParentsCount() + index->getData()); // 1 for name 
+}
+
+void BEER_CALL Class::addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value)
+{
+	DBG_ASSERT(receiver->mMethodNext < receiver->getMethodsCount(), BEER_WIDEN("Unable to add more methods"));
+	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + receiver->getParentsCount() + (receiver->mMethodNext++)); // 1 for name
+}
+
+void BEER_CALL Class::getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret)
+{
+	DBG_ASSERT(index->getData() < receiver->getPropertiesCount(), BEER_WIDEN("Unknown property"));
+	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME + 1 + receiver->getParentsCount() + receiver->getMethodsCount() + index->getData()); // 1 for name 
+}
+
+void BEER_CALL Class::addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value)
+{
+	DBG_ASSERT(receiver->mPropertyNext < receiver->getPropertiesCount(), BEER_WIDEN("Unable to add more properties")); 
+	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + receiver->getParentsCount() + receiver->getMethodsCount() + (receiver->mPropertyNext++)); // 1 for name
 }

@@ -125,7 +125,7 @@ void Debugger::printObject(Object* object)
 
 			stringstream ss;
 			//klass->dump(object, ss); // TODO: call String()
-			ss << klass->getName()->c_str();
+			ss << "*NOT IMPLEMENTED*";//klass->getName()->c_str();
 			cout << ss.str();
 
 			if(klass->getPropertiesCount() > 0)
@@ -133,8 +133,9 @@ void Debugger::printObject(Object* object)
 				cout << " {";
 				for(uint32 i = 0; i < klass->getPropertiesCount(); i++)
 				{
-					Property* prop = klass->getProperty(i);
-					Object* child = object->getChild<Object>(i);
+					// TODO
+					/*Property* prop = klass->getProperty(i);
+					Object* child = object->_getChild<Object>(i);
 				
 					if(prop) cout << prop->getName() << ": ";
 
@@ -147,7 +148,7 @@ void Debugger::printObject(Object* object)
 						printObject(child);
 					}
 
-					if(i < klass->getPropertiesCount() - 1) cout << ", ";
+					if(i < klass->getPropertiesCount() - 1) cout << ", ";*/
 				}
 				cout << "}";
 			}
@@ -235,15 +236,15 @@ void Debugger::printStack()
 
 void Debugger::printClassMethods(Class* klass)
 {
-	cout << "[Class " << klass->getName() << "]" << std::endl;
+	cout << "[Class *NOT IMPLEMENTED*" /*<< klass->getName()*/ << "]" << std::endl;
 	for(uint16 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
 	{
-		Pair* definedMethod = klass->getMethod(methodi);
+		/*Pair* definedMethod = klass->getMethod(methodi);
 		if(definedMethod)
 		{
 			cout << std::setw(4);
-			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " " << definedMethod->getFirst<String>()->c_str() << std::endl;// TODO: selector
-		}
+			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " NOT IMPLEMENTED" << definedMethod->_getFirst<String>()->c_str() << std::endl;// TODO: selector
+		}*/
 	}
 }
 

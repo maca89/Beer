@@ -89,14 +89,14 @@ namespace Beer
 		String* createString(const string& s);
 		Pair* createPair(Object* first, Object* second);
 		
-		INLINE Class* getMetaClass() const { return mMetaClass; }
-		INLINE Class* getObjectClass() const { return mObjectClass; }
-		INLINE Class* getFloatClass() const { return mFloatClass; }
-		INLINE Class* getIntegerClass() const { return mIntegerClass; }
-		INLINE Class* getBooleanClass() const { return mBooleanClass; }
-		INLINE Class* getStringClass() /*const*/ { return mStringClass; }
-		INLINE Class* getArrayClass() const { return mArrayClass; }
-		INLINE Class* getPairClass() /*const*/ { return getClass(BEER_WIDEN("Pair")); /*return mPairClass;*/ }
+		INLINE Class* getMetaClass() { return mMetaClass; }
+		INLINE Class* getObjectClass() { return mObjectClass; }
+		INLINE Class* getFloatClass() { return mFloatClass; }
+		INLINE Class* getIntegerClass() { return mIntegerClass; }
+		INLINE Class* getBooleanClass() { return mBooleanClass; }
+		INLINE Class* getStringClass() { return mStringClass; }
+		INLINE Class* getArrayClass() { return mArrayClass; }
+		INLINE Class* getPairClass() { return getClass(BEER_WIDEN("Pair")); } //return mPairClass;
 
 		template <typename T>
 		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }
@@ -106,5 +106,7 @@ namespace Beer
 	protected:
 		// Thread
 		virtual void work();
+
+		
 	};
 };

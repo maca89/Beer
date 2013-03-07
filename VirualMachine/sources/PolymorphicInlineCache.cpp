@@ -2,6 +2,8 @@
 #include "PolymorphicInlineCache.h"
 #include "Class.h"
 #include "Method.h"
+#include "StackFrame.h"
+#include "Thread.h"
 
 using namespace Beer;
 
@@ -15,7 +17,7 @@ using namespace Beer;
 #endif
 
 
-Method* PolymorphicInlineCache::find(Class* klass, String* selector, uint16 methodsLength)
+Method* PolymorphicInlineCache::find(Thread* thread, Class* klass, String* selector, uint16 methodsLength)
 {
 	DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 
@@ -38,9 +40,22 @@ Method* PolymorphicInlineCache::find(Class* klass, String* selector, uint16 meth
 		}
 	}
 
+	
+	Method* method = NULL;
+
 	// we must do a lookup
-	Method* method = klass->findMethod(selector);
-					
+	{
+		StackFrame* frame = thread->getStackFrame();
+		StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
+		StackRef<String> selectorOnStack(frame, frame->stackPush(selector));
+		StackRef<Method> methodOnStack(frame, frame->stackPush());
+
+		Class::findMethod(thread, klassOnStack, selectorOnStack, methodOnStack);
+		method = *methodOnStack;
+
+		frame->stackMoveTop(-3); // pop class, selector, method
+	}
+
 	// save method to cache
 	if(method && methodsLength > 0)
 	{

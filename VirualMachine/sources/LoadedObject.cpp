@@ -20,32 +20,38 @@
 
 using namespace Beer;
 
-void BEER_CALL LoadedObject::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret)
+void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
 	Class::createInstance(thread, receiver, ret); // call super method
 
 	/////////////////////////////////////////////////////////
 	// fix missing value types
+	StackRef<Integer> index(frame, frame->stackPush());
+	StackRef<Property> prop(frame, frame->stackPush());
+
 	for(uint32 i = 0; i < receiver->getPropertiesCount(); i++)
 	{
-		Property* prop = receiver->getProperty(i);
-		if(prop)
+		thread->createInteger(index, i);
+		Class::getProperty(thread, receiver, index, prop);
+		
+		if(!prop.isNull())
 		{
 			StackRef<Class> propType(frame, frame->stackPush(prop->getType()));
 			if(propType->isValueType())
 			{
-				StackRef<Object> child(frame, frame->stackPush());
-				StackRef<Class> klass(propType.push(frame));
-
+				StackRef<Object> child(frame, frame->stackPush()); // push child
+				StackRef<Class> klass(propType.push(frame)); // push class
 				thread->createInstance(klass, child); // pops class
 
-				ret->setChild(Object::OBJECT_CHILDREN_COUNT + i, *child); // TODO: via stack
+				Object::setChild(thread, ret, child, Object::OBJECT_CHILDREN_COUNT + i);
 				frame->stackPop(); // pop child
 			}
 			frame->stackPop(); // pop type
 		}
 	}
+
+	frame->stackMoveTop(-2); // pop index, prop
 	/////////////////////////////////////////////////////////
 }
 
@@ -87,68 +93,52 @@ Class* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loa
 
 void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass) // TODO: add parents properties into properties size
 {
+	Thread* thread = (Thread*)vm; // TODO: pass as argument
 	Method* method = NULL;
 	mClass = klass; // ugly
 
-	uint16 propStart = 0;
-	uint16 parentStart = 0;
 	uint16 methodStart = 0;
-	
-	// Task class, TODO: in classfile
-	//if(strcmp(klass->getName(), BEER_WIDEN("Main")) == 0)
-	//{
-		//ClassReflection* taskClass = vm->getClass(BEER_WIDEN("Task"));
-		//mClass->extends(parentStart++, taskClass); // class will be loaded if its not
-		//propStart += taskClass->getPropertiesCount();
-	//}
 
-	// default Object class, TODO: in classfile
-	//else
+	StackFrame* frame = vm->getStackFrame();
+
+	StackRef<Class> klassOnStack(frame, frame->stackPush(klass)); // TODO: pass as reference
+	StackRef<String> className(frame, frame->stackPush());
+	
+	Class::getName(vm, klassOnStack, className);
+
 	if(mClassDescr->getParentsLength() == 0)
 	{
 		Class* objectClass = vm->getObjectClass(); // class will be loaded if its not
-		mClass->extends(parentStart++, objectClass);
-		propStart += objectClass->getPropertiesCount();
+		loader->extendClass(klass, objectClass);
 	}
 
 	// parents
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
-		Class* parent = vm->getClass(getParentClassName(vm, i));
-		mClass->extends(parentStart + i, parent); // class will be loaded if its not
-		propStart += parent->getPropertiesCount();
+		Class* parent = vm->getClass(getParentClassName(vm, i)); // class will be loaded if its not
+		loader->extendClass(klass, parent);
+		//propStart += parent->getPropertiesCount();
 	}
-			
+	
 	// attributes
-	for(uint16 i = 0; i < mClassDescr->getAttributesLength(); i++)
 	{
-		AttributeDescriptor* attrDescr = getAtribute(i);
-		Property* prop = makeProperty(vm, loader, attrDescr);
-		mClass->setProperty(propStart + i, prop);
+		StackRef<Property> prop(frame, frame->stackPush());
+		
+		for(uint16 i = 0; i < mClassDescr->getAttributesLength(); i++)
+		{
+			AttributeDescriptor* attrDescr = getAtribute(i);
+			prop = makeProperty(vm, loader, attrDescr);
+			Class::addProperty(vm, klassOnStack, prop);
+		}
+
+		frame->stackMoveTop(-1); // pop property
 	}
 
 	// methods
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
 		MethodDescriptor* methodDescr = getMethod(i);
-		
-		/*dif(methodDescr->isNative())
-		{
-			if(strcmp(klass->getName(), BEER_WIDEN("Task")) == 0 && strcmp(methodDescr->getName(mClassFile)->c_str(), BEER_WIDEN("dorun")) == 0)
-			{
-				method = loader->createMethod<MethodReflection>(BEER_WIDEN("dorun"), 0, 0);
-				method->setFunction(&TaskClass::dorun);
-				klass->setMethod(i, vm->createPair(vm->createString(BEER_WIDEN("Task::dorun()")), method));
-			}
-			else
-			{
-				throw ClassFileException((string(BEER_WIDEN("Unknown native method ")) + methodDescr->getName(mClassFile)->c_str() + BEER_WIDEN(" for class ") + klass->getName()).c_str());
-			}
-		}*/
-		//else
-		//{
-			method = makeMethod(vm, loader, methodDescr);
-		//}
+		method = makeMethod(vm, loader, methodDescr);
 
 		string selector = string() + BEER_WIDEN("::") + method->getName()->c_str();
 		selector += BEER_WIDEN("(");
@@ -160,29 +150,23 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 		}
 		selector += BEER_WIDEN(")");
 
-		mClass->setMethod(methodStart++, vm->createPair(vm->createString((string(mClass->getName()->c_str()) + selector)), method)); // TODO
+		loader->addMethod(klass, method, (string(className->c_str()) + selector).c_str());
 
 		if(methodDescr->isOverride())
 		{
-			bool abstra = methodDescr->isAbstract();
 			string interf = methodDescr->getInterfaceName(mClassFile)->c_str();
-			string interfSelector = interf + selector;
-			mClass->setMethod(methodStart++, vm->createPair(vm->createString(interfSelector.c_str()), method));
+			loader->addMethod(klass, method, (interf + selector).c_str());
 		}
 	}
 
-	if(strcmp(klass->getName()->c_str(), BEER_WIDEN("Task")) == 0)
+	if(strcmp(className->c_str(), BEER_WIDEN("Task")) == 0)
 	{
-		method = loader->createMethod(0, 0);
-		method->setName(vm->createString(BEER_WIDEN("dorun")));
-		method->setFunction(&Task::dorun);
-		klass->setMethod(methodStart++, vm->createPair(vm->createString(BEER_WIDEN("Task::dorun()")), method));
+		loader->addMethod(klass, BEER_WIDEN("dorun"), BEER_WIDEN("Task::dorun()"), &Task::dorun, 0, 0);
 	}
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&LoadedObject::createInstance);
-	klass->setMethod(methodStart++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
+	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &LoadedObject::createInstance, 1, 0);
+
+	frame->stackMoveTop(-2); // pop class, classname
 }
 
 AttributeDescriptor* LoadedObjectInitializer::getAtribute(uint16 i)
@@ -207,18 +191,40 @@ Property* LoadedObjectInitializer::makeProperty(VirtualMachine* vm, ClassLoader*
 
 Param* LoadedObjectInitializer::makeParam(VirtualMachine* vm, ClassLoader* loader, ParamDescriptor* paramDescr)
 {
-	Param* param = loader->createParam();
+	StackFrame* frame = vm->getStackFrame();
+	StackRef<Param> param(frame, frame->stackPush(loader->createParam()));
 
-	param->setName(getString(vm, paramDescr->getName(mClassFile)));
-	param->setType(vm->getClass(getString(vm, mClassFile->getClassName(paramDescr->getTypeId()))));
-			
-	return param;
+	// get name
+	StackRef<String> name(frame, frame->stackPush(
+		getString(vm, paramDescr->getName(mClassFile))
+	));
+
+	// store name
+	Param::setName(vm, param, name);
+	
+	// get classname
+	name = getString(vm, mClassFile->getClassName(paramDescr->getTypeId()));
+
+	// get class
+	StackRef<Class> type(frame, frame->stackPush(
+		vm->getClass(name)
+	));
+
+	// store class
+	Param::setParamType(vm, param, type);
+	
+	Param* p = *param; // ugly, TODO
+
+	// pop class & name & param
+	frame->stackMoveTop(-3);
+
+	return p;
 }
 
 Method* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
 	string name = String::gTranslate(vm, methodDescr->getName(mClassFile)->c_str())->c_str();
-	Method* method = loader->createMethod(methodDescr->getReturnsLength(), methodDescr->getParamsLength());
+	Method* method = loader->createMethod(NULL, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
 	method->setName(vm->createString(name));
 	method->setMaxStack(20); // TODO: methodDescr->getMaxStack()
 
@@ -257,8 +263,20 @@ const char_t* LoadedObjectInitializer::getParentClassName(VirtualMachine* vm, ui
 
 Class* LoadedObjectInitializer::getType(const StringDescriptor* name, VirtualMachine* vm)
 {
+	String* className = NULL;
+	
+	// fetch class name, veeeeery ugly, TODO!!!
+	{
+		StackFrame* frame = vm->getStackFrame();
+		StackRef<Class> klassOnStack(frame, frame->stackPush(mClass)); // TODO: pass as reference
+		StackRef<String> classNameOnStack(frame, frame->stackPush());
+		Class::getName(vm, klassOnStack, classNameOnStack);
+		className = *classNameOnStack;
+		frame->stackMoveTop(-2); // pop class & classname
+	}
+
 	String* strname = getString(vm, name);
-	if(mClass->getName()->compare(strname) == 0)
+	if(className->compare(strname) == 0)
 	{
 		return mClass; // prevents circular reference exception
 	}

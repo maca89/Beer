@@ -9,9 +9,7 @@
 
 namespace Beer
 {
-	class EventReflection;
 	class Method;
-	//struct GarbageCollector;
 	class StackFrame;
 	class VirtualMachine;
 	class Thread;
@@ -34,6 +32,8 @@ namespace Beer
 			// #3 methods[] // TODO: size
 			// #4 properties[] // TODO: size
 			CLASS_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1,
+
+			CHILD_ID_CLASS_NAME = OBJECT_CHILDREN_COUNT,
 		};
 
 		////////////////////////////////////////////////////////////
@@ -42,16 +42,16 @@ namespace Beer
 		uint8 mFlags;
 
 		// TODO: garbaged
-		uint16 mParentsCount;
+		uint32 mParentsCount;
 		uint32 mPropertiesCount;
-		uint16 mMethodsCount;
-		//uint32 mDefaultChildrenCount;
+		uint32 mMethodsCount;
+
+		uint32 mParentNext;
+		uint32 mPropertyNext;
+		uint32 mMethodNext;
 		////////////////////////////////////////////////////////////
 
 	public:
-		INLINE Class()
-		{
-		}
 
 		// flags
 		INLINE uint8 getFlags() const { return mFlags; }
@@ -65,92 +65,34 @@ namespace Beer
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
-		
-		// name
-
-		INLINE String* getName() const
-		{
-			return getChild<String>(OBJECT_CHILDREN_COUNT);
-		}
-		
-		INLINE void setName(String* value)
-		{
-			setChild(OBJECT_CHILDREN_COUNT, value);
-		}
 
 		// parents
 
-		INLINE uint16 getParentsCount() const
-		{
-			return mParentsCount;
-		}
+		INLINE uint16 getParentsCount() const { return mParentsCount; }
+		INLINE uint16 getMethodsCount() const { return mMethodsCount; }
+		INLINE uint32 getPropertiesCount() const { return mPropertiesCount; }
 
-		INLINE void setParent(uint16 i, Class* parent)
-		{
-			DBG_ASSERT(i < getParentsCount(), BEER_WIDEN("Unable to add more parents"));
-			setChild(OBJECT_CHILDREN_COUNT + 1 + i, parent); // 1 for name
-		}
+		// methods
+
+		//static Method* _findMethod(Thread* thread, Class* klass, String* selector); // deprecated
+
+		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret);
+
+		static void BEER_CALL findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret);
+		//static void BEER_CALL extends(Thread* thread, StackRef<Class> receiver, StackRef<Class> extendingClass);
+		static void BEER_CALL substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret);
 		
-		INLINE Class* getParent(uint16 i) const
-		{
-			DBG_ASSERT(i < getParentsCount(), BEER_WIDEN("Unknown parent"));
-			return getChild<Class>(OBJECT_CHILDREN_COUNT + 1 + i); // 1 for name
-		}
+		static void BEER_CALL getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
+		static void BEER_CALL setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value);
 
-		// mehods
-
-		INLINE uint16 getMethodsCount() const
-		{
-			return mMethodsCount;
-		}
-
-		INLINE void setMethod(uint16 i, Pair* method)
-		{
-			DBG_ASSERT(i < getMethodsCount(), BEER_WIDEN("Unable to add more methods"));
-			setChild(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + i, method); // 1 for name
-		}
+		static void BEER_CALL getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret);
+		static void BEER_CALL addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value);
 		
-		INLINE Pair* getMethod(uint16 i) const
-		{
-			DBG_ASSERT(i < getMethodsCount(), BEER_WIDEN("Unknown method"));
-			return getChild<Pair>(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + i); // 1 for name
-		}
-
-		// properties
-
-		INLINE uint32 getPropertiesCount() const
-		{
-			return mPropertiesCount;
-		}
-
-		INLINE void setProperty(uint32 i, Property* prop)
-		{
-			DBG_ASSERT(i < getPropertiesCount(), BEER_WIDEN("Unable to add more properties")); 
-			setChild(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + getMethodsCount() + i, prop); // 1 for name
-		}
-
-		INLINE Property* getProperty(uint32 i) const
-		{
-			DBG_ASSERT(i < getPropertiesCount(), BEER_WIDEN("Unknown property"));
-			return getChild<Property>(OBJECT_CHILDREN_COUNT + 1 + getParentsCount() + getMethodsCount() + i); // 1 for name
-		}
-
-		// 
-
-		void extends(uint16 i, Class* klass);
-		Method* findMethod(String* selector);
-		bool substituable(Class* otherClass) const;
-
-		static void BEER_CALL createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret);
-
-	protected: // TODO: private
-		INLINE ~Class()
-		{
-			// never called!
-		}
-
-		// TODO: get rid of virtual methods
+		static void BEER_CALL getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret);
+		static void BEER_CALL addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value);
 		
+		static void BEER_CALL getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret);
+		static void BEER_CALL addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value);
 	};
 	//#pragma pack(pop)
 };

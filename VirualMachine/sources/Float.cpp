@@ -95,82 +95,24 @@ Class* FloatClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loade
 void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->markAsValueType();
-	uint16 methodi = 0;
-	klass->extends(0, vm->getObjectClass());
+	loader->extendClass(klass, vm->getObjectClass());
 	
-	Method* method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Float")));
-	method->setFunction(&Float::init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::Float()")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Integer")));
-	method->setFunction(&Float::operatorInteger);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::Integer()")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("String")));
-	method->setFunction(&Float::operatorString);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::String()")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&Float::operatorAdd);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::+(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("-")));
-	method->setFunction(&Float::operatorSub);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::-(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("*")));
-	method->setFunction(&Float::operatorMul);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::*(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("/")));
-	method->setFunction(&Float::operatorDiv);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::/(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("==")));
-	method->setFunction(&Float::operatorEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::==(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("!=")));
-	method->setFunction(&Float::operatorNotEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::!=(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("<")));
-	method->setFunction(&Float::operatorSmaller);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::<(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("<=")));
-	method->setFunction(&Float::operatorSmallerEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::<=(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN(">")));
-	method->setFunction(&Float::operatorGreater);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::>(Float)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN(">=")));
-	method->setFunction(&Float::operatorGreaterEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::>=(Float)")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("-")));
-	method->setFunction(&Float::operatorMinus);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Float::-()")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&Float::createInstance);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
-	
+	loader->addMethod(klass, BEER_WIDEN("Float"), BEER_WIDEN("Float::Float()"), &Float::init, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("Integer"), BEER_WIDEN("Float::Integer()"), &Float::operatorInteger, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("String"), BEER_WIDEN("Float::String()"), &Float::operatorString, 1, 0);
+
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("Float::+(Float)"), &Float::operatorAdd, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("-"), BEER_WIDEN("Float::-(Float)"), &Float::operatorSub, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("*"), BEER_WIDEN("Float::*(Float)"), &Float::operatorMul, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("/"), BEER_WIDEN("Float::/(Float)"), &Float::operatorDiv, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("-"), BEER_WIDEN("Float::-()"), &Float::operatorMinus, 1, 0);
+
+	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("Float::==(Float)"), &Float::operatorEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("Float::!=(Float)"), &Float::operatorNotEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("<"), BEER_WIDEN("Float::<(Float)"), &Float::operatorSmaller, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("<="), BEER_WIDEN("Float::<=(Float)"), &Float::operatorSmallerEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN(">"), BEER_WIDEN("Float::>(Float)"), &Float::operatorGreater, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN(">="), BEER_WIDEN("Float::>=(Float)"), &Float::operatorGreaterEqual, 1, 1);
+
+	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Float::createInstance, 1, 0);
 }

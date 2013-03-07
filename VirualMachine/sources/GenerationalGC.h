@@ -2,6 +2,8 @@
 
 #include "prereq.h"
 #include "NurseryGC.h"
+#include "StackFrame.h"
+#include "Object.h"
 
 namespace Beer
 {

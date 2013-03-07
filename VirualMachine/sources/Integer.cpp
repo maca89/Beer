@@ -101,90 +101,27 @@ Class* IntegerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loa
 void IntegerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->markAsValueType();
-	uint16 methodi = 0;
-	Method* method = NULL;
-	Class* objectClass = vm->getObjectClass();
 
-	klass->extends(methodi++, objectClass);
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Integer")));
-	method->setFunction(&Integer::init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::Integer()")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Float")));
-	method->setFunction(&Integer::operatorFloat);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::Float()")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("String")));
-	method->setFunction(&Integer::operatorString);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::String()")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&Integer::operatorAdd);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::+(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("-")));
-	method->setFunction(&Integer::operatorSub);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::-(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("*")));
-	method->setFunction(&Integer::operatorMul);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::*(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("%")));
-	method->setFunction(&Integer::operatorMod);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::%(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("/")));
-	method->setFunction(&Integer::operatorDiv);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::/(Integer)")), method));
-	
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("-")));
-	method->setFunction(&Integer::operatorMinus);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::-()")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("==")));
-	method->setFunction(&Integer::operatorEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::==(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("!=")));
-	method->setFunction(&Integer::operatorNotEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::!=(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("<")));
-	method->setFunction(&Integer::operatorSmaller);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::<(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("<=")));
-	method->setFunction(&Integer::operatorSmallerEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::<=(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN(">")));
-	method->setFunction(&Integer::operatorGreater);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::>(Integer)")), method));
-	
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN(">=")));
-	method->setFunction(&Integer::operatorGreaterEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Integer::>=(Integer)")), method));
+	loader->extendClass(klass, vm->getObjectClass());
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&Integer::createInstance);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
+	loader->addMethod(klass, BEER_WIDEN("Integer"), BEER_WIDEN("Integer::Integer()"), &Integer::init, 1, 0);
+
+	loader->addMethod(klass, BEER_WIDEN("Float"), BEER_WIDEN("Integer::Float()"), &Integer::operatorFloat, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("String"), BEER_WIDEN("Integer::String()"), &Integer::operatorString, 1, 0);
+
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("Integer::+(Integer)"), &Integer::operatorAdd, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("-"), BEER_WIDEN("Integer::-(Integer)"), &Integer::operatorSub, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("*"), BEER_WIDEN("Integer::*(Integer)"), &Integer::operatorMul, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("%"), BEER_WIDEN("Integer::%(Integer)"), &Integer::operatorMod, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("/"), BEER_WIDEN("Integer::/(Integer)"), &Integer::operatorDiv, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("-"), BEER_WIDEN("Integer::-()"), &Integer::operatorMinus, 1, 0);
+
+	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("Integer::==(Integer)"), &Integer::operatorEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("Integer::!=(Integer)"), &Integer::operatorNotEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("<"), BEER_WIDEN("Integer::<(Integer)"), &Integer::operatorSmaller, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("<="), BEER_WIDEN("Integer::<=(Integer)"), &Integer::operatorSmallerEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN(">"), BEER_WIDEN("Integer::>(Integer)"), &Integer::operatorGreater, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN(">="), BEER_WIDEN("Integer::>=(Integer)"), &Integer::operatorGreaterEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Integer::createInstance, 1, 0);
 }
 

@@ -13,6 +13,7 @@ namespace Beer
 #endif
 
 	#define BEER_CALL __cdecl
+	typedef void(*Cb)();
 
 	#define lengthof(arr) sizeof(arr) / sizeof(arr[0])
 

@@ -37,7 +37,7 @@ AbstractMethodException::AbstractMethodException(Method* method, string filename
 
 MethodNotFoundException::MethodNotFoundException(Object* instance, Class* klass, String* selector, string filename, long line)
 	: RuntimeException(
-		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + klass->getName()->c_str(), // TODO
+		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for *NOT IMPLEMENTED*") /*+ klass->getName()->c_str()*/, // TODO
 		filename, 
 		line
 	)

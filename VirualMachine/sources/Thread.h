@@ -85,6 +85,10 @@ namespace Beer
 	protected:
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 
-		INLINE void fetchTopStackFrame() { mTopFrame = mFrames.topPtr(mFrames.topIndex()); }
+		INLINE void fetchTopStackFrame()
+		{
+			if(hasStackFrame()) mTopFrame = mFrames.topPtr(mFrames.topIndex());
+			else mTopFrame = NULL;
+		}
 	};
 };

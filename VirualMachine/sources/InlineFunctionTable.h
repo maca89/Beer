@@ -67,8 +67,8 @@ namespace Beer
 			add(BEER_WIDEN("Integer::!=(Integer)"), BEER_INLINE_INTEGER_NOT_EQUAL);
 			// array
 			add(BEER_WIDEN("Array::getLength()"), BEER_INLINE_ARRAY_GET_LENGTH);
-			add(BEER_WIDEN("Array::set(Integer,Integer)"), BEER_INLINE_ARRAY_SET_ITEM);
-			add(BEER_WIDEN("Array::get(Integer)"), BEER_INLINE_ARRAY_GET_ITEM);
+			//add(BEER_WIDEN("Array::set(Integer,Integer)"), BEER_INLINE_ARRAY_SET_ITEM);
+			//add(BEER_WIDEN("Array::get(Integer)"), BEER_INLINE_ARRAY_GET_ITEM);
 		}
 
 		INLINE Bytecode::OpCode find(String* name)

@@ -186,6 +186,11 @@ namespace Beer
 			return get() == NULL;
 		}
 
+		INLINE operator StackRef<Object>()
+		{
+			return staticCast<Object>();
+		}
+
 		template<typename U>
 		INLINE StackRef<U> staticCast()
 		{
@@ -214,7 +219,11 @@ namespace Beer
 			mPtr = frame->stackTopPtr(index);
 		}
 
-		INLINE StackRef(T** object) { mPtr = object; }
+		INLINE StackRef(T** object)
+		{
+			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
+			mPtr = reinterpret_cast<Object**>(object);
+		}
 
 		INLINE void operator= (T* obj) { set(obj); }
 		INLINE void operator= (StackRef& ref) { set(ref.get()); }
@@ -234,6 +243,8 @@ namespace Beer
 		INLINE bool isNull() const { return get() == NULL; }
 
 		INLINE Object** getPtr() { return mPtr; }
+
+		INLINE operator StackRef<Object>() { return staticCast<Object>(); }
 
 		template<typename U>
 		INLINE StackRef<U> staticCast()

@@ -32,17 +32,6 @@ namespace Beer
 			mSize = value;
 		}
 
-		INLINE Object* getItem(LengthData i)
-		{
-			return getChild<Object>(OBJECT_CHILDREN_COUNT + i);
-		}
-
-		INLINE void setItem(LengthData i, Object* obj)
-		{
-			//DBG_ASSERT(obj->getClass()->substituable(mItemClass), BEER_WIDEN("Unexpected class")); // TODO: CLASS_ASSERT
-			setChild(OBJECT_CHILDREN_COUNT + i, obj);
-		}
-
 		INLINE Class* getItemClass()
 		{
 			return mItemClass;
@@ -53,14 +42,14 @@ namespace Beer
 			mItemClass = klass;
 		}
 
-		NOINLINE void toString(VirtualMachine* vm, string& out);
+		NOINLINE void toString(Thread* thread, string& out);
 
 		static void BEER_CALL createInstance(Thread* thread, /*StackFrame* frame, */StackRef<Class> receiver, StackRef<Array> ret);
 
 		static void BEER_CALL init(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret);
 		static void BEER_CALL getLength(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> ret);
-		static void BEER_CALL operatorGet(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> ret);
-		static void BEER_CALL operatorSet(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Integer> object);
+		static void BEER_CALL operatorGet(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> ret);
+		static void BEER_CALL operatorSet(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object);
 	};
 
 	class ArrayClassInitializer : public ClassInitializer

@@ -77,7 +77,8 @@ void Thread::getMethod(StackRef<Class> klass, StackRef<String> selector, StackRe
 	StackFrame* frame = getStackFrame();
 	ASSERT_STACK_PARAMS_3(klass, selector, ret);
 	ASSERT_STACK_START();
-	ret = klass->findMethod(*selector);
+
+	Class::findMethod(this, klass, selector, ret);
 
 	frame->stackMoveTop(-2); // pop class & selector
 	ASSERT_STACK_END(2);
@@ -184,8 +185,8 @@ void Thread::createPair(StackRef<Object> first, StackRef<Object> second, StackRe
 
 	staticCreateObject(klass, ret.staticCast<Object>(), sizeof(Pair)); // pops class
 
-	ret->setFirst(*first);
-	ret->setSecond(*second);
+	Pair::setFirst(this, ret, first);
+	Pair::setSecond(this, ret, second);
 
 	frame->stackMoveTop(-2);
 	ASSERT_STACK_END(2);
@@ -200,13 +201,13 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 
 	// find method
 	{
-		static Reference<String> selectorRef = String::gTranslate(mVM, BEER_WIDEN("$Class::createInstance()")); // TODO;
+		static Reference<String> selectorRef = String::gTranslate(this, BEER_WIDEN("$Class::createInstance()")); // TODO;
 		StackRef<String> selector(frame, frame->stackPush(selectorRef.get()));
-			String* rawSelector = *selectorRef;///
+		String* rawSelector = *selectorRef;//
 
 		PolymorphicInlineCache* methodCache = PolymorphicInlineCache::from(createInstanceMethodCacheBytes);
 
-		method = methodCache->find(*klass, *selector, CREATE_INSTANCE_CACHE_SIZE);
+		method = methodCache->find(this, *klass, *selector, CREATE_INSTANCE_CACHE_SIZE);
 		//getMethod(frame, klass.copy(), selector, method); // pops selector & copied class
 		frame->stackMoveTop(-1); // pop selector
 	
@@ -214,8 +215,6 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 		{
 			Class* rawKlass = *klass;
 			String* rawSelector = *selectorRef;
-
-			String* className = rawKlass->getName();
 			
 			throw MethodNotFoundException(*klass, *klass, *selectorRef);
 		}

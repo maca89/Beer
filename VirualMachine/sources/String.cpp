@@ -167,90 +167,27 @@ Class* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* load
 
 void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
-	Method* method = NULL;
-	uint16 methodi = 0;
+	loader->extendClass(klass, vm->getObjectClass());
 
-	klass->extends(0, vm->getObjectClass());
+	loader->addMethod(klass, BEER_WIDEN("String"), BEER_WIDEN("String::String()"), &String::init, 1, 0);
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("String")));
-	method->setFunction(&String::init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::String()")), method));
+	loader->addMethod(klass, BEER_WIDEN("<"), BEER_WIDEN("String::<(String)"), &String::operatorSmaller, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("<="), BEER_WIDEN("String::<=(String)"), &String::operatorSmallerEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN(">"), BEER_WIDEN("String::>(String)"), &String::operatorGreater, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN(">="), BEER_WIDEN("String::>=()"), &String::operatorGreaterEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("String::==(String)"), &String::operatorEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("String::!=(String)"), &String::operatorNotEqual, 1, 1);
 
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("<")));
-	method->setFunction(&String::operatorSmaller);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::<(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("<=")));
-	method->setFunction(&String::operatorSmallerEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::<=(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN(">")));
-	method->setFunction(&String::operatorGreater);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::>(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN(">=")));
-	method->setFunction(&String::operatorGreaterEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::>=(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("==")));
-	method->setFunction(&String::operatorEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::==(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("!=")));
-	method->setFunction(&String::operatorNotEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::!=(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&String::operatorAddString);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(String)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&String::operatorAddInteger);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Integer)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&String::operatorAddFloat);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Float)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&String::operatorAddBoolean);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Boolean)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&String::operatorAddCharacter);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Character)")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("+")));
-	method->setFunction(&String::operatorAddArray);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::+(Array)")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("getLength")));
-	method->setFunction(&String::getLength);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::getLength()")), method));
-
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("get")));
-	method->setFunction(&String::operatorGet);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("String::get(Integer)")), method)); // TODO: String::[](Integer)
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&String::createInstance);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(String)"), &String::operatorAddString, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Integer)"), &String::operatorAddInteger, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Float)"), &String::operatorAddFloat, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Boolean)"), &String::operatorAddBoolean, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Character)"), &String::operatorAddCharacter, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Array)"), &String::operatorAddArray, 1, 1);
+	
+	loader->addMethod(klass, BEER_WIDEN("getLength"), BEER_WIDEN("String::getLength()"), &String::getLength, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("get"), BEER_WIDEN("String::get(Integer)"), &String::operatorGet, 1, 1); // TODO: String::[](Integer)
+	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &String::createInstance, 1, 0);
 }
 
 // string pool
@@ -275,6 +212,7 @@ Reference<String> StringPool::translate(Thread* thread, const char16* str)
 
 		Reference<String> result(thread->getGC(), *strOnStack);
 		frame->stackMoveTop(-1); // pop string from stack
+
 		return result;
 	}
 

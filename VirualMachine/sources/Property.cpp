@@ -7,20 +7,20 @@ using namespace Beer;
 
 Class* Property::getType()
 {
-	return getChild<Class>(OBJECT_CHILDREN_COUNT);
+	return _getChild<Class>(OBJECT_CHILDREN_COUNT);
 }
 
 void Property::setType(Class* value)
 {
-	setChild(OBJECT_CHILDREN_COUNT, value);
+	_setChild(OBJECT_CHILDREN_COUNT, value);
 }
 
 String* Property::getName()
 {
-	return getChild<String>(OBJECT_CHILDREN_COUNT + 1);
+	return _getChild<String>(OBJECT_CHILDREN_COUNT + 1);
 }
 
 void Property::setName(String* value)
 {
-	setChild(OBJECT_CHILDREN_COUNT + 1, value);
+	_setChild(OBJECT_CHILDREN_COUNT + 1, value);
 }

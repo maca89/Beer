@@ -59,5 +59,7 @@ namespace Beer
 			//return vm->getStringClass<StringClass>()->translate(vm, strdescr->c_str());
 			return vm->createString(strdescr->c_str());
 		}
+
+		
 	};
 };

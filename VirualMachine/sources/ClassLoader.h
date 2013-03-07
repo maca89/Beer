@@ -1,5 +1,6 @@
 #pragma once
 #include "prereq.h"
+#include "StackFrame.h"
 
 
 namespace Beer
@@ -51,7 +52,7 @@ namespace Beer
 		INLINE T* createClass(String* name, uint16 parents, uint16 properties, uint16 methods)
 		{
 			T* klass = static_cast<T*>(createClass(name, sizeof(T), parents, properties, methods));
-			new(klass) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
+			//new(klass) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
 	
 			ClassInitializer* initializer = getClassInitializer(name->c_str());
 			if(initializer) initializer->initClass(mVM, this, klass);
@@ -59,9 +60,27 @@ namespace Beer
 			return klass;
 		}
 
-		Method* createMethod(uint16 returns, uint16 params);
+		void addMethod(Class* klass, Method* method, const char_t* selector);
+		void addMethod(Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+		Method* createMethod(Cb fn, uint16 returns, uint16 params);
+		
+		template <typename T>
+		INLINE void addMethod(Class* klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
+		{
+			addMethod(klass, name, selector, reinterpret_cast<Cb>(fn), returns, params);
+		}
+
+		template <typename T>
+		INLINE Method* createMethod(T fn, uint16 returns, uint16 params)
+		{
+			return createMethod(reinterpret_cast<Cb>(fn), returns, params);
+		}
+
 		Param* createParam();
 		Property* createProperty();
+
+		void extendClass(Class* klass, Class* extending); // deprecated
+		void extendClass(StackRef<Class> klass, StackRef<Class> extending);
 
 	protected:
 		Class* createClass(String* name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);

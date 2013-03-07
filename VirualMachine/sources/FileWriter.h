@@ -4,8 +4,6 @@
 #include "Thread.h"
 #include "Heap.h"
 #include "ClassLoader.h"
-#include "Integer.h"
-#include "Float.h"
 #include "Boolean.h"
 #include "Character.h"
 #include "Class.h"
@@ -14,6 +12,11 @@
 namespace Beer
 {
 	class VirtualMachine;
+	class Integer;
+	class Float;
+	class Boolean;
+	class Array;
+	class String;
 
 	class FileWriter : public Object
 	{
@@ -21,64 +24,17 @@ namespace Beer
 		std::ofstream* mFile;
 
 	public:
-		INLINE bool open(const char_t* name)
-		{
-			mFile->open(name);
-			return mFile->is_open();
-		}
-		
-		INLINE void close()
-		{
-			mFile->close();
-		}
+		static void BEER_CALL init(Thread* thread, StackRef<FileWriter> receiver, StackRef<FileWriter> ret);
+		static void BEER_CALL open(Thread* thread, StackRef<FileWriter> receiver, StackRef<String> filename, StackRef<Boolean> ret);
+		static void BEER_CALL close(Thread* thread, StackRef<FileWriter> receiver);
+		static void BEER_CALL writeInteger(Thread* thread, StackRef<FileWriter> receiver, StackRef<Integer> arg);
+		static void BEER_CALL writeFloat(Thread* thread, StackRef<FileWriter> receiver, StackRef<Float> arg);
+		static void BEER_CALL writeString(Thread* thread, StackRef<FileWriter> receiver, StackRef<String> arg);
+		static void BEER_CALL writeBoolean(Thread* thread, StackRef<FileWriter> receiver, StackRef<Boolean> arg);
+		static void BEER_CALL writeArray(Thread* thread, StackRef<FileWriter> receiver, StackRef<Array> arg);
+		static void BEER_CALL writeLn(Thread* thread, StackRef<FileWriter> receiver);
+		static void BEER_CALL writeFailed(Thread* thread, StackRef<FileWriter> receiver, StackRef<Boolean> ret);
 
-		INLINE void write(Integer::IntegerData out)
-		{
-			(*mFile) << out;
-		}
-
-		INLINE void write(Float::FloatData out)
-		{
-			(*mFile) << std::setprecision(8) << std::fixed << out;
-		}
-
-		INLINE void write(Boolean::BooleanData out)
-		{
-			if(out) (*mFile) << "true";
-			else (*mFile) << "false";
-		}
-
-		/*INLINE void write(Character::CharacterData out)
-		{
-			(*mFile) << out;
-		}*/
-
-		INLINE void write(const char_t* str)
-		{
-			(*mFile) << str;
-		}
-
-		INLINE bool failed()
-		{
-			return mFile->fail();
-		}
-
-		friend class FileWriterClass;
-	};
-
-	class FileWriterClass : public Class
-	{
-	public:
-		// ClassReflection
-		Object* createInstance(Thread* thread, StackFrame* frame) // TODO!!!
-		{
-			// TODO: constructor
-			
-			FileWriter* writer = thread->getHeap()->alloc<FileWriter>(Object::OBJECT_CHILDREN_COUNT);
-			writer->setClass(this);
-			writer->mFile = new std::ofstream(); // memory leak!
-			return writer;
-		}
 	};
 
 	class FileWriterClassInitializer : public ClassInitializer

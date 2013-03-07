@@ -151,6 +151,9 @@
     <ClCompile Include="sources\PolymorphicInlineCache.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
+    <ClCompile Include="sources\MonomorphicInlineCache.cpp">
+      <Filter>Sources\Bytecode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -330,9 +333,6 @@
     <ClInclude Include="sources\Debugger.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="sources\InlineFunctionTable.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="sources\prereq.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -341,6 +341,12 @@
     </ClInclude>
     <ClInclude Include="sources\VirtualMachine.h">
       <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodeOptimisation.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InlineFunctionTable.h">
+      <Filter>Headers\Bytecode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

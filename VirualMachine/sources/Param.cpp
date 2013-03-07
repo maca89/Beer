@@ -5,22 +5,22 @@
 using namespace Beer;
 
 
-Class* Param::getType()
+void BEER_CALL Param::getParamType(Thread* thread, StackRef<Param> receiver, StackRef<Class> ret)
 {
-	return getChild<Class>(OBJECT_CHILDREN_COUNT);
+	Object::getChild(thread, receiver, ret, CHILD_ID_PARAM_TYPE);
 }
 
-void Param::setType(Class* value)
+void BEER_CALL Param::setParamType(Thread* thread, StackRef<Param> receiver, StackRef<Class> type)
 {
-	setChild(OBJECT_CHILDREN_COUNT, value);
+	Object::setChild(thread, receiver, type, CHILD_ID_PARAM_TYPE);
 }
 
-String* Param::getName()
+void BEER_CALL Param::getName(Thread* thread, StackRef<Param> receiver, StackRef<String> ret)
 {
-	return getChild<String>(OBJECT_CHILDREN_COUNT + 1);
+	Object::getChild(thread, receiver, ret, CHILD_ID_PARAM_NAME);
 }
 
-void Param::setName(String* value)
+void BEER_CALL Param::setName(Thread* thread, StackRef<Param> receiver, StackRef<String> type)
 {
-	setChild(OBJECT_CHILDREN_COUNT + 1, value);
+	Object::setChild(thread, receiver, type, CHILD_ID_PARAM_NAME);
 }

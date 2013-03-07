@@ -11,102 +11,76 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerFileReader_init(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<FileReader> ret)
+void BEER_CALL FileReader::init(Thread* thread, StackRef<FileReader> receiver, StackRef<FileReader> ret)
 {
+	receiver->mFile = new ifstream(); // memory leak!
 	ret = receiver;
 }
 
-void BEER_CALL BeerFileReader_open(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<String> filename, StackRef<Boolean> ret)
+void BEER_CALL FileReader::open(Thread* thread, StackRef<FileReader> receiver, StackRef<String> filename, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(receiver->open(filename->c_str()));
+	receiver->mFile->open(filename->c_str());
+	ret = Boolean::makeInlineValue(receiver->mFile->is_open());
 }
 
-void BEER_CALL BeerFileReader_close(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver)
+void BEER_CALL FileReader::close(Thread* thread, StackRef<FileReader> receiver)
 {
-	receiver->close();
+	receiver->mFile->close();
 }
 
-void BEER_CALL BeerFileReader_readInteger(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Integer> ret)
+void BEER_CALL FileReader::readInteger(Thread* thread, StackRef<FileReader> receiver, StackRef<Integer> ret)
 {
 	Integer::IntegerData data;
-	receiver->read(data);
+	(*receiver->mFile) >> data;
 	thread->createInteger(ret, data);
 }
 
-void BEER_CALL BeerFileReader_readFloat(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Float> ret)
+void BEER_CALL FileReader::readFloat(Thread* thread, StackRef<FileReader> receiver, StackRef<Float> ret)
 {
 	Float::FloatData data;
-	receiver->read(data);
+	(*receiver->mFile) >> data;
 	thread->createFloat(ret, data);
 }
 
-void BEER_CALL BeerFileReader_readString(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<String> ret)
+void BEER_CALL FileReader::readString(Thread* thread, StackRef<FileReader> receiver, StackRef<String> ret)
 {
 	string data;
-	receiver->read(data);
+	(*receiver->mFile) >> data;
 	ret = thread->getVM()->createString(data);
 }
 
-void BEER_CALL BeerFileReader_readFailed(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Boolean> ret)
+void BEER_CALL FileReader::readFailed(Thread* thread, StackRef<FileReader> receiver, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(receiver->failed());
+	ret = Boolean::makeInlineValue(receiver->mFile->fail());
 }
 
-void BEER_CALL BeerFileReader_readEnded(Thread* thread/*, StackFrame* frame*/, StackRef<FileReader> receiver, StackRef<Boolean> ret)
+void BEER_CALL FileReader::readEnded(Thread* thread, StackRef<FileReader> receiver, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(receiver->atEnd());
+	ret = Boolean::makeInlineValue(receiver->mFile->eof());
 }
 
 
 Class* FileReaderClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<FileReaderClass>(name, 1, 0, 8);
+	return loader->createClass<Class>(name, 1, 0, 8);
 }
 
 void FileReaderClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
-	klass->extends(0, vm->getObjectClass());
+	loader->extendClass(klass, vm->getObjectClass());
 
 	Method* method = NULL;
 	uint16 methodi = 0;
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("FileReader")));
-	method->setFunction(&BeerFileReader_init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::FileReader()")), method));
+	loader->addMethod(klass, BEER_WIDEN("FileReader"), BEER_WIDEN("FileReader::FileReader()"), &FileReader::init, 1, 0);
 
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("open")));
-	method->setFunction(&BeerFileReader_open);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::open(String)")), method));
+	loader->addMethod(klass, BEER_WIDEN("open"), BEER_WIDEN("FileReader::open(String)"), &FileReader::open, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("close"), BEER_WIDEN("FileReader::close()"), &FileReader::close, 0, 0);
 
-	method = loader->createMethod(0, 0);
-	method->setName(vm->createString(BEER_WIDEN("close")));
-	method->setFunction(&BeerFileReader_close);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::close()")), method));
+	loader->addMethod(klass, BEER_WIDEN("readInteger"), BEER_WIDEN("FileReader::readInteger()"), &FileReader::readInteger, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("readFloat"), BEER_WIDEN("FileReader::readFloat()"), &FileReader::readFloat, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("readString"), BEER_WIDEN("FileReader::readString()"), &FileReader::readString, 1, 0);
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("readInteger")));
-	method->setFunction(&BeerFileReader_readInteger);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::readInteger()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("readFloat")));
-	method->setFunction(&BeerFileReader_readFloat);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::readFloat()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("readString")));
-	method->setFunction(&BeerFileReader_readString);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::readString()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("readFailed")));
-	method->setFunction(&BeerFileReader_readFailed);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::readFailed()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("readEnded")));
-	method->setFunction(&BeerFileReader_readEnded);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileReader::readEnded()")), method));
+	loader->addMethod(klass, BEER_WIDEN("readFailed"), BEER_WIDEN("FileReader::readFailed()"), &FileReader::readFailed, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("readEnded"), BEER_WIDEN("FileReader::readEnded()"), &FileReader::readEnded, 1, 0);
 }

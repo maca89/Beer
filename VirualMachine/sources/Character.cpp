@@ -50,38 +50,14 @@ Class* CharacterClassInitializer::createClass(VirtualMachine* vm, ClassLoader* l
 void CharacterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
 	klass->markAsValueType();
-	klass->extends(0, vm->getObjectClass());
+	loader->extendClass(klass, vm->getObjectClass());
 	
-	Method* method = NULL;
-	uint16 methodi = 0;
+	loader->addMethod(klass, BEER_WIDEN("Character"), BEER_WIDEN("Character::Character()"), &Character::init, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("String"), BEER_WIDEN("Character::String()"), &Character::operatorString, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("Integer"), BEER_WIDEN("Character::Integer()"), &Character::operatorInteger, 1, 0);
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Character")));
-	method->setFunction(&Character::init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::Character()")), method));
+	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("Character::==(Character)"), &Character::operatorEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("Character::!=(Character)"), &Character::operatorNotEqual, 1, 1);
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("String")));
-	method->setFunction(&Character::operatorString);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::String()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Integer")));
-	method->setFunction(&Character::operatorInteger);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::Integer()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("==")));
-	method->setFunction(&Character::operatorEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::==(Character)")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("!=")));
-	method->setFunction(&Character::operatorNotEqual);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Character::!=(Character)")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&Character::createInstance);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
+	loader->addMethod(klass, BEER_WIDEN("Character"), BEER_WIDEN("$Class::createInstance()"), &Character::createInstance, 1, 0);
 }

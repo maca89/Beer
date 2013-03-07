@@ -9,24 +9,24 @@
 using namespace Beer;
 
 
-void BEER_CALL Timer::init(Thread* thread/*, StackFrame* frame*/, StackRef<Timer> receiver, StackRef<Timer> ret)
+void BEER_CALL Timer::init(Thread* thread, StackRef<Timer> receiver, StackRef<Timer> ret)
 {
 	receiver->mTimer = MiliTimer();
 	receiver->mTimer.start(); // TODO
 	ret = receiver;
 }
 
-void BEER_CALL Timer::start(Thread* thread/*, StackFrame* frame*/, StackRef<Timer> receiver)
+void BEER_CALL Timer::start(Thread* thread, StackRef<Timer> receiver)
 {
 	receiver->mTimer.start();
 }
 
-void BEER_CALL Timer::stop(Thread* thread/*, StackFrame* frame*/, StackRef<Timer> receiver, StackRef<Float> ret)
+void BEER_CALL Timer::stop(Thread* thread, StackRef<Timer> receiver, StackRef<Float> ret)
 {
 	thread->createFloat(ret, static_cast<Float::FloatData>(receiver->mTimer.stop()));
 }
 
-void BEER_CALL Timer::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Timer> ret)
+void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Timer> ret)
 {
 	ret = thread->getHeap()->alloc<Timer>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
@@ -41,28 +41,10 @@ Class* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loade
 
 void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
-	klass->extends(0, vm->getObjectClass());
+	loader->extendClass(klass, vm->getObjectClass());
 
-	Method* method = NULL;
-	uint16 methodi = 0;
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("Timer")));
-	method->setFunction(&Timer::init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Timer::Timer()")), method));
-
-	method = loader->createMethod(0, 0);
-	method->setName(vm->createString(BEER_WIDEN("start")));
-	method->setFunction(&Timer::start);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Timer::start()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("stop")));
-	method->setFunction(&Timer::stop);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("Timer::stop()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("createInstance")));
-	method->setFunction(&Timer::createInstance);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("$Class::createInstance()")), method));
+	loader->addMethod(klass, BEER_WIDEN("Timer"), BEER_WIDEN("Timer::Timer()"), &Timer::init, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("start"), BEER_WIDEN("Timer::start()"), &Timer::start, 0, 0);
+	loader->addMethod(klass, BEER_WIDEN("stop"), BEER_WIDEN("Timer::stop()"), &Timer::stop, 1, 0);
+	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Timer::createInstance, 1, 0);
 }

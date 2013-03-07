@@ -20,12 +20,12 @@ namespace Beer
 			memset(this, 0, countSize());
 		}
 
-		INLINE Method* find(Class* klass, String* selector)
+		INLINE Method* find(Thread* thread, Class* klass, String* selector)
 		{
 			DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 			if(mMethod == NULL)
 			{
-				mMethod = klass->findMethod(selector);
+				lookup(thread, klass, selector);
 			}
 			return mMethod;
 		}
@@ -38,6 +38,8 @@ namespace Beer
 		{
 			return sizeof(MonomorphicInlineCache);
 		}
+
+		void lookup(Thread* thread, Class* klass, String* selector);
 	};
 	#pragma pack(pop)
 };

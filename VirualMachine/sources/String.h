@@ -114,29 +114,6 @@ namespace Beer
 			(&mData)[mLength] = '\0'; // mData is always alocated with (mLength + 1) length
 		}
 
-		/*INLINE static std::wstring cast(const std::string& str)
-		{
-			return std::wstring(str.begin(), str.end());
-		}
-
-		INLINE static std::string cast(const std::wstring& str)
-		{
-			return std::string(str.begin(), str.end());
-		}
-
-		INLINE static std::wstring convert(const std::string& str)
-		{
-			// TODO
-			return cast(str);
-		}
-
-		INLINE static std::string convert(const std::wstring& str)
-		{
-			// TODO
-			return cast(str);
-		}*/
-
-		
 		static INLINE StringPool* gGetPool()
 		{
 			return &gPool;

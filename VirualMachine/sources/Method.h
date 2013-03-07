@@ -16,8 +16,6 @@ namespace Beer
 	class Method : public Object
 	{
 	public:
-		typedef void(*Cb)();
-
 		enum
 		{
 			FLAG_BYTECODE = 0x01,
@@ -86,13 +84,13 @@ namespace Beer
 		INLINE void setReturn(uint16 i, Param* value)
 		{
 			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unable to add more returns"));
-			setChild(METHOD_CHILDREN_COUNT + i, value);
+			_setChild(METHOD_CHILDREN_COUNT + i, value);
 		}
 		
 		INLINE Param* getReturn(uint16 i) const
 		{
 			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unknown return"));
-			return getChild<Param>(METHOD_CHILDREN_COUNT + i);
+			return _getChild<Param>(METHOD_CHILDREN_COUNT + i);
 		}
 
 		// params
@@ -105,13 +103,13 @@ namespace Beer
 		INLINE void setParam(uint16 i, Param* value)
 		{
 			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unable to add more params"));
-			setChild(METHOD_CHILDREN_COUNT + getReturnsCount() + i, value);
+			_setChild(METHOD_CHILDREN_COUNT + getReturnsCount() + i, value);
 		}
 
 		INLINE Param* getParam(uint16 i)
 		{
 			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unknown param"));
-			return getChild<Param>(METHOD_CHILDREN_COUNT + getReturnsCount() + i);
+			return _getChild<Param>(METHOD_CHILDREN_COUNT + getReturnsCount() + i);
 		}
 
 		// max stack
@@ -123,12 +121,12 @@ namespace Beer
 		
 		INLINE String* getName() const
 		{
-			return getChild<String>(OBJECT_CHILDREN_COUNT);
+			return _getChild<String>(OBJECT_CHILDREN_COUNT);
 		}
 
 		INLINE void setName(String* value)
 		{
-			setChild(OBJECT_CHILDREN_COUNT, value);
+			_setChild(OBJECT_CHILDREN_COUNT, value);
 		}
 
 		// NativeMethod

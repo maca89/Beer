@@ -32,7 +32,7 @@ namespace Beer
 			return &mMethods;
 		}
 
-		NOINLINE Method* find(Class* klass, String* selector, uint16 methodsLength);
+		NOINLINE Method* find(Thread* thread, Class* klass, String* selector, uint16 methodsLength);
 
 		INLINE static PolymorphicInlineCache* from(void* ptr)
 		{

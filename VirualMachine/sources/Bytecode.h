@@ -79,8 +79,8 @@ namespace Beer
 			#define BEER_INLINE_INTEGER_GREATER_EQUAL	(BEER_INSTR_SIZE + 14)
 			// Array
 			#define BEER_INLINE_ARRAY_GET_LENGTH		(BEER_INSTR_SIZE + 15)
-			#define BEER_INLINE_ARRAY_GET_ITEM			(BEER_INSTR_SIZE + 16)
-			#define BEER_INLINE_ARRAY_SET_ITEM			(BEER_INSTR_SIZE + 17)
+			//#define BEER_INLINE_ARRAY_GET_ITEM			(BEER_INSTR_SIZE + 16)
+			//#define BEER_INLINE_ARRAY_SET_ITEM			(BEER_INSTR_SIZE + 17)
 
 			// optimalised instructions - the numbers may change!
 			// Integer

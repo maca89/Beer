@@ -25,6 +25,7 @@
     <ClCompile Include="sources\FixedHeap.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
+    <ClCompile Include="sources\MonomorphicInlineCache.cpp" />
     <ClCompile Include="sources\NurseryGC.cpp" />
     <ClCompile Include="sources\Param.cpp" />
     <ClCompile Include="sources\Array.cpp" />
@@ -78,6 +79,7 @@
   <ItemGroup>
     <ClInclude Include="sources\AllocationBlock.h" />
     <ClInclude Include="sources\Boolean.h" />
+    <ClInclude Include="sources\BytecodeOptimisation.h" />
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />

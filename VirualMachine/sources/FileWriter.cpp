@@ -10,118 +10,82 @@
 using namespace Beer;
 
 
-void BEER_CALL BeerFileWriter_init(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<FileWriter> ret)
+void BEER_CALL FileWriter::init(Thread* thread, StackRef<FileWriter> receiver, StackRef<FileWriter> ret)
 {
+	receiver->mFile = new std::ofstream(); // memory leak!
 	ret = receiver;
 }
 
-void BEER_CALL BeerFileWriter_open(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<String> filename, StackRef<Boolean> ret)
-{
-	ret = Boolean::makeInlineValue(receiver->open(filename->c_str()));
+void BEER_CALL FileWriter::open(Thread* thread, StackRef<FileWriter> receiver, StackRef<String> filename, StackRef<Boolean> ret)
+{	
+	receiver->mFile->open(filename->c_str());
+	ret = Boolean::makeInlineValue(receiver->mFile->is_open());
 }
 
-void BEER_CALL BeerFileWriter_close(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver)
+void BEER_CALL FileWriter::close(Thread* thread, StackRef<FileWriter> receiver)
 {
-	receiver->close();
+	receiver->mFile->close();
 }
 
-void BEER_CALL BeerFileWriter_writeInteger(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Integer> arg)
+void BEER_CALL FileWriter::writeInteger(Thread* thread, StackRef<FileWriter> receiver, StackRef<Integer> arg)
 {
-	receiver->write(arg->getData());
+	(*receiver->mFile) << arg->getData();
 }
 
-void BEER_CALL BeerFileWriter_writeFloat(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Float> arg)
+void BEER_CALL FileWriter::writeFloat(Thread* thread, StackRef<FileWriter> receiver, StackRef<Float> arg)
 {
-	receiver->write(arg->getData());
+	(*receiver->mFile) << std::setprecision(8) << std::fixed << arg->getData();
 }
 
-void BEER_CALL BeerFileWriter_writeString(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<String> arg)
+void BEER_CALL FileWriter::writeString(Thread* thread, StackRef<FileWriter> receiver, StackRef<String> arg)
 {
-	receiver->write(arg->c_str());
+	(*receiver->mFile) << arg->c_str();
 }
 
-void BEER_CALL BeerFileWriter_writeBoolean(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Boolean> arg)
+void BEER_CALL FileWriter::writeBoolean(Thread* thread, StackRef<FileWriter> receiver, StackRef<Boolean> arg)
 {
-	receiver->write(arg->getData());
+	if(arg->getData()) (*receiver->mFile) << "true";
+	else (*receiver->mFile) << "false";
 }
 
-void BEER_CALL BeerFileWriter_writeArray(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Array> arg)
+void BEER_CALL FileWriter::writeArray(Thread* thread, StackRef<FileWriter> receiver, StackRef<Array> arg)
 {
 	string str;
 	arg->toString(thread->getVM(), str);
-	receiver->write(str.c_str());
+	(*receiver->mFile) << str.c_str();
 }
 
-void BEER_CALL BeerFileWriter_writeLn(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver)
+void BEER_CALL FileWriter::writeLn(Thread* thread, StackRef<FileWriter> receiver)
 {
-	receiver->write(BEER_WIDEN("\n"));
+	(*receiver->mFile) << BEER_WIDEN("\n");
 }
 
-void BEER_CALL BeerFileWriter_writeFailed(Thread* thread/*, StackFrame* frame*/, StackRef<FileWriter> receiver, StackRef<Boolean> ret)
+void BEER_CALL FileWriter::writeFailed(Thread* thread, StackRef<FileWriter> receiver, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(receiver->failed());
+	ret = Boolean::makeInlineValue(receiver->mFile->fail());
 }
 
 
 Class* FileWriterClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<FileWriterClass>(name, 1, 0, 10);
+	return loader->createClass<Class>(name, 1, 0, 10);
 }
 
 void FileWriterClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
 {
-	klass->extends(0, vm->getObjectClass());
+	loader->extendClass(klass, vm->getObjectClass());
 
-	Method* method = NULL;
-	uint16 methodi = 0;
+	loader->addMethod(klass, BEER_WIDEN("FileWriter"), BEER_WIDEN("FileWriter::FileWriter()"), &FileWriter::init, 1, 0);
 
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("FileWriter")));
-	method->setFunction(&BeerFileWriter_init);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::FileWriter()")), method));
+	loader->addMethod(klass, BEER_WIDEN("open"), BEER_WIDEN("FileWriter::open(String)"), &FileWriter::open, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("close"), BEER_WIDEN("FileWriter::close()"), &FileWriter::close, 0, 0);
 
-	method = loader->createMethod(1, 1);
-	method->setName(vm->createString(BEER_WIDEN("open")));
-	method->setFunction(&BeerFileWriter_open);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::open(String)")), method));
+	loader->addMethod(klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Integer)"), &FileWriter::writeInteger, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Float)"), &FileWriter::writeFloat, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(String)"), &FileWriter::writeString, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Boolean)"), &FileWriter::writeBoolean, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Array)"), &FileWriter::writeArray, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("writeln"), BEER_WIDEN("FileWriter::writeln()"), &FileWriter::writeLn, 0, 0);
 
-	method = loader->createMethod(0, 0);
-	method->setName(vm->createString(BEER_WIDEN("close")));
-	method->setFunction(&BeerFileWriter_close);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::close()")), method));
-
-	method = loader->createMethod(0, 1);
-	method->setName(vm->createString(BEER_WIDEN("write")));
-	method->setFunction(&BeerFileWriter_writeInteger);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::write(Integer)")), method));
-
-	method = loader->createMethod(0, 1);
-	method->setName(vm->createString(BEER_WIDEN("write")));
-	method->setFunction(&BeerFileWriter_writeFloat);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::write(Float)")), method));
-
-	method = loader->createMethod(0, 1);
-	method->setName(vm->createString(BEER_WIDEN("write")));
-	method->setFunction(&BeerFileWriter_writeString);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::write(String)")), method));
-
-	method = loader->createMethod(0, 1);
-	method->setName(vm->createString(BEER_WIDEN("write")));
-	method->setFunction(&BeerFileWriter_writeBoolean);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::write(Boolean)")), method));
-
-	method = loader->createMethod(0, 1);
-	method->setName(vm->createString(BEER_WIDEN("write")));
-	method->setFunction(&BeerFileWriter_writeArray);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::write(Array)")), method));
-
-	method = loader->createMethod(0, 0);
-	method->setName(vm->createString(BEER_WIDEN("writeln")));
-	method->setFunction(&BeerFileWriter_writeLn);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::writeln()")), method));
-
-	method = loader->createMethod(1, 0);
-	method->setName(vm->createString(BEER_WIDEN("writeFailed")));
-	method->setFunction(&BeerFileWriter_writeFailed);
-	klass->setMethod(methodi++, vm->createPair(vm->createString(BEER_WIDEN("FileWriter::writeFailed()")), method));
+	loader->addMethod(klass, BEER_WIDEN("writeFailed"), BEER_WIDEN("FileWriter::writeFailed()"), &FileWriter::writeFailed, 1, 0);
 }
