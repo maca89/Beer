@@ -189,25 +189,14 @@ void VirtualMachine::init(uint32 stackInitSize)
 			frame->stackMoveTop(-2); // pop stringClassName & stringClass
 		}
 
-		StackRef<Method> metaClassCtor(frame, frame->stackPush(
-			mClassLoader->createMethod(&MetaClass::init, 1, 0)
-		));
-
-		StackRef<Method> metaClassFindMethod(frame, frame->stackPush(
-			mClassLoader->createMethod(&MetaClass::findMethod, 1, 1)
-		));
-
 		// fix metaclass methods
-		metaClassCtor->setName(createString(BEER_WIDEN("MetaClass"))); // TODO
-		mClassLoader->addMethod(*(metaClass.staticCast<Class>()), *metaClassCtor, BEER_WIDEN("MetaClass::MetaClass()"));
-
-		metaClassFindMethod->setName(createString(BEER_WIDEN("open")));
-		mClassLoader->addMethod(*(metaClass.staticCast<Class>()), *metaClassFindMethod, BEER_WIDEN("MetaClass::findMethod(String)"));
+		mClassLoader->addMethod(*(metaClass.staticCast<Class>()), BEER_WIDEN("MetaClass"), BEER_WIDEN("MetaClass::MetaClass()"), &MetaClass::init, 1, 0);
+		//mClassLoader->addMethod(*(metaClass.staticCast<Class>()), BEER_WIDEN("findMethod"), BEER_WIDEN("Class::findMethod(String)"), &MetaClass::findMethod, 1, 1);
 
 		// default Object methods
 		mClassLoader->addMethod(mObjectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
 
-		frame->stackMoveTop(-7); // clean
+		frame->stackMoveTop(-5); // clean
 		DBG_ASSERT(frame->stackSize() == 0, BEER_WIDEN("Stack was not properly cleaned"));
 		closeStackFrame();
 	}
@@ -273,7 +262,7 @@ void VirtualMachine::work()
 
 				if(method.isNull())
 				{
-					throw MethodNotFoundException(*klass, klass->getClass<Class>(), *selector); // TODO
+					throw MethodNotFoundException(*klass, ((Thread*)this)->getClass(klass), *selector); // TODO
 				}
 
 				StackRef<Object> ret(frame, frame->stackPush(NULL));

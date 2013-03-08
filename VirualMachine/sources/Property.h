@@ -13,35 +13,16 @@ namespace Beer
 	public:
 		enum
 		{
-			PROPERTY_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 2 // type, name
+			PROPERTY_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 2, // type, name
+			
+			CHILD_ID_PROPERTY_TYPE = OBJECT_CHILDREN_COUNT,
+			CHILD_ID_PROPERTY_NAME = OBJECT_CHILDREN_COUNT + 1,
 		};
 
-	protected:
-		// nothing
+		static void BEER_CALL getPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> ret);
+		static void BEER_CALL setPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> type);
 
-	public:
-		// type
-		Class* getType();
-		void setType(Class* value);
-
-		// name
-
-		String* getName();
-		void setName(String* value);
-
-	private:
-		INLINE Property()
-		{
-			// never called!
-		}
-
-		INLINE ~Property()
-		{
-			// never called!
-		}
+		static void BEER_CALL getName(Thread* thread, StackRef<Property> receiver, StackRef<String> ret);
+		static void BEER_CALL setName(Thread* thread, StackRef<Property> receiver, StackRef<String> name);
 	};
-
-	/*class PropertyClass
-	{
-	};*/
 };

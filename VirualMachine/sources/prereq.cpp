@@ -5,6 +5,7 @@
 #include "Object.h"
 #include "Class.h"
 #include "Method.h"
+#include "StackFrame.h"
 
 using namespace Beer;
 
@@ -24,7 +25,7 @@ using namespace Beer;
 
 AbstractMethodException::AbstractMethodException(Method* method, string filename, long line)
 	: RuntimeException(
-		string(BEER_WIDEN("Method ")) + method->getName()->c_str() + BEER_WIDEN(" is abstract"), // TODO
+		string(BEER_WIDEN("Method *NOT IMPLEMENTED*")) + /*method->getName()->c_str() +*/ BEER_WIDEN(" is abstract"), // TODO
 		filename, 
 		line
 	)
@@ -44,3 +45,20 @@ MethodNotFoundException::MethodNotFoundException(Object* instance, Class* klass,
 {
 	mName = BEER_WIDEN("MethodNotFoundException");
 }
+
+
+#if defined(BEER_STACK_DEBUGGING)
+DebugStackCheck::DebugStackCheck(StackFrame* frame) : frame(frame)
+{
+	startIndex = frame->stack->size();
+}
+
+DebugStackCheck::~DebugStackCheck()
+{
+	if(frame->stack->size() != startIndex)
+	{
+		BEER_DBG_BREAKPOINT();
+		throw CriticalAssertException(BEER_WIDEN("Stack is corrupted"));
+	}
+}
+#endif // BEER_STACK_DEBUGGING

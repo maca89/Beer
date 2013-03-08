@@ -56,10 +56,10 @@ void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 	loader->addMethod(klass, BEER_WIDEN("Boolean"), BEER_WIDEN("Boolean::Boolean()"), &Boolean::init, 1, 0);
 
 	loader->addMethod(klass, BEER_WIDEN("!"), BEER_WIDEN("Boolean::!()"), &Boolean::operatorNegation, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("Boolean::==()"), &Boolean::operatorEqual, 1, 1);
-	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("Boolean::!=()"), &Boolean::operatorNotEqual, 1, 1);
-	loader->addMethod(klass, BEER_WIDEN("&&"), BEER_WIDEN("Boolean::&&()"), &Boolean::operatorAnd, 1, 1);
-	loader->addMethod(klass, BEER_WIDEN("||"), BEER_WIDEN("Boolean::||()"), &Boolean::operatorOr, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("Boolean::==(Boolean)"), &Boolean::operatorEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("Boolean::!=(Boolean)"), &Boolean::operatorNotEqual, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("&&"), BEER_WIDEN("Boolean::&&(Boolean)"), &Boolean::operatorAnd, 1, 1);
+	loader->addMethod(klass, BEER_WIDEN("||"), BEER_WIDEN("Boolean::||(Boolean)"), &Boolean::operatorOr, 1, 1);
 
 	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Boolean::createInstance, 1, 0);
 }

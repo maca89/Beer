@@ -437,8 +437,8 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 
 			case BEER_INSTR_PUSH_INT32:
 				{
-#ifdef BEER_INLINE_OPTIMALIZATION
 					Integer::IntegerData value = builder.getData<int32>();
+#ifdef BEER_INLINE_OPTIMALIZATION
 					if(Integer::canBeInlineValue(value))
 					{
 						BEER_BC_SAVE_OPCODE(BEER_OPTIMAL_INTEGER_PUSH_INLINED);
@@ -476,7 +476,7 @@ void Bytecode::build(VirtualMachine* vm, ClassFileDescriptor* classFile)
 					{
 						BEER_BC_SAVE_OPCODE(opcode);
 						Reference<String> name = String::gTranslate(vm, cstring);
-						Class* klass = vm->getClass(name);
+						Class* klass = vm->getClass(*name);
 						builder.add((Object*)klass); // TODO: pass Reference
 					}
 				}
@@ -795,12 +795,13 @@ BEER_BC_LABEL(INSTR_SPECIALINVOKE):
 
 		// find method using inline cache
 		MonomorphicInlineCache* cache = MonomorphicInlineCache::from(ip + sizeof(int32));
-		Class* klass = thread->getVM()->getClass(object);
+		Class* klass = thread->getClass(object);
 		Method* method = cache->find(thread, klass, *selector);
 
 		// lookup failed
 		if(!method)
 		{
+			BEER_DBG_BREAKPOINT();
 			throw MethodNotFoundException(*object, klass, *selector);
 		}
 				
@@ -821,13 +822,13 @@ BEER_BC_LABEL(INSTR_INTERFACEINVOKE):
 
 		// find method using inline cache
 		PolymorphicInlineCache* cache = PolymorphicInlineCache::from(ip + sizeof(int32));
-		Class* klass = thread->getVM()->getClass(object); // TODO
+		Class* klass = thread->getClass(object); // TODO
 		Method* method = cache->find(thread, klass, selector.get(), mMethodCachesLength);
 
 		// lookup failed
 		if(!method)
 		{
-			throw MethodNotFoundException(*object, thread->getVM()->getClass(object), *selector);
+			throw MethodNotFoundException(*object, thread->getClass(object), *selector);
 		}
 
 		// invoke method

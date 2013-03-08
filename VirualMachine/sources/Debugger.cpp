@@ -60,7 +60,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " " << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
+				cout << frame->method << " *NOT IMPLEMENTED*";// << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
 			}
 			else
 			{
@@ -90,7 +90,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " " << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
+				cout << frame->method << " *NOT IMPLEMENTED*";// << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
 			}
 			else
 			{
@@ -118,7 +118,8 @@ void Debugger::printObject(Object* object)
 	if(object == NULL) cout << "null";
 	else
 	{
-		Class* klass = mVM->getClass(object);
+		// TODO
+		Class* klass = NULL; // mVM->getClass(object);
 		if(klass)
 		{
 			if(!klass->isValueType()) cout << "#" << object << " ";
@@ -288,7 +289,7 @@ bool Debugger::catchException(StackFrame* frame, const Exception& ex)
 	{
 		cout << std::endl;
 		StackRef<Object> receiver(frame, frame->stackTopIndex());
-		Class* klass = mVM->getClass(receiver);
+		Class* klass = ((Thread*)mVM)->getClass(receiver);
 		printClassMethods(klass);
 	}
 	

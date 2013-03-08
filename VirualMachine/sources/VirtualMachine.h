@@ -69,10 +69,6 @@ namespace Beer
 		Class* getClass(String* name);
 
 		INLINE Class* getClass(string name) { return getClass(createString(name)); } // TODO: get rid of
-		INLINE Class* getClass(Reference<String>& name) { return getClass(*name); }
-
-		INLINE Class* getClass(const StackRef<Object>& object) const { return mClassTable.translate(object); }
-		INLINE Class* getClass(Object* object) const { return mClassTable.translate(object); }
 
 		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }

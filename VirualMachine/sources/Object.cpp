@@ -17,6 +17,7 @@ void BEER_CALL Object::setClass(Thread* thread, StackRef<Object> receiver, Stack
 	// TODO: no pop in GC, no push there
 
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 	
 	frame->stackPush(*receiver); // push object
 	frame->stackPush(*param); // push class
@@ -29,6 +30,7 @@ void BEER_CALL Object::getClass(Thread* thread, StackRef<Object> receiver, Stack
 	// TODO: pass as StackRef<Object>
 
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 	
 	frame->stackPush(*receiver); // push object
 	thread->getGC()->pushChild(frame, CHILD_ID_CLASS); // pops object, pushes class
@@ -47,6 +49,7 @@ void BEER_CALL Object::setChild(Thread* thread, StackRef<Object> receiver, Stack
 	// TODO: no pop in GC, no push there
 
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 	
 	frame->stackPush(*receiver); // push object
 	frame->stackPush(*child); // push child
@@ -59,6 +62,7 @@ void Object::getChild(Thread* thread, StackRef<Object> object, StackRef<Object> 
 	// TODO: pass as StackRef<Object>
 
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 	
 	frame->stackPush(*object); // push object
 	thread->getGC()->pushChild(frame, index); // pops object, pushes child
@@ -70,6 +74,7 @@ void Object::getChild(Thread* thread, StackRef<Object> object, StackRef<Object> 
 void Object::setChild(Thread* thread, StackRef<Object> object, StackRef<Object> child, int64 index)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 
 	frame->stackPush(*object); // push object
 	frame->stackPush(*child); // push child

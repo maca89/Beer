@@ -15,6 +15,8 @@ void BEER_CALL Character::init(Thread* thread/*, StackFrame* frame*/, StackRef<C
 void BEER_CALL Character::operatorString(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	StackRef<Integer> one(frame, frame->stackPush(Integer::makeInlineValue(1)));
 	thread->createString(one, ret);
 

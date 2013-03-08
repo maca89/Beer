@@ -79,6 +79,9 @@ namespace Beer
 		void createArray(StackRef<Integer> length, StackRef<Array> ret);
 		void createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret);
 		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
+		
+		//INLINE Class* getClass(Reference<String>& name) { return getClass(*name); }
+		Class* getClass(const StackRef<Object>& object);
 
 		void init() { mHeap = mGC->createHeap(); }
 

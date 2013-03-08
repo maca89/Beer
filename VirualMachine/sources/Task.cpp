@@ -27,7 +27,7 @@ void BEER_CALL Task::dorun(Thread* thread, StackRef<Object> receiver)
 
 		// push class
 		StackRef<Class> klass(frame, frame->stackPush(
-			receiver->getClass<Class>()
+			thread->getClass(receiver)
 		));
 
 		// find method

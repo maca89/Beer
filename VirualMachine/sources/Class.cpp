@@ -18,6 +18,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 	);
 
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 	
 	//StackRef<Object> object(frame, frame->stackPush()); // push object
 	StackRef<Object> klass(frame, frame->stackPush(*receiver)); // push class
@@ -31,6 +32,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 
 	// try myself
 	{
@@ -89,6 +91,7 @@ void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, Stack
 void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 
 	// is otherClass the same class?
 	if(*receiver == *otherClass)
@@ -152,6 +155,7 @@ void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackR
 {
 	DBG_ASSERT(receiver->mParentNext < receiver->getParentsCount(), BEER_WIDEN("Unable to add more parents"));
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
 
 	// set child
 	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + (receiver->mParentNext++)); // 1 for name

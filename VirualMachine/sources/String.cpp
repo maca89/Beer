@@ -32,6 +32,8 @@ void BEER_CALL String::operatorGet(Thread* thread/*, StackFrame* frame*/, StackR
 void BEER_CALL String::operatorAddString(Thread* thread/*, StackFrame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + arg->size());
 
@@ -44,6 +46,8 @@ void BEER_CALL String::operatorAddString(Thread* thread/*, StackFrame* frame*/, 
 void BEER_CALL String::operatorAddInteger(Thread* thread/*, StackFrame* frame*/, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	// TODO
 	stringstream ss;
 	ss << arg->getData();
@@ -62,6 +66,8 @@ void BEER_CALL String::operatorAddInteger(Thread* thread/*, StackFrame* frame*/,
 void BEER_CALL String::operatorAddFloat(Thread* thread/*, StackFrame* frame*/, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	// TODO
 	stringstream ss;
 	ss << std::setprecision(8) << std::fixed << arg->getData();
@@ -79,6 +85,8 @@ void BEER_CALL String::operatorAddFloat(Thread* thread/*, StackFrame* frame*/, S
 void BEER_CALL String::operatorAddBoolean(Thread* thread/*, StackFrame* frame*/, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	// TODO
 	string str;
 	if(arg->getData()) str = BEER_WIDEN("true");
@@ -96,6 +104,8 @@ void BEER_CALL String::operatorAddBoolean(Thread* thread/*, StackFrame* frame*/,
 void BEER_CALL String::operatorAddCharacter(Thread* thread/*, StackFrame* frame*/, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + 1);
 
@@ -109,6 +119,8 @@ void BEER_CALL String::operatorAddCharacter(Thread* thread/*, StackFrame* frame*
 void BEER_CALL String::operatorAddArray(Thread* thread/*, StackFrame* frame*/, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
 {
 	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	// TODO
 	string str;
 	arg->toString(thread->getVM(), str);

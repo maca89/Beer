@@ -21,15 +21,10 @@ namespace Beer
 
 		uint32 add(Class* klass);
 
-		INLINE Class* translate(StackRef<Object> object) const
+		INLINE Class* translate(Thread* thread, StackRef<Object> object) const
 		{
-			return translate(object.get());
-		}
-
-		INLINE Class* translate(Object* object) const
-		{
-			Class* klass = mTable[getInlineClassId(object)];
-			if(klass == NULL) return object->getClass<Class>();
+			Class* klass = mTable[getInlineClassId(*object)];
+			if(klass == NULL) return fetchClass(thread, object);
 			return klass;
 		}
 
@@ -44,10 +39,7 @@ namespace Beer
 			return reinterpret_cast<Object::InlineValueId>(object) & 15;
 		}
 
-		/*INLINE static bool isInlineValue(Object* object)
-		{
-			return (reinterpret_cast<Object::InlineValueId>(object) & 1);
-		}*/
-
+	protected:
+		static Class* fetchClass(Thread* thread, StackRef<Object> object);
 	};
 };

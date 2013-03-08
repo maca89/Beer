@@ -24,7 +24,9 @@ namespace Beer
 
 		enum
 		{
-			METHOD_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1 // name
+			METHOD_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1, // name
+
+			CHILD_ID_METHOD_NAME = OBJECT_CHILDREN_COUNT,
 		};
 
 		// children order:
@@ -73,79 +75,18 @@ namespace Beer
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
-		
-		// returns
 
-		INLINE uint16 getReturnsCount() const
-		{
-			return mReturnsCount;
-		}
-
-		INLINE void setReturn(uint16 i, Param* value)
-		{
-			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unable to add more returns"));
-			_setChild(METHOD_CHILDREN_COUNT + i, value);
-		}
-		
-		INLINE Param* getReturn(uint16 i) const
-		{
-			DBG_ASSERT(i < getReturnsCount(), BEER_WIDEN("Unknown return"));
-			return _getChild<Param>(METHOD_CHILDREN_COUNT + i);
-		}
-
-		// params
-
-		INLINE uint16 getParamsCount() const
-		{
-			return mParamsCount;
-		}
-
-		INLINE void setParam(uint16 i, Param* value)
-		{
-			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unable to add more params"));
-			_setChild(METHOD_CHILDREN_COUNT + getReturnsCount() + i, value);
-		}
-
-		INLINE Param* getParam(uint16 i)
-		{
-			DBG_ASSERT(i < getParamsCount(), BEER_WIDEN("Unknown param"));
-			return _getChild<Param>(METHOD_CHILDREN_COUNT + getReturnsCount() + i);
-		}
-
-		// max stack
+		INLINE uint16 getReturnsCount() const { return mReturnsCount; }
+		INLINE uint16 getParamsCount() const { return mParamsCount; }
 
 		INLINE uint16 getMaxStack() const { return mMaxStack; }
 		INLINE void setMaxStack(uint16 value) { mMaxStack = value; }
-
-		// name
-		
-		INLINE String* getName() const
-		{
-			return _getChild<String>(OBJECT_CHILDREN_COUNT);
-		}
-
-		INLINE void setName(String* value)
-		{
-			_setChild(OBJECT_CHILDREN_COUNT, value);
-		}
-
-		// NativeMethod
-		
-		template <typename T>
-		INLINE void setFunction(T fn)
-		{
-			setFunction(reinterpret_cast<Cb>(fn));
-		}
 
 		INLINE void setFunction(Cb fn)
 		{
 			markAsInternal();
 			mFunction = fn;
 		}
-
-		// BytecodeMethod
-
-		INLINE const Bytecode* getBytecode() const { return mBytecode; }
 		
 		INLINE void setBytecode(Bytecode* value)
 		{
@@ -155,25 +96,29 @@ namespace Beer
 
 		// calls
 
-		INLINE Method* call(Thread* thread/*, StackFrame* frame*/)
+		INLINE Method* call(Thread* thread)
 		{
 			if(isBytecode())
 			{
-				return mBytecode->call(thread/*, frame*/);
+				return mBytecode->call(thread);
 			}
 			else
 			{
-				return runFunction(thread/*, frame*/);
+				return runFunction(thread);
 			}
 		}
+		
+		
+		static void BEER_CALL getName(Thread* thread, StackRef<Method> receiver, StackRef<String> ret);
+		static void BEER_CALL setName(Thread* thread, StackRef<Method> receiver, StackRef<String> value);
+		
+		static void BEER_CALL getReturn(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret);
+		static void BEER_CALL setReturn(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value);
+		
+		static void BEER_CALL getParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret);
+		static void BEER_CALL setParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value);
 
 	protected:
-		Method* runFunction(Thread* thread/*, StackFrame* frame*/);
-
-	private:
-		INLINE ~Method()
-		{
-			// never called!
-		}
+		Method* runFunction(Thread* thread);
 	};
 };

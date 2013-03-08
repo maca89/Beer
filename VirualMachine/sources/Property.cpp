@@ -5,22 +5,22 @@
 using namespace Beer;
 
 
-Class* Property::getType()
+void BEER_CALL Property::getPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> ret)
 {
-	return _getChild<Class>(OBJECT_CHILDREN_COUNT);
+	Object::getChild(thread, receiver, ret, CHILD_ID_PROPERTY_TYPE);
 }
 
-void Property::setType(Class* value)
+void BEER_CALL Property::setPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> type)
 {
-	_setChild(OBJECT_CHILDREN_COUNT, value);
+	Object::setChild(thread, receiver, type, CHILD_ID_PROPERTY_TYPE);
 }
 
-String* Property::getName()
+void BEER_CALL Property::getName(Thread* thread, StackRef<Property> receiver, StackRef<String> ret)
 {
-	return _getChild<String>(OBJECT_CHILDREN_COUNT + 1);
+	Object::getChild(thread, receiver, ret, CHILD_ID_PROPERTY_NAME);
 }
 
-void Property::setName(String* value)
+void BEER_CALL Property::setName(Thread* thread, StackRef<Property> receiver, StackRef<String> type)
 {
-	_setChild(OBJECT_CHILDREN_COUNT + 1, value);
+	Object::setChild(thread, receiver, type, CHILD_ID_PROPERTY_NAME);
 }

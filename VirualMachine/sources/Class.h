@@ -74,12 +74,9 @@ namespace Beer
 
 		// methods
 
-		//static Method* _findMethod(Thread* thread, Class* klass, String* selector); // deprecated
-
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret);
 
 		static void BEER_CALL findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret);
-		//static void BEER_CALL extends(Thread* thread, StackRef<Class> receiver, StackRef<Class> extendingClass);
 		static void BEER_CALL substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret);
 		
 		static void BEER_CALL getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);

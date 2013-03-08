@@ -54,21 +54,6 @@ namespace Beer
 		// deprecated
 		INLINE TypeFlag getTypeFlag() const { return static_cast<TypeFlag>(mTypeFlag); }
 		INLINE void setTypeFlag(TypeFlag value) { mTypeFlag = value; }
-		
-		// deprecated
-		template <typename T>
-		INLINE void setClass(T* klass)
-		{
-			DBG_ASSERT(!isInlineValue(this), BEER_WIDEN("Tried to set class of an inline value"));
-			_setChild(1, klass);
-		}
-		
-		template <typename T>
-		INLINE T* getClass()
-		{
-			DBG_ASSERT(!isInlineValue(this), BEER_WIDEN("Tried to get class of an inline value"));
-			return _getChild<T>(1);
-		}
 
 		// inline value
 		INLINE static bool isInlineValue(const Object* object)
@@ -79,13 +64,6 @@ namespace Beer
 		// deprecated
 		INLINE Object** getChildren() { return mChildren; } // deprecated
 		INLINE void setChildren(Object** value) { mChildren = value; } // deprecated
-
-		// deprecated
-		INLINE Object* _getChild(int64 index) const { return mChildren[index]; }
-		INLINE void _setChild(int64 index, Object* obj) { mChildren[index] = obj; }
-
-		template <typename T>
-		INLINE T* _getChild(int64 index) const { return static_cast<T*>(_getChild(index)); }
 
 		// methods
 

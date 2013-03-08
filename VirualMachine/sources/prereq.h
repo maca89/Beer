@@ -387,10 +387,27 @@ namespace Beer
 
 	// debug info
 	#ifdef _DEBUG
-		#define DEBUG_INFO(_msg_) cout << ")Debug: " << _msg_ << std::endl;
+		#define DEBUG_INFO(_msg_) cout << "Debug: " << _msg_ << std::endl;
 	#else
 		#define DEBUG_INFO(_msg_)
 	#endif
+
+	// stack debugging
+	#if defined(BEER_STACK_DEBUGGING)
+		class StackFrame;
+		
+		struct DebugStackCheck
+		{
+			StackFrame* frame;
+			int64 startIndex;
+
+			DebugStackCheck(StackFrame* frame);
+			~DebugStackCheck();
+		};
+		#define BEER_STACK_CHECK() DebugStackCheck __dbgStackCheck(frame);
+	#else
+		#define BEER_STACK_CHECK()
+	#endif // BEER_STACK_DEBUGGING
 
 	// static initializer
 	#define STATIC_INITIALIZER_START(_name_)												\

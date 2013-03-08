@@ -28,10 +28,14 @@ void BEER_CALL Timer::stop(Thread* thread, StackRef<Timer> receiver, StackRef<Fl
 
 void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Timer> ret)
 {
+	StackFrame* frame = thread->getStackFrame();
+	BEER_STACK_CHECK();
+
 	ret = thread->getHeap()->alloc<Timer>(
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
-	ret->setClass(*receiver);
+
+	Class::setClass(thread, ret, receiver);
 }
 
 Class* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)

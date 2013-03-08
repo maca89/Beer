@@ -10,7 +10,7 @@ void BEER_CALL MetaClass::init(Thread* thread, StackRef<MetaClass> receiver, Sta
 	ret = receiver;
 }
 
-void BEER_CALL MetaClass::findMethod(Thread* thread, StackRef<MetaClass> receiver, StackRef<String> selector, StackRef<Method> ret)
+/*void BEER_CALL MetaClass::findMethod(Thread* thread, StackRef<MetaClass> receiver, StackRef<String> selector, StackRef<Method> ret)
 {
 	// TODO
-}
+}*/
