@@ -9,7 +9,7 @@ namespace Beer
 		unsigned __int64 frequency;
 		unsigned __int64 startTime;
 
-	public:	
+	public:
 		INLINE MiliTimer()  { /*start();*/ }
 		INLINE ~MiliTimer() {}
 

@@ -10,4 +10,8 @@ native class Character
     Boolean ==(Character value);
     Boolean !=(Character value);
   }
+  
+  interface Object
+  {
+  }
 }

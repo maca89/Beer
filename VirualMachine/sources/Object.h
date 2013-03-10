@@ -65,10 +65,11 @@ namespace Beer
 		INLINE Object** getChildren() { return mChildren; } // deprecated
 		INLINE void setChildren(Object** value) { mChildren = value; } // deprecated
 
-		// methods
-
+		// shortcuts
 		static void getChild(Thread* thread, StackRef<Object> object, StackRef<Object> ret, int64 index);
 		static void setChild(Thread* thread, StackRef<Object> object, StackRef<Object> child, int64 index);
+
+		// methods
 
 		static void BEER_CALL init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);
 
@@ -77,9 +78,6 @@ namespace Beer
 
 		static void BEER_CALL getChild(Thread* thread, StackRef<Object> receiver, StackRef<Integer> index, StackRef<Object> ret);
 		static void BEER_CALL setChild(Thread* thread, StackRef<Object> receiver, StackRef<Object> child, StackRef<Integer> index);
-
-		static Object* invokeGetChild(Thread* thread, Object* object, int64 index);
-		static void invokeSetChild(Thread* thread, Object* object, Object* child, int64 index);
 		
 		// deprecated
 		friend class GenerationalGC;

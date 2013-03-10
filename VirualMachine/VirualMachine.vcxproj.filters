@@ -154,6 +154,9 @@
     <ClCompile Include="sources\MonomorphicInlineCache.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
+    <ClCompile Include="sources\RandomGenerator.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -347,6 +350,15 @@
     </ClInclude>
     <ClInclude Include="sources\InlineFunctionTable.h">
       <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\RandomGenerator.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MerseneTwisterRandom.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ThreadSafeOutput.h">
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

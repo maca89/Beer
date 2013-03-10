@@ -14,4 +14,8 @@ native class FileReader
     Boolean readFailed;
     Boolean readEnded;
   }
+  
+  interface Object
+  {
+  }
 }

@@ -3,10 +3,24 @@ native class Object
   interface
   {
     Object();
-    
-    //String;
+    String();
     
     Object cloneShallow();
     Object cloneDeep();
+    
+    Class getType();
+  }
+}
+
+
+native class Class
+{
+  interface
+  {
+    String getName();
+  }
+  
+  interface Object
+  {
   }
 }

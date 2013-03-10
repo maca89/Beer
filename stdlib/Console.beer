@@ -32,4 +32,8 @@ native class Console
     timerStart();
     Float timerStop();
   }
+  
+  interface Object
+  {
+  }
 }

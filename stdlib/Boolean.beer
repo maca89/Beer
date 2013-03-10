@@ -14,4 +14,8 @@ native class Boolean
     
     Boolean !();
   }
+  
+  interface Object
+  {
+  }
 }

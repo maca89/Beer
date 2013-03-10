@@ -31,7 +31,7 @@ void TrampolineThread::work()
 		#endif // BEER_DEBUG_MODE
 
 		//#ifdef BEER_DEBUG_MODE
-			Console::getOutput().flush(cout);
+			//Console::getOutput().flush(cout);
 		//#endif // BEER_DEBUG_MODE
 
 		#ifdef BEER_DEBUG_MODE
@@ -75,5 +75,5 @@ void TrampolineThread::work()
 	//Console::getOutput() << BEER_WIDEN("Exiting Thread\n");
 
 	// flush all output
-	Console::getOutput().flush(cout);
+	//Console::getOutput().flush(cout);
 }

@@ -20,7 +20,7 @@ Debugger::~Debugger()
 void Debugger::printLastOutput()
 {
 	cout << BEER_WIDEN("[LastOutput]") << '\n';
-	Console::getOutput().flush(cout);
+	//Console::getOutput().flush(cout); // probably not working, TODO
 	cout << std::endl;
 }
 

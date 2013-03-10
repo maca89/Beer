@@ -1,10 +1,14 @@
-class Task
+native class Task
 {
   interface
   {
-    run;
-    
-    //native dorun;
+    run; // abstract
+    wait;
+    start;
+  }
+  
+  interface Object
+  {
   }
 }
 

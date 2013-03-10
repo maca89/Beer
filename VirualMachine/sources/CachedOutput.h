@@ -12,15 +12,15 @@ namespace Beer
 		bool mChanged;
 
 	public:
-		INLINE CachedOutput()  : mChanged(false)
+		// no inline because of stringstream!
+		NOINLINE CachedOutput() : mChanged(false)
 		{
-			// set UTF-16 support
-			_setmode( _fileno(stdout), _O_U16TEXT);
 		}
 
-		INLINE ~CachedOutput()
+		// no inline because of stringstream!
+		NOINLINE ~CachedOutput()
 		{
-			flush(cout); // really?
+			flush(cout); // really??
 		}
 
 		INLINE void flush(ostream& out)
@@ -31,40 +31,28 @@ namespace Beer
 			}
 		}
 
-		INLINE CachedOutput& operator<<(uint16 n) { mStream << n; mChanged = true; return *this; }
-		INLINE CachedOutput& operator<<(uint32 n) { mStream << n; mChanged = true; return *this; }
-		INLINE CachedOutput& operator<<(uint64 n) { mStream << n; mChanged = true; return *this; }
-		INLINE CachedOutput& operator<<(float32 n) { mStream << n; mChanged = true; return *this; }
-		INLINE CachedOutput& operator<<(float64 n) { mStream << n; mChanged = true; return *this; }
-
-		INLINE CachedOutput& operator<<(const string& s) {
-			mStream << s;
-			mChanged = true;
-			return *this;
-		}
-
-		INLINE CachedOutput& operator<<(String* str) {
+		INLINE CachedOutput& operator<<(String* str)
+		{
 			mStream << str->c_str();
 			mChanged = true;
 			return *this;
 		}
 
-		INLINE CachedOutput& operator<<(const char_t* s){
-			mStream << s;
+		template <typename T>
+		INLINE CachedOutput& operator<<(const T& t)
+		{
+			mStream << t;
 			mChanged = true;
 			return *this;
 		}
 
+		// TODO:
+
 		// endl
 		//INLINE CachedOutput& operator<<(std::ostream& (__cdecl *fn)(std::ostream&)) { fn(mStream); mChanged = true; return *this; }
 
-		// manips
+		// io manips
 		//INLINE CachedOutput& operator<<(std::_Smanip<streamsize> s) { mStream << s; return *this; }
-
-		template <typename T>
-		INLINE CachedOutput& operator<<(T t) { mStream << t; mChanged = true; return *this; }
-
-		INLINE string dump() { return mStream.str(); }
 
 	protected:
 		NOINLINE void doflush(ostream& out)
@@ -72,11 +60,10 @@ namespace Beer
 			//mStream.flush(); // TODO for threads
 
 			// TODO
-			out << mStream.str(); // print content
+			out << mStream.rdbuf(); // print content
 
 			// TMP
 			//string content = mStream.str();
-
 
 			mStream.str(string()); // clear buffer
 			//mStream.clear(); // TODO: clears flags

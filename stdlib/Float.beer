@@ -22,4 +22,8 @@ native class Float
     Boolean ==(Float value);
     Boolean !=(Float value);
   }
+  
+  interface Object
+  {
+  }
 }

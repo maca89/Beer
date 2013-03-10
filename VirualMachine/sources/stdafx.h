@@ -16,6 +16,8 @@
 #include <typeinfo>
 #include <fstream>
 #include <tchar.h>
+#include <random>
+#include <climits>
 
 // windows
 #include <windows.h>

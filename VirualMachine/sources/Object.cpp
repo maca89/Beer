@@ -14,6 +14,7 @@ void BEER_CALL Object::init(Thread* thread, StackRef<Object> receiver, StackRef<
 
 void BEER_CALL Object::setClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> param)
 {
+	//NULL_ASSERT(*receiver);
 	// TODO: no pop in GC, no push there
 
 	StackFrame* frame = thread->getStackFrame();

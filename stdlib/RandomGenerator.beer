@@ -1,0 +1,19 @@
+native class RandomGenerator
+{
+  interface
+  {
+    RandomGenerator(Integer seed);
+    RandomGenerator();
+    
+    Integer;
+    Float;
+    Boolean;
+    Character;
+    
+    Boolean toss(Float p);
+  }
+  
+  interface Object
+  {
+  }
+}

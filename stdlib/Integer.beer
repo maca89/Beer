@@ -23,4 +23,8 @@ native class Integer
     Boolean ==(Integer value);
     Boolean !=(Integer value);
   }
+  
+  interface Object
+  {
+  }
 }

@@ -21,6 +21,7 @@
 #include "Task.h"
 #include "LoadedObject.h"
 #include "Pair.h"
+#include "RandomGenerator.h"
 
 using namespace Beer;
 
@@ -136,8 +137,9 @@ void VirtualMachine::init(uint32 stackInitSize)
 		mClassLoader->addClassInitializer(BEER_WIDEN("Timer"), new TimerClassInitializer);
 		mClassLoader->addClassInitializer(BEER_WIDEN("FileReader"), new FileReaderClassInitializer);
 		mClassLoader->addClassInitializer(BEER_WIDEN("FileWriter"), new FileWriterClassInitializer);
-		//mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskClassInitializer);
+		mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskInitializer);
 		mClassLoader->addClassInitializer(BEER_WIDEN("Pair"), new PairClassInitializer);
+		mClassLoader->addClassInitializer(BEER_WIDEN("RandomGenerator"), new RandomGeneratorClassInitializer);
 
 		// create Object class name
 		StackRef<String> objectClassName(frame, frame->stackPush(
@@ -310,7 +312,7 @@ void VirtualMachine::work()
 
 				frame = openStackFrame();
 
-				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::dorun()")))); // TODO
+				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::start()")))); // TODO
 
 				StackRef<Method> method(frame, frame->stackPush());
 				Class::findMethod(this, klass, selector, method);

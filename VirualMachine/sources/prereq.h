@@ -43,6 +43,10 @@ namespace Beer
 	typedef char char8;
 	typedef wchar_t char16;
 
+	static const int64 INT64_MIN_VALUE = LLONG_MIN;
+	static const int64 INT64_MAX_VALUE = LLONG_MAX;
+	static const uint64 UINT64_MAX_VALUE = ULLONG_MAX;
+
 	#define BEER_MULTIBYTE_STRINGS
 
 #ifdef BEER_MULTIBYTE_STRINGS

@@ -162,6 +162,9 @@ bool sortMethodByTime(Method* m1, Method* m2)
 
 int __cdecl main(int argc, const char** argv)
 {
+	// set UTF-16 support
+	_setmode( _fileno(stdout), _O_U16TEXT);
+
 	MiliTimer mainTimer;
 	mainTimer.start();
 
@@ -169,7 +172,7 @@ int __cdecl main(int argc, const char** argv)
 	if(!loadSettings(argc, argv, settings)) return 1;
 
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
-	GenerationalGC* gc = new GenerationalGC(27, 4096);
+	GenerationalGC* gc = new GenerationalGC(27, 8192);
 	VirtualMachine* vm = new VirtualMachine(gc);
 	ClassFileDescriptor* classFile = NULL;
 
@@ -205,7 +208,7 @@ int __cdecl main(int argc, const char** argv)
 				(*it)->wait();
 			}
 
-			Console::getOutput().flush(cout);
+			//Console::getOutput().flush(cout);
 		}
 
 	#ifdef BEER_MEASURE_PERFORMANCE

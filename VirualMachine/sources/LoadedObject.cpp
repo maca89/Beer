@@ -169,10 +169,10 @@ void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader,
 		frame->stackMoveTop(-1); // pop str
 	}
 
-	if(strcmp(className->c_str(), BEER_WIDEN("Task")) == 0)
+	/*if(strcmp(className->c_str(), BEER_WIDEN("Task")) == 0)
 	{
-		loader->addMethod(klass, BEER_WIDEN("dorun"), BEER_WIDEN("Task::dorun()"), &Task::dorun, 0, 0);
-	}
+		loader->addMethod(klass, BEER_WIDEN("start"), BEER_WIDEN("Task::start()"), &Task::start, 0, 0);
+	}*/
 
 	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &LoadedObject::createInstance, 1, 0);
 

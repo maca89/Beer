@@ -12,4 +12,8 @@ native class Array
     set(Integer index, Integer value);
     //[](Integer index, Integer value);
   }
+  
+  interface Object
+  {
+  }
 }

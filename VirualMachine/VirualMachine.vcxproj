@@ -60,6 +60,7 @@
     <ClCompile Include="sources\ParamDescriptor.cpp" />
     <ClCompile Include="sources\prereq.cpp" />
     <ClCompile Include="sources\Property.cpp" />
+    <ClCompile Include="sources\RandomGenerator.cpp" />
     <ClCompile Include="sources\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">Create</PrecompiledHeader>
@@ -128,6 +129,8 @@
     <ClInclude Include="sources\prereq.h" />
     <ClInclude Include="sources\Property.h" />
     <ClInclude Include="sources\QuickSort.h" />
+    <ClInclude Include="sources\MerseneTwisterRandom.h" />
+    <ClInclude Include="sources\RandomGenerator.h" />
     <ClInclude Include="sources\SimpleMemoryAllocator.h" />
     <ClInclude Include="sources\StackFrame.h" />
     <ClInclude Include="sources\stdafx.h" />
@@ -137,6 +140,7 @@
     <ClInclude Include="sources\Task.h" />
     <ClInclude Include="sources\Thread.h" />
     <ClInclude Include="sources\MiliTimer.h" />
+    <ClInclude Include="sources\ThreadSafeOutput.h" />
     <ClInclude Include="sources\Timer.h" />
     <ClInclude Include="sources\TrampolineThread.h" />
     <ClInclude Include="sources\VirtualMachine.h" />
