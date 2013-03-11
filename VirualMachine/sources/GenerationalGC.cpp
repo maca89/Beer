@@ -7,13 +7,13 @@
 
 using namespace Beer;
 
-GenerationalGC::GenerationalGC(unsigned char nurseryBitSize, size_t blockSize)
-	:	mState(Inactive)
+GenerationalGC::GenerationalGC(uint8 nurseryBitSize, size_t blockSize)
+	:	mState(GC_ALLOC)
 {
 	mNurseryGC = new NurseryGC(nurseryBitSize, blockSize);
 	
-	mMature = new SimpleMemoryAllocator(1024 * 1024);
-	mPermanent = new SimpleMemoryAllocator(1024 * 1024);
+	mMature = new DynamicHeap(1024 * 1024);
+	mPermanent = new DynamicHeap(1024 * 1024);
 
 	mReferences.push_back(NULL); // 0 => NULL
 	mReferencesNext = 1;
@@ -35,8 +35,8 @@ GenerationalGC::~GenerationalGC()
 void GenerationalGC::init()
 {
 	mNurseryGC->init();
-	mMature->init(1024 * 1024);
-	mPermanent->init(1024 * 1024);
+	mMature->init();
+	mPermanent->init();
 }
 
 Object* GenerationalGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)

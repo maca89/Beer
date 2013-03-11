@@ -16,5 +16,12 @@ namespace Beer
 		virtual ~AlignedHeap();
 
 		virtual void init();
+
+		INLINE bool contains(void * pointer)
+		{
+			size_t tmp = reinterpret_cast<size_t>(mMemory) ^ reinterpret_cast<size_t>(pointer);
+			tmp >>= mBitSize;
+			return !pointer || tmp == 0;
+		}
 	};
 }

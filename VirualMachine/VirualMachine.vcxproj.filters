@@ -360,6 +360,7 @@
     <ClInclude Include="sources\ThreadSafeOutput.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="sources\ForwardPointer.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">

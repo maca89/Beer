@@ -25,6 +25,7 @@ namespace Beer
 		{
 			TYPE_REF = 0,
 			TYPE_VALUE = 1,
+			TYPE_FWD_PTR = 2,
 		};
 
 		typedef uint8 InlineValueId;

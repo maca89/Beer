@@ -84,6 +84,7 @@
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />
+    <ClInclude Include="sources\ForwardPointer.h" />
     <ClInclude Include="sources\GenerationalGC.h" />
     <ClInclude Include="sources\Heap.h" />
     <ClInclude Include="sources\MemoryAllocator.h" />

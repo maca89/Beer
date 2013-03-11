@@ -4,20 +4,22 @@
 #include "NurseryGC.h"
 #include "StackFrame.h"
 #include "Object.h"
+#include "RememeberdSet.h"
+#include "ForwardPointer.h"
+#include "DynamicHeap.h"
 
 namespace Beer
 {
 	class AllocationBlock;
 	class Heap;
-	class SimpleMemoryAllocator;
 
 	class GenerationalGC
 	{
 	public:
 
 		enum State {
-			Inactive,
-			Collect
+			GC_ALLOC,
+			GC_COLLECT
 		};
 
 	public:
@@ -29,24 +31,30 @@ namespace Beer
 
 		State mState;
 
-		NurseryGC * mNurseryGC;
+		NurseryGC* mNurseryGC;
 		
-		SimpleMemoryAllocator * mMature;
-		SimpleMemoryAllocator * mPermanent;
+		DynamicHeap* mMature;
+		DynamicHeap* mPermanent;
 		CRITICAL_SECTION mMatureCS;
 		CRITICAL_SECTION mPermanentCS;
 		ReferenceVector mReferences;
 		ReferenceId mReferencesNext;
+		RememberedSet mRS;
 
 	public:
 
-		GenerationalGC(unsigned char nurseryBitSize, size_t blockSize);
+		GenerationalGC(uint8 nurseryBitSize, size_t blockSize);
 
 		~GenerationalGC();
 
 		INLINE State getState() const
 		{
 			return mState;
+		}
+
+		INLINE Heap* getPermanentHeap()
+		{
+			return mPermanent;
 		}
 
 		void init();
@@ -87,9 +95,16 @@ namespace Beer
 			return mReferencesNext++;
 		}
 
-		INLINE Object* getChild(Object* parent, int64 index)
+		INLINE Object* getChild(Object* obj, int64 index)
 		{
-			return parent->mChildren[index];
+			if (obj->getTypeFlag() == Object::TYPE_FWD_PTR)
+			{
+				static_cast<ForwardPointer*>(obj)->getObject()->mChildren[index];
+			}
+			else
+			{
+				return obj->mChildren[index];
+			}
 		}
 
 		INLINE void pushChild(StackFrame* stack, int64 index)
@@ -101,11 +116,17 @@ namespace Beer
 
 		INLINE void setChild(StackFrame* stack, int64 index)
 		{
-			Object* child = stack->stackTop();
-			stack->stackPop();
-			Object* parent = stack->stackTop();
-			stack->stackPop();
-			parent->mChildren[index] = child; 
+			Object* child = stack->stack->top(0);
+			Object* obj = stack->stack->top(-1);
+			obj->mChildren[index] = child;
+			stack->stackMoveTop(-2);
+
+			AlignedHeap* heap = mNurseryGC->getAllocHeap();
+
+			/*if (!heap->contains(obj))
+			{
+				mRS.add(child);
+			}*/
 		}
 	};
 

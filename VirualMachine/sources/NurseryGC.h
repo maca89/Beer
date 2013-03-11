@@ -10,9 +10,9 @@ namespace Beer
 	{
 	protected:
 
-		Heap* mAlloc;
-		Heap* mCollect;
-		Heap* mPromote;
+		AlignedHeap* mAlloc;
+		AlignedHeap* mCollect;
+		AlignedHeap* mPromote;
 		size_t mHeapSize;
 		size_t mBlockSize;
 		CRITICAL_SECTION mCS;
@@ -24,12 +24,18 @@ namespace Beer
 
 		void init();
 
+		INLINE AlignedHeap* getAllocHeap()
+		{
+			return mAlloc;
+		}
+
 		Heap* createHeap();
+		
 
 		INLINE void* alloc(uint32 size)
 		{
 			::EnterCriticalSection(&mCS);
-			void * mem = mAlloc->alloc(size);
+			void* mem = mAlloc->alloc(size);
 			::LeaveCriticalSection(&mCS);
 
 			if (!mem)
@@ -54,7 +60,7 @@ namespace Beer
 
 		INLINE void switchHeaps()
 		{
-			Heap * temp = mAlloc;
+			AlignedHeap* temp = mAlloc;
 			mAlloc = mPromote;
 			mPromote = mCollect;
 			mCollect = temp;
