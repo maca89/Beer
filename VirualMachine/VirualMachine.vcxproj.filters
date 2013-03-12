@@ -390,9 +390,6 @@
     <Filter Include="Headers\Thread">
       <UniqueIdentifier>{f7099da5-3a11-47a0-b627-25208c3cb522}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Utils">
-      <UniqueIdentifier>{849fab95-c940-4fd1-a069-dca44d8f7856}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources">
       <UniqueIdentifier>{14e63aa5-ba12-40a7-ae39-2467afa7b790}</UniqueIdentifier>
     </Filter>
@@ -422,6 +419,9 @@
     </Filter>
     <Filter Include="Sources\Utils">
       <UniqueIdentifier>{ab388042-39e5-4055-91b5-bd95c45a6fb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Utils">
+      <UniqueIdentifier>{849fab95-c940-4fd1-a069-dca44d8f7856}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -9,13 +9,18 @@ namespace Beer
 	class VirtualMachine;
 	class StackFrame;
 
-	class Task
+	class Task : public Object
 	{
 	public:
-		static void BEER_CALL init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);
+		static void BEER_CALL init(Thread* thread, StackRef<Task> receiver, StackRef<Task> ret);
 
-		static void BEER_CALL start(Thread* thread, StackRef<Object> receiver);
-		static void BEER_CALL wait(Thread* thread, StackRef<Object> receiver);
+		static void BEER_CALL schedule(Thread* thread, StackRef<Task> receiver);
+		static void BEER_CALL await(Thread* thread, StackRef<Task> receiver);
+
+		static void BEER_CALL getCompleted(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret);
+		static void BEER_CALL getCanceled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret);
+		static void BEER_CALL getFailed(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret);
+		static void BEER_CALL getId(Thread* thread, StackRef<Task> receiver, StackRef<Integer> ret);
 	};
 
 	class TaskInitializer : public ClassInitializer

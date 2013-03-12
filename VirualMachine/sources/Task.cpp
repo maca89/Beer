@@ -7,13 +7,12 @@
 using namespace Beer;
 
 
-void BEER_CALL Task::init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret)
+void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task> ret)
 {
 	ret = receiver;
 }
 
-
-void BEER_CALL Task::start(Thread* thread, StackRef<Object> receiver)
+void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 {
 	TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
 
@@ -51,13 +50,35 @@ void BEER_CALL Task::start(Thread* thread, StackRef<Object> receiver)
 }
 
 
-void BEER_CALL Task::wait(Thread* thread, StackRef<Object> receiver)
+void BEER_CALL Task::await(Thread* thread, StackRef<Task> receiver)
 {
+
 }
+
+void BEER_CALL Task::getCompleted(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(false);
+}
+
+void BEER_CALL Task::getCanceled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(false);
+}
+
+void BEER_CALL Task::getFailed(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(false);
+}
+
+void BEER_CALL Task::getId(Thread* thread, StackRef<Task> receiver, StackRef<Integer> ret)
+{
+	ret = Integer::makeInlineValue(1);
+}
+
 
 Class* TaskInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(name, 1, 0, 3);
+	return loader->createClass<Class>(name, 1, 0, 7);
 }
 
 void TaskInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
@@ -66,7 +87,14 @@ void TaskInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* 
 	
 	loader->addMethod(klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);
 	
-	loader->addMethod(klass, BEER_WIDEN("start"), BEER_WIDEN("Task::start()"), &Task::start, 1, 0);
 	// TODO: abstract run
-	loader->addMethod(klass, BEER_WIDEN("wait"), BEER_WIDEN("Task::wait()"), &Task::wait, 1, 0);
+
+	// TODO: Task::schedule(TaskScheduler)
+	loader->addMethod(klass, BEER_WIDEN("schedule"), BEER_WIDEN("Task::schedule()"), &Task::schedule, 0, 0);
+	loader->addMethod(klass, BEER_WIDEN("await"), BEER_WIDEN("Task::await()"), &Task::await, 0, 0);
+
+	loader->addMethod(klass, BEER_WIDEN("getCompleted"), BEER_WIDEN("Task::getCompleted()"), &Task::getCompleted, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("getCanceled"), BEER_WIDEN("Task::getCanceled()"), &Task::getCanceled, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("getFailed"), BEER_WIDEN("TaskgetFailedgetCompleted()"), &Task::getFailed, 0, 1);
+	loader->addMethod(klass, BEER_WIDEN("getId"), BEER_WIDEN("Task::getId()"), &Task::getId, 0, 1);
 }

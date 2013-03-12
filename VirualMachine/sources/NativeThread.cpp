@@ -33,6 +33,23 @@ void NativeThread::wait(int time)
 
 DWORD WINAPI NativeThread::staticWork(LPVOID lpThreadParameter)
 {
-	reinterpret_cast<NativeThread*>(lpThreadParameter)->work();
+	NativeThread* t = reinterpret_cast<NativeThread*>(lpThreadParameter);
+	try
+	{
+		t->work();
+	}
+	catch(Exception& ex)
+	{
+		//vm->getDebugger()->printCallStack();
+		//vm->getDebugger()->printStack();
+
+		//if(!mVM->getDebugger()->catchException(this, frame, ex))
+		//{
+		//}
+
+		cout << std::endl << "Unhandled exception on a NativeThread: " << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
+		return 1;
+	}
+
 	return 0;
 }

@@ -199,7 +199,6 @@ int __cdecl main(int argc, const char** argv)
 		if(settings.loadClassFile) classFileLoader->loadClasses(vm, classFile);
 		if(settings.run)
 		{
-
 			vm->run();
 			vm->wait();
 		
@@ -210,51 +209,6 @@ int __cdecl main(int argc, const char** argv)
 
 			//Console::getOutput().flush(cout);
 		}
-
-	#ifdef BEER_MEASURE_PERFORMANCE
-		typedef std::list<Method*> MethodList;
-		MethodList methods;
-
-		for(ClassReflectionTable::iterator it = vm->getClasses().begin(); it != vm->getClasses().end(); it++)
-		{
-			Class* klass = it->second;
-			for(uint32 i = 0; i < klass->getMethodsCount(); i++)
-			{
-				Method* method = klass->getMethod(i);
-				if(method)
-				{
-					methods.push_back(method);
-				}
-			}
-		}
-
-		methods.sort(&sortMethodByTime);
-
-		cout << "\n-------------------\n-   PERFORMANCE   -\n-------------------\n";
-
-		
-		uint16 methodi = 0;
-		for(MethodList::iterator it = methods.begin(); it != methods.end(); it++)
-		{
-			MethodReflection* method = *it;
-			
-			if(methodi > 20) break;
-			if(method->getTimeSpent() == 0) break;
-			
-			cout << std::setprecision(6) << std::fixed << method->getTimeSpent() << BEER_WIDEN("s") << BEER_WIDEN(" in ") << method->getSelector() << "\n";
-
-			methodi++;
-		}
-
-		float64 sum = 0;
-		for(MethodList::iterator it = methods.begin(); it != methods.end(); it++)
-		{
-			sum += (*it)->getTimeSpent();
-		}
-
-		cout << "sum: " << sum << "\n";
-
-	#endif // BEER_MEASURE_PERFORMANCE
 
 		vm->destroy();
 

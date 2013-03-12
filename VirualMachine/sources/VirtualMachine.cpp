@@ -254,9 +254,8 @@ void VirtualMachine::work()
 		{
 			StackRef<Object> instance(frame, frame->stackPush(NULL));
 
-			// new Main
+			// create new instance
 			{
-				//((Thread*)this)->createString(
 				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("$Class::createInstance()")))); // TODO
 
 				StackRef<Method> method(frame, frame->stackPush());
@@ -279,9 +278,24 @@ void VirtualMachine::work()
 				frame->stackMoveTop(-3);
 			}
 
-			// Main::Main()
+			// call constuctor
 			{
-				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Main::Main()")))); // TODO
+				StackRef<String> selector(frame, frame->stackPush());
+
+				StackRef<String> tmpString1(frame, frame->stackPush());
+				((Thread*)this)->createString(tmpString1, BEER_WIDEN("::")); // why the cast??, TODO
+
+				StackRef<String> tmpString2(frame, frame->stackPush());
+				Class::getName(this, klass, tmpString2);
+
+				String::operatorAddString(this, tmpString2, tmpString1, selector); // Main::
+				String::operatorAddString(this, selector, tmpString2, tmpString1); // Main::Main
+
+				((Thread*)this)->createString(tmpString2, BEER_WIDEN("()")); // why the cast??, TODO
+
+				String::operatorAddString(this, tmpString1, tmpString2, selector); // Main::Main()
+				
+				frame->stackMoveTop(-2); // pop tmpString1, tmpString2s
 
 				StackRef<Method> method(frame, frame->stackPush());
 				Class::findMethod(this, klass, selector, method);
@@ -312,7 +326,7 @@ void VirtualMachine::work()
 
 				frame = openStackFrame();
 
-				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::start()")))); // TODO
+				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::schedule()")))); // TODO
 
 				StackRef<Method> method(frame, frame->stackPush());
 				Class::findMethod(this, klass, selector, method);

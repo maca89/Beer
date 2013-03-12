@@ -25,7 +25,7 @@ using namespace Beer;
 
 AbstractMethodException::AbstractMethodException(Method* method, string filename, long line)
 	: RuntimeException(
-		string(BEER_WIDEN("Method *NOT IMPLEMENTED*")) + /*method->getName()->c_str() +*/ BEER_WIDEN(" is abstract"), // TODO
+	string(BEER_WIDEN("Method ")) + ((String*)method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str() + BEER_WIDEN(" is abstract"), // TODO
 		filename, 
 		line
 	)
@@ -38,7 +38,7 @@ AbstractMethodException::AbstractMethodException(Method* method, string filename
 
 MethodNotFoundException::MethodNotFoundException(Object* instance, Class* klass, String* selector, string filename, long line)
 	: RuntimeException(
-		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for *NOT IMPLEMENTED*") /*+ klass->getName()->c_str()*/, // TODO
+		string(BEER_WIDEN("No method ")) + selector->c_str() + BEER_WIDEN(" for ") + ((String*)klass->getChildren()[Class::CHILD_ID_CLASS_NAME])->c_str(), // TODO
 		filename, 
 		line
 	)

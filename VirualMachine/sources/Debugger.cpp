@@ -60,7 +60,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " *NOT IMPLEMENTED*";// << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
+				cout << frame->method << " " << ((String*)frame->method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str() << "@" << frame->vPC;// TODO: selector
 			}
 			else
 			{
@@ -90,7 +90,7 @@ void Debugger::printCallStack(StackFrame* frame)
 		
 			if(frame->method)
 			{
-				cout << frame->method << " *NOT IMPLEMENTED*";// << frame->method->getName() /*<< "@" << frame->programCounter*/;// TODO: selector
+				cout << frame->method << " " << ((String*)frame->method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str() << "@" << frame->vPC;// TODO: selector
 			}
 			else
 			{
@@ -237,7 +237,7 @@ void Debugger::printStack()
 
 void Debugger::printClassMethods(Class* klass)
 {
-	cout << "[Class *NOT IMPLEMENTED*" /*<< klass->getName()*/ << "]" << std::endl;
+	cout << "[Class " << ((String*)klass->getChildren()[Class::CHILD_ID_CLASS_NAME])->c_str() << "]" << std::endl;
 	for(uint16 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
 	{
 		/*Pair* definedMethod = klass->getMethod(methodi);
@@ -279,13 +279,13 @@ void Debugger::step(StackFrame* frame)
 	}
 }
 
-bool Debugger::catchException(StackFrame* frame, const Exception& ex)
+bool Debugger::catchException(Thread* thread, StackFrame* frame, const Exception& ex)
 {
 	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();
 	printFrame(frame);
 
-	if(ex.getName() == BEER_WIDEN("MethodNotFoundException")) // TODO: better
+	if(ex.getName().compare(BEER_WIDEN("MethodNotFoundException")) == 0) // TODO: better
 	{
 		cout << std::endl;
 		StackRef<Object> receiver(frame, frame->stackTopIndex());

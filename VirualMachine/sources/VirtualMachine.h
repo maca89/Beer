@@ -26,15 +26,12 @@ namespace Beer
 
 	class Debugger;
 
-	//typedef CopyGC Heap;
 	typedef std::set<Thread*> ThreadSet;
 	typedef std::map<string, Class*> ClassReflectionTable;
 
 	class VirtualMachine : public Thread
 	{
 	protected:
-		//WorkStack* mStack; // get rid of this
-
 		ClassReflectionTable mClasses;
 		ClassLoader* mClassLoader;
 		Debugger* mDebugger;
@@ -42,6 +39,7 @@ namespace Beer
 		InlineFunctionTable mInlineFnTable;
 		ThreadSet mThreads;
 		
+		// TODO: get rid of these
 		Class* mMetaClass;
 		Class* mObjectClass;
 		Class* mStringClass;

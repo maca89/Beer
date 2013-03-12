@@ -2,9 +2,18 @@ native class Task
 {
   interface
   {
+    Task;
+    
     run; // abstract
-    wait;
-    start;
+    
+    schedule;
+    await;
+    
+    // properties
+    Boolean getCompleted;
+    Boolean getCanceled;
+    Boolean getFailed;
+    Integer getId;
   }
   
   interface Object

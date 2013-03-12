@@ -63,7 +63,7 @@ void TrampolineThread::work()
 		}
 		catch(Exception& ex)
 		{
-			if(!mVM->getDebugger()->catchException(frame, ex))
+			if(!mVM->getDebugger()->catchException(this, frame, ex))
 			{
 				break;//throw ex;
 			}

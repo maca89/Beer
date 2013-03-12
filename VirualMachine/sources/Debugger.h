@@ -36,7 +36,7 @@ namespace Beer
 		virtual void setSteppingMode(bool value) { mStepping = value; }
 		INLINE bool isStepping() const { return mStepping && mEnabled; }
 
-		virtual bool catchException(StackFrame* frame, const Exception& ex);
+		virtual bool catchException(Thread* thread, StackFrame* frame, const Exception& ex);
 
 		virtual void printLastOutput();
 		virtual void printNativeInstruction();
