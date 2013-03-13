@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Class.h"
-#include "StackFrame.h"
+#include "Frame.h"
 
 
 namespace Beer

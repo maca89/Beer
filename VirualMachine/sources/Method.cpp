@@ -3,14 +3,14 @@
 #include "Object.h"
 #include "GenerationalGC.h"
 #include "Thread.h"
-#include "StackFrame.h"
+#include "Frame.h"
 
 using namespace Beer;
 
 
-void Method::runFunction(Thread* thread/*, StackFrame* frame*/)
+void Method::runFunction(Thread* thread/*, Frame* frame*/)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	//BEER_STACK_CHECK();
 
 	Cb fn = mFunction;
@@ -94,7 +94,7 @@ void Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 #endif // BEER_STACK_DEBUGGING
 	__asm
 	{
-		// push StackFrame*
+		// push Frame*
 		//push frame;
 
 		// push Thread*
@@ -112,7 +112,7 @@ void Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 
 	//frame->stackMoveTop(-(paramsCount + 2));  // +2: receiver, method
 
-	thread->closeStackFrame();
+	thread->closeFrame();
 }
 
 void BEER_CALL Method::getName(Thread* thread, StackRef<Method> receiver, StackRef<String> ret)

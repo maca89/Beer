@@ -7,7 +7,7 @@
 namespace Beer
 {
 	class VirtualMachine;
-	class StackFrame;
+	class Frame;
 
 	class Task : public Object
 	{

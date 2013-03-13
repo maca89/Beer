@@ -5,7 +5,7 @@
 #include "Object.h"
 #include "Class.h"
 #include "Method.h"
-#include "StackFrame.h"
+#include "Frame.h"
 
 using namespace Beer;
 
@@ -48,7 +48,7 @@ MethodNotFoundException::MethodNotFoundException(Object* instance, Class* klass,
 
 
 #if defined(BEER_STACK_DEBUGGING)
-DebugStackCheck::DebugStackCheck(StackFrame* frame) : frame(frame)
+DebugStackCheck::DebugStackCheck(Frame* frame) : frame(frame)
 {
 	startIndex = frame->stackSize();
 }

@@ -2,7 +2,7 @@
 
 #include "prereq.h"
 #include "NurseryGC.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Object.h"
 #include "StackRef.h"
 #include "RememeberdSet.h"

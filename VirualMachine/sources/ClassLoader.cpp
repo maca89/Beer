@@ -85,7 +85,7 @@ Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 par
 	//mVM->getMetaClass()->invoke(BEER_WIDEN("Class::createInstance"), );
 
 	Thread* thread = mVM;
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush(
@@ -152,7 +152,7 @@ Method* ClassLoader::createMethod(Cb fn, uint16 returns, uint16 params)
 
 void ClassLoader::addMethod(Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
 {
-	StackFrame* frame = mVM->getStackFrame();
+	Frame* frame = mVM->getFrame();
 	BEER_STACK_CHECK();
 	
 	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
@@ -180,7 +180,7 @@ void ClassLoader::addMethod(Class* klass, const char_t* name, const char_t* sele
 void ClassLoader::addMethod(Class* klass, Method* method, const char_t* selector)
 {
 	Thread* thread = (Thread*)mVM; // TODO
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 	
 	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
@@ -224,7 +224,7 @@ void ClassLoader::extendClass(StackRef<Class> klass, StackRef<Class> extending)
 
 void ClassLoader::extendClass(Class* klass, Class* extending)
 {
-	StackFrame* frame = mVM->getStackFrame();
+	Frame* frame = mVM->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));

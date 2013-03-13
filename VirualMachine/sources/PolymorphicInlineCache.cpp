@@ -2,7 +2,7 @@
 #include "PolymorphicInlineCache.h"
 #include "Class.h"
 #include "Method.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Thread.h"
 
 using namespace Beer;
@@ -45,7 +45,7 @@ Method* PolymorphicInlineCache::find(Thread* thread, Class* klass, String* selec
 
 	// we must do a lookup
 	{
-		StackFrame* frame = thread->getStackFrame();
+		Frame* frame = thread->getFrame();
 		StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
 		StackRef<String> selectorOnStack(frame, frame->stackPush(selector));
 		StackRef<Method> methodOnStack(frame, frame->stackPush());

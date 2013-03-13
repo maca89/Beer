@@ -15,7 +15,7 @@ void BEER_CALL Object::init(Thread* thread, StackRef<Object> receiver, StackRef<
 
 void BEER_CALL Object::operatorString(Thread* thread, StackRef<Object> receiver, StackRef<String> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush(

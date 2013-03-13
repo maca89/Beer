@@ -44,12 +44,12 @@ namespace Beer
 
 		NOINLINE void toString(Thread* thread, string& out);
 
-		static void BEER_CALL createInstance(Thread* thread, /*StackFrame* frame, */StackRef<Class> receiver, StackRef<Array> ret);
+		static void BEER_CALL createInstance(Thread* thread, /*Frame* frame, */StackRef<Class> receiver, StackRef<Array> ret);
 
-		static void BEER_CALL init(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret);
-		static void BEER_CALL getLength(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> ret);
-		static void BEER_CALL operatorGet(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> ret);
-		static void BEER_CALL operatorSet(Thread* thread, /*StackFrame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object);
+		static void BEER_CALL init(Thread* thread, /*Frame* frame, */StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret);
+		static void BEER_CALL getLength(Thread* thread, /*Frame* frame, */StackRef<Array> receiver, StackRef<Integer> ret);
+		static void BEER_CALL operatorGet(Thread* thread, /*Frame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> ret);
+		static void BEER_CALL operatorSet(Thread* thread, /*Frame* frame, */StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object);
 	};
 
 	class ArrayClassInitializer : public ClassInitializer

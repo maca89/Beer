@@ -22,7 +22,7 @@ using namespace Beer;
 
 void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	Class::createInstance(thread, receiver, ret); // call super method
@@ -99,7 +99,7 @@ Class* LoadedObjectInitializer::createClass(VirtualMachine* vm, ClassLoader* loa
 void LoadedObjectInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass) // TODO: add parents properties into properties size
 {
 	Thread* thread = (Thread*)vm; // TODO: pass as argument
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 
 	BEER_STACK_CHECK();
 
@@ -194,7 +194,7 @@ MethodDescriptor* LoadedObjectInitializer::getMethod(uint16 i)
 Property* LoadedObjectInitializer::makeProperty(VirtualMachine* vm, ClassLoader* loader, AttributeDescriptor* attrDescr)
 {
 	Thread* thread = vm;
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Property> prop(frame, frame->stackPush(
@@ -221,7 +221,7 @@ Property* LoadedObjectInitializer::makeProperty(VirtualMachine* vm, ClassLoader*
 Param* LoadedObjectInitializer::makeParam(VirtualMachine* vm, ClassLoader* loader, ParamDescriptor* paramDescr)
 {
 	Thread* thread = vm; // TODO: pass as argument
-	StackFrame* frame = vm->getStackFrame();
+	Frame* frame = vm->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Param> param(frame, frame->stackPush(loader->createParam()));
@@ -256,7 +256,7 @@ Param* LoadedObjectInitializer::makeParam(VirtualMachine* vm, ClassLoader* loade
 Method* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
 	Thread* thread = vm; // TODO: pass as argument
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 
 	BEER_STACK_CHECK();
 
@@ -338,7 +338,7 @@ Class* LoadedObjectInitializer::getType(const StringDescriptor* name, VirtualMac
 	
 	// fetch class name, veeeeery ugly, TODO!!!
 	{
-		StackFrame* frame = vm->getStackFrame();
+		Frame* frame = vm->getFrame();
 		BEER_STACK_CHECK();
 
 		StackRef<Class> klassOnStack(frame, frame->stackPush(mClass)); // TODO: pass as reference

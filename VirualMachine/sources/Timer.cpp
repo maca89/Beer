@@ -3,7 +3,7 @@
 #include "Method.h"
 #include "Float.h"
 #include "VirtualMachine.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Heap.h"
 
 using namespace Beer;
@@ -28,7 +28,7 @@ void BEER_CALL Timer::stop(Thread* thread, StackRef<Timer> receiver, StackRef<Fl
 
 void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Timer> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	ret = thread->getHeap()->alloc<Timer>(

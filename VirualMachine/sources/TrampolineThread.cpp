@@ -18,15 +18,15 @@ void TrampolineThread::trampoline()
 {
 	mVM->getDebugger()->started();
 		
-	while(hasStackFrame())
+	while(hasFrame())
 	{
-		StackFrame* frame = getStackFrame();
+		Frame* frame = getFrame();
 		StackRef<Method> method(frame, -1);
 		
 		// return
 		if(method.isNull())
 		{
-			closeStackFrame();
+			closeFrame();
 			continue;
 		}
 

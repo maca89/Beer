@@ -288,9 +288,6 @@
     <ClInclude Include="sources\PolymorphicInlineCache.h">
       <Filter>Headers\Bytecode</Filter>
     </ClInclude>
-    <ClInclude Include="sources\StackFrame.h">
-      <Filter>Headers\Stack</Filter>
-    </ClInclude>
     <ClInclude Include="sources\LoadedObject.h">
       <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
@@ -362,6 +359,9 @@
       <Filter>Headers\Thread</Filter>
     </ClInclude>
     <ClInclude Include="sources\StackRef.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Frame.h">
       <Filter>Headers\Stack</Filter>
     </ClInclude>
   </ItemGroup>

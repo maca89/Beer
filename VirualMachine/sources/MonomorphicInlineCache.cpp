@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MonomorphicInlineCache.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Thread.h"
 #include "Class.h"
 
@@ -9,7 +9,7 @@ using namespace Beer;
 
 void MonomorphicInlineCache::lookup(Thread* thread, Class* klass, String* selector)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
 	StackRef<String> selectorOnStack(frame, frame->stackPush(selector));
 	StackRef<Method> methodOnStack(frame, frame->stackPush());

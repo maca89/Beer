@@ -12,11 +12,11 @@ namespace Beer
 	class StackRef
 	{
 	protected:
-		StackFrame* mFrame;
+		Frame* mFrame;
 		int32 mIndex;
 		
 	public:
-		INLINE StackRef(StackFrame* frame, int32 index) : mFrame(frame), mIndex(index)
+		INLINE StackRef(Frame* frame, int32 index) : mFrame(frame), mIndex(index)
 		{
 		}
 
@@ -89,7 +89,7 @@ namespace Beer
 			return StackRef<U>(mFrame, mIndex);
 		}
 
-		INLINE StackRef push(StackFrame* frame)
+		INLINE StackRef push(Frame* frame)
 		{
 			return StackRef(frame, frame->stackPush(get()));
 		}
@@ -104,7 +104,7 @@ namespace Beer
 		Object** mPtr;
 		
 	public:
-		INLINE StackRef(StackFrame* frame, int32 index)
+		INLINE StackRef(Frame* frame, int32 index)
 		{
 			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
 			mPtr = frame->stackTopPtr(index);
@@ -144,7 +144,7 @@ namespace Beer
 			return StackRef<U>(reinterpret_cast<U**>(mPtr));
 		}
 
-		INLINE StackRef push(StackFrame* frame) { return StackRef(frame, frame->stackPush(get())); }
+		INLINE StackRef push(Frame* frame) { return StackRef(frame, frame->stackPush(get())); }
 	};
 	#pragma pack(pop)
 #endif // BEER_STACK_DEBUGGING

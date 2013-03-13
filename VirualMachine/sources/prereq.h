@@ -399,14 +399,14 @@ namespace Beer
 
 	// stack debugging
 	#if defined(BEER_STACK_DEBUGGING)
-		class StackFrame;
+		class Frame;
 		
 		struct DebugStackCheck
 		{
-			StackFrame* frame;
+			Frame* frame;
 			int64 startIndex;
 
-			DebugStackCheck(StackFrame* frame);
+			DebugStackCheck(Frame* frame);
 			~DebugStackCheck();
 		};
 		#define BEER_STACK_CHECK() DebugStackCheck __dbgStackCheck(frame);

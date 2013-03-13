@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ClassTable.h"
 #include "Thread.h"
-#include "StackFrame.h"
+#include "Frame.h"
 
 using namespace Beer;
 
@@ -31,7 +31,7 @@ uint32 ClassTable::add(Class* klass)
 
 Class* ClassTable::fetchClass(Thread* thread, StackRef<Object> object)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush());

@@ -44,7 +44,7 @@ void Debugger::printNativeInstruction()
 
 void Debugger::printClassName(StackRef<Class> klass)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 
 	StackRef<String> klassName(frame, frame->stackPush());
 	Class::getName(this, klass, klassName);
@@ -54,7 +54,7 @@ void Debugger::printClassName(StackRef<Class> klass)
 
 void Debugger::printObjectClassName(StackRef<Object> object)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 
 	StackRef<Class> klass(frame, frame->stackPush(
 		getClass(object)
@@ -65,7 +65,7 @@ void Debugger::printObjectClassName(StackRef<Object> object)
 	frame->stackMoveTop(-1); // pop klass
 }
 
-void Debugger::printCalledMethodSignature(StackFrame* frame, StackRef<Object> receiver, StackRef<Method> method)
+void Debugger::printCalledMethodSignature(Frame* frame, StackRef<Object> receiver, StackRef<Method> method)
 {
 	cout << "method: ";
 	printObjectClassName(receiver);
@@ -80,7 +80,7 @@ void Debugger::printCalledMethodSignature(StackFrame* frame, StackRef<Object> re
 
 void Debugger::printMethodSignature(StackRef<Method> method)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 
 	cout << ((String*)method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str();
 	cout << "(";
@@ -112,20 +112,20 @@ void Debugger::printMethodSignature(StackRef<Method> method)
 	
 }
 
-void Debugger::printCallStack(Thread* thread, StackFrame* frame)
+void Debugger::printCallStack(Thread* thread, Frame* frame)
 {
 	cout << "[CallStack]" << std::endl;
 
-	typedef std::vector<StackFrame*> FrameVector;
+	typedef std::vector<Frame*> FrameVector;
 	uint32 framesMax = 5;
 	uint32 frameCounter = 0;
 	uint32 framei = 0;
 	FrameVector myframes(framesMax);
 
-	StackFrame* frames = thread->getStackFrames();
+	Frame* frames = thread->getFrames();
 	for(framei; framei < frames->stackSize(); framei++)
 	{
-		StackFrame* otherFrame = frames->stackTop<StackFrame>(framei);
+		Frame* otherFrame = frames->stackTop<Frame>(framei);
 		if(otherFrame == frame)
 		{
 			break;
@@ -163,7 +163,7 @@ void Debugger::printCallStack(Thread* thread, StackFrame* frame)
 
 		for(uint32 i = 0; i < framesMax; i++)
 		{
-			StackFrame* otherFrame = myframes[(frameCounter + i + 1) % framesMax];
+			Frame* otherFrame = myframes[(frameCounter + i + 1) % framesMax];
 			
 			StackRef<Method> receiver(otherFrame, -2);
 			StackRef<Method> method(otherFrame, -1);
@@ -204,7 +204,7 @@ void Debugger::printCallStack(Thread* thread, StackFrame* frame)
 
 void Debugger::printObject(StackRef<Object> object)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 
 	for(ObjectList::const_iterator it = mPrintedObjects.begin(); it != mPrintedObjects.end(); it++)
 	{
@@ -254,9 +254,9 @@ void Debugger::printObject(StackRef<Object> object)
 				StackRef<String> result(frame, frame->stackPush());
 				frame->stackPush(*object);
 				frame->stackPush(*toStringMethod);
-				openStackFrame();
+				openFrame();
 				toStringMethod->call(this);
-				//closeStackFrame(); // pops copied object, copied method
+				//closeFrame(); // pops copied object, copied method
 
 				cout << result->c_str();
 
@@ -308,7 +308,7 @@ end:
 	mPrintedObjects.pop_back();
 }
 
-void Debugger::printFrame(Thread* thread, StackFrame* frame)
+void Debugger::printFrame(Thread* thread, Frame* frame)
 {
 	printCallStack(thread, frame);
 	printFrameStack(frame);
@@ -331,7 +331,7 @@ void Debugger::printFrame(Thread* thread, StackFrame* frame)
 	}
 }
 
-void Debugger::printFrameStack(StackFrame* frame)
+void Debugger::printFrameStack(Frame* frame)
 {
 	cout << "[FrameStack]" << std::endl;
 
@@ -422,7 +422,7 @@ void Debugger::ended()
 	if(!isEnabled()) return;
 }
 
-void Debugger::step(Thread* thread, StackFrame* frame)
+void Debugger::step(Thread* thread, Frame* frame)
 {
 	if(!isEnabled()) return;
 	if(isStepping()) system("CLS");
@@ -441,7 +441,7 @@ void Debugger::step(Thread* thread, StackFrame* frame)
 	}
 }
 
-bool Debugger::catchException(Thread* thread, StackFrame* frame, const Exception& ex)
+bool Debugger::catchException(Thread* thread, Frame* frame, const Exception& ex)
 {
 	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();

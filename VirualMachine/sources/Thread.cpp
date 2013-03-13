@@ -36,40 +36,40 @@ void Thread::init()
 
 	mRootFrame = allocFrame(250, 0);
 
-	StackFrame* frame = allocFrame(50, 2);
+	Frame* frame = allocFrame(50, 2);
 	frame->stackMoveTop(2); // simulate method & receiver
 	mRootFrame->stackPush(frame);
-	fetchTopStackFrame();
+	fetchTopFrame();
 
 	PolymorphicInlineCache* methodCache = PolymorphicInlineCache::from(createInstanceMethodCacheBytes);
 	methodCache->clear(CREATE_INSTANCE_CACHE_SIZE);
 }
 
-StackFrame* Thread::allocFrame(uint32 stackSize, uint32 argsCout)
+Frame* Thread::allocFrame(uint32 stackSize, uint32 argsCout)
 {
-	StackFrame* frame = NULL;
-	frame = getHeap()->alloc<StackFrame>(StackFrame::FRAME_CHILDREN_COUNT + stackSize);
-	//frame = new StackFrame(frameArgsCount, maxStack); // +2: receiver, method
+	Frame* frame = NULL;
+	frame = getHeap()->alloc<Frame>(Frame::FRAME_CHILDREN_COUNT);// + stackSize);
+	//frame = new Frame(frameArgsCount, maxStack); // +2: receiver, method
 
-	new(frame) StackFrame(argsCout, stackSize);
+	new(frame) Frame(argsCout, stackSize);
 	//frame->setArgumentsCount(argsCout);
 
 	return frame;
 }
 
-StackFrame* Thread::getPreviousFrame()
+Frame* Thread::getPreviousFrame()
 {
 	if(mRootFrame->stackSize() >= 2)
 	{
-		return mRootFrame->stackTop<StackFrame>(mRootFrame->stackTopIndex() - 1);
+		return mRootFrame->stackTop<Frame>(mRootFrame->stackTopIndex() - 1);
 	}
 	
 	return NULL;
 }
 
-StackFrame* Thread::openStackFrame()
+Frame* Thread::openFrame()
 {
-	StackFrame* oldFrame = getStackFrame();
+	Frame* oldFrame = getFrame();
 	StackRef<Method> method(oldFrame, oldFrame->stackTopIndex());
 
 	uint16 stackSize = 50;
@@ -83,7 +83,7 @@ StackFrame* Thread::openStackFrame()
 		stackSize = method->getMaxStack() + 10;
 	}
 
-	StackFrame* newFrame = allocFrame(stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
+	Frame* newFrame = allocFrame(stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
 
 	// make space for returns
 	newFrame->stackMoveTop(returnsCount);
@@ -100,14 +100,14 @@ StackFrame* Thread::openStackFrame()
 	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
 	
 	mRootFrame->stackPush(newFrame);
-	fetchTopStackFrame();
-	return getStackFrame();
+	fetchTopFrame();
+	return getFrame();
 }
 
-void Thread::closeStackFrame()
+void Thread::closeFrame()
 {
-	StackFrame* currentFrame = getStackFrame();
-	StackFrame* previousFrame = getPreviousFrame();
+	Frame* currentFrame = getFrame();
+	Frame* previousFrame = getPreviousFrame();
 
 	StackRef<Method> method(currentFrame, -1);
 
@@ -166,7 +166,7 @@ void Thread::getPairClass(StackRef<Class> ret)
 
 void Thread::getClass(StackRef<String> name, StackRef<Class> ret)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	ASSERT_STACK_PARAMS_2(name, ret);
 	BEER_ASSERT_STACK_START();
 	ret = mVM->getClass(*name);
@@ -176,7 +176,7 @@ void Thread::getClass(StackRef<String> name, StackRef<Class> ret)
 
 void Thread::getMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	ASSERT_STACK_PARAMS_3(klass, selector, ret);
 	BEER_ASSERT_STACK_START();
 
@@ -188,7 +188,7 @@ void Thread::getMethod(StackRef<Class> klass, StackRef<String> selector, StackRe
 
 void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	BEER_ASSERT_STACK_START();
 	if(Integer::canBeInlineValue(value))
 	{
@@ -207,7 +207,7 @@ void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
 
 void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	BEER_ASSERT_STACK_START();
 
 	StackRef<Class> floatClass(frame, frame->stackPush());
@@ -227,7 +227,7 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 
 void Thread::createString(StackRef<String> ret, string value)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	BEER_ASSERT_STACK_START();
 	StackRef<Integer> length(frame, frame->stackPush());
 	createInteger(length, value.size());
@@ -240,7 +240,7 @@ void Thread::createString(StackRef<String> ret, string value)
 
 void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	// no need for ASSERT_STACK_PARAMS
 	BEER_ASSERT_STACK_START();
 
@@ -260,7 +260,7 @@ void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 
 void Thread::createArray(StackRef<Integer> length, StackRef<Array> ret)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	ASSERT_STACK_PARAMS_2(length, ret);
 	BEER_ASSERT_STACK_START();
 
@@ -278,7 +278,7 @@ void Thread::createArray(StackRef<Integer> length, StackRef<Array> ret)
 
 void Thread::createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	ASSERT_STACK_PARAMS_3(first, second, ret);
 	BEER_ASSERT_STACK_START();
 
@@ -296,7 +296,7 @@ void Thread::createPair(StackRef<Object> first, StackRef<Object> second, StackRe
 
 void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	ASSERT_STACK_PARAMS_2(klass, ret);
 	BEER_ASSERT_STACK_START();
 	StackRef<Method> method(frame, frame->stackPush(NULL));
@@ -326,9 +326,9 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 
 	// call method
 	{
-		StackFrame* nextFrame = openStackFrame();
+		Frame* nextFrame = openFrame();
 		method->call(this); // pops class & method
-		//closeStackFrame();
+		//closeFrame();
 	
 		//getVM()->getDebugger()->printFrameStack(this, frame);
 
@@ -350,7 +350,7 @@ void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int
 
 	Class::setClass(this, ret, klass);
 
-	getStackFrame()->stackMoveTop(-1); // pop klass
+	getFrame()->stackMoveTop(-1); // pop klass
 }
 
 Class* Thread::getClass(const StackRef<Object>& object)

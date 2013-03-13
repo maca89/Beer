@@ -21,7 +21,7 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 
 	thread->getVM()->getThreads().insert(thread2);
 
-	StackFrame* frame = thread2->getStackFrame();
+	Frame* frame = thread2->getFrame();
 
 	// push receiver
 	frame->stackPush(*receiver);
@@ -51,7 +51,7 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 
 	//thread->getVM()->getDebugger()->printFrameStack(thread2, frame);
 
-	thread2->openStackFrame();
+	thread2->openFrame();
 	thread2->run();
 }
 

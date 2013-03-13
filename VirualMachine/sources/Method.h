@@ -3,7 +3,7 @@
 #include "Object.h"
 #include "String.h"
 #include "Param.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Bytecode.h"
 #include "MiliTimer.h"
 
@@ -11,7 +11,7 @@
 namespace Beer
 {
 	class VirtualMachine;
-	class StackFrame;
+	class Frame;
 
 	class Method : public Object
 	{

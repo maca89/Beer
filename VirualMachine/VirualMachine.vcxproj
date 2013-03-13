@@ -133,7 +133,7 @@
     <ClInclude Include="sources\MerseneTwisterRandom.h" />
     <ClInclude Include="sources\RandomGenerator.h" />
     <ClInclude Include="sources\SimpleMemoryAllocator.h" />
-    <ClInclude Include="sources\StackFrame.h" />
+    <ClInclude Include="sources\Frame.h" />
     <ClInclude Include="sources\StackRef.h" />
     <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\String.h" />

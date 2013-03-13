@@ -7,14 +7,14 @@
 using namespace Beer;
 
 
-void BEER_CALL Character::init(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> ret1)
+void BEER_CALL Character::init(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Character> ret1)
 {
 	ret1 = receiver;
 }
 
-void BEER_CALL Character::operatorString(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<String> ret)
+void BEER_CALL Character::operatorString(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<String> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Integer> one(frame, frame->stackPush(Integer::makeInlineValue(1)));
@@ -24,22 +24,22 @@ void BEER_CALL Character::operatorString(Thread* thread/*, StackFrame* frame*/, 
 	ret->copyData(&c, 1);
 }
 
-void BEER_CALL Character::operatorInteger(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Integer> ret)
+void BEER_CALL Character::operatorInteger(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, receiver->getData());
 }
 
-void BEER_CALL Character::operatorEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
+void BEER_CALL Character::operatorEqual(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 }
 
-void BEER_CALL Character::operatorNotEqual(Thread* thread/*, StackFrame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
+void BEER_CALL Character::operatorNotEqual(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 }
 
-void BEER_CALL Character::createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Character> ret)
+void BEER_CALL Character::createInstance(Thread* thread/*, Frame* frame*/, StackRef<Class> receiver, StackRef<Character> ret)
 {
 	ret = Character::makeInlineValue(' ');
 }

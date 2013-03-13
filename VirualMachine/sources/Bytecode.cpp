@@ -248,7 +248,7 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case BEER_INSTR_NEW: // ugly, TODO
 		{
-			StackFrame* frame = vm->getStackFrame();
+			Frame* frame = vm->getFrame();
 			StackRef<Class> klass(frame, frame->stackPush(static_cast<Class*>(reinterpret_cast<Object*>(getData<uint32>()))));
 			StackRef<String> name(frame, frame->stackPush());
 
@@ -650,7 +650,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 void Bytecode::call(Thread* thread)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	byte* ip = NULL;
 	uint32 vPC = frame->getProgramCounter();
 	void* jumpAddr = NULL;
@@ -839,7 +839,7 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 		}
 				
 		frame->stackPush(method);
-		thread->openStackFrame();
+		thread->openFrame();
 		
 		BEER_BC_MOVE(sizeof(int32) + MonomorphicInlineCache::countSize());
 		//BEER_BC_RETURN();
@@ -867,7 +867,7 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 		}
 
 		frame->stackPush(method);
-		thread->openStackFrame();
+		thread->openFrame();
 		
 		BEER_BC_MOVE(sizeof(int32) + PolymorphicInlineCache::countSize(mMethodCachesLength));
 		//BEER_BC_RETURN();
@@ -876,13 +876,13 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 	BEER_BC_NEXT(0); // should not happen
 
 BEER_BC_LABEL(INSTR_INVOKE):
-	thread->openStackFrame();
+	thread->openFrame();
 	BEER_BC_RETURN();
 
 BEER_BC_LABEL(INSTR_RETURN):
 	frame->stackMoveTop(-static_cast<int32>(BEER_BC_DATA(uint16))); // TODO
 	BEER_BC_MOVE(sizeof(uint16));
-	thread->closeStackFrame();
+	thread->closeFrame();
 	BEER_BC_RETURN();
 
 // optimalizations
@@ -1130,11 +1130,11 @@ void Bytecode::init(Thread* thread)
 	byte data[DATA_SIZE];
 	data[0] = BEER_FILL_OPCODE_TABLE;
 	Bytecode bc(data, 1, 1);
-	StackFrame* frame = thread->openStackFrame();
+	Frame* frame = thread->openFrame();
 	frame->stackPush();
 	//bc.build((VirtualMachine*)thread, NULL); // TODO
 	bc.call(thread);
 	frame->stackPop();
-	//thread->closeStackFrame();
+	//thread->closeFrame();
 #endif //BEER_BC_DISPATCH
 }

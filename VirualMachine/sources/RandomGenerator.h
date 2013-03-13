@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "MerseneTwisterRandom.h"
 #include "ClassLoader.h"
 

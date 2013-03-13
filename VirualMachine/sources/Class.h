@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Pair.h"
 #include "Property.h"
 #include "String.h" // TODO
@@ -10,7 +10,7 @@
 namespace Beer
 {
 	class Method;
-	class StackFrame;
+	class Frame;
 	class VirtualMachine;
 	class Thread;
 

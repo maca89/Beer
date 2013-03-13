@@ -2,7 +2,7 @@
 #include "Pair.h"
 #include "Method.h"
 #include "VirtualMachine.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Integer.h"
 #include "Param.h"
 

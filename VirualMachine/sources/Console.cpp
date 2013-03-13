@@ -6,7 +6,7 @@
 #include "Float.h"
 #include "Boolean.h"
 #include "VirtualMachine.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Array.h"
 
 using namespace Beer;

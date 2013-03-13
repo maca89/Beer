@@ -2,7 +2,7 @@
 #include "Array.h"
 #include "Method.h"
 #include "VirtualMachine.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Integer.h"
 #include "Param.h"
 
@@ -11,7 +11,7 @@ using namespace Beer;
 
 void Array::toString(Thread* thread, string& out)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Object> object(frame, frame->stackPush());
@@ -40,7 +40,7 @@ void Array::toString(Thread* thread, string& out)
 
 void BEER_CALL Array::init(Thread* thread, StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	receiver->setSize(length->getData());
@@ -67,7 +67,7 @@ void BEER_CALL Array::getLength(Thread* thread, StackRef<Array> receiver, StackR
 
 void BEER_CALL Array::operatorGet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	Integer::IntegerData itemIndex = index->getData();
@@ -78,7 +78,7 @@ void BEER_CALL Array::operatorGet(Thread* thread, StackRef<Array> receiver, Stac
 
 void BEER_CALL Array::operatorSet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	Integer::IntegerData itemIndex = index->getData();
@@ -89,7 +89,7 @@ void BEER_CALL Array::operatorSet(Thread* thread, StackRef<Array> receiver, Stac
 
 void BEER_CALL Array::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Array> ret)
 {
-	StackFrame* frame = thread->getStackFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	StackRef<Integer> length = StackRef<Integer>(frame, -2); // ctor parameter

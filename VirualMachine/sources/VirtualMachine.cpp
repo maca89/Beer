@@ -36,7 +36,7 @@ using namespace Beer;
 
 void VirtualMachine::addClass(Class* klass)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	String* name = NULL;
 
 	// get name, TODO
@@ -99,7 +99,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 	// init objects and their classes
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	{
-		StackFrame* frame = getStackFrame();
+		Frame* frame = getFrame();
 
 		StackRef<Integer> childIdClass(frame, frame->stackPush());
 		createInteger(childIdClass, Object::CHILD_ID_CLASS);
@@ -205,7 +205,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 
 		frame->stackMoveTop(-5); // clean
 		DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
-		//closeStackFrame();
+		//closeFrame();
 	}
 
 	// preloading of some classes
@@ -239,7 +239,7 @@ void VirtualMachine::destroy()
 
 void VirtualMachine::work()
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	StackRef<Class> entryPointClass(frame, frame->stackPush(getClass(BEER_WIDEN("EntryPoint")))); // TODO
 
 	if(entryPointClass.isNull())
@@ -288,7 +288,7 @@ void VirtualMachine::work()
 				frame->stackPush(*klass);
 				frame->stackPush(*method);
 
-				StackFrame* nextFrame = openStackFrame();
+				Frame* nextFrame = openFrame();
 				method->call(this); // pops copied klass, copied method
 
 				instance = *ret;
@@ -326,14 +326,14 @@ void VirtualMachine::work()
 					TrampolineThread* thread = new TrampolineThread(this, mGC);
 					getThreads().insert(thread);
 
-					thread->openStackFrame()->stackMoveTop(1); // for return
-					thread->getStackFrame()->stackPush(*instance); // push receiver
-					thread->getStackFrame()->stackPush(*method); // push method
+					thread->openFrame()->stackMoveTop(1); // for return
+					thread->getFrame()->stackPush(*instance); // push receiver
+					thread->getFrame()->stackPush(*method); // push method
 
 					thread->run();
 					thread->wait();
 
-					instance = thread->getStackFrame()->stackTop(); // fix main // TODO
+					instance = thread->getFrame()->stackTop(); // fix main // TODO
 				}
 
 				frame->stackMoveTop(-2); // pop method & selector
@@ -360,7 +360,7 @@ void VirtualMachine::work()
 #endif // BEER_FOLDING_BLOCK
 				}
 
-				openStackFrame();
+				openFrame();
 				method->call(this);
 #endif // BEER_FOLDING_BLOCK
 			}
@@ -386,7 +386,7 @@ void VirtualMachine::work()
 
 String* VirtualMachine::createString(const string& s)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 	
 	StackRef<String> stringOnStack(frame, frame->stackPush(NULL));
 	
@@ -407,7 +407,7 @@ String* VirtualMachine::createString(const string& s)
 
 Pair* VirtualMachine::createPair(Object* first, Object* second)
 {
-	StackFrame* frame = getStackFrame();
+	Frame* frame = getFrame();
 
 	StackRef<Pair> ret(frame, frame->stackPush());
 	StackRef<Object> arg2(frame, frame->stackPush(second));

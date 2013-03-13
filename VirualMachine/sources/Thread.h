@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "NativeThread.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Integer.h"
 #include "Float.h"
 #include "PolymorphicInlineCache.h"
@@ -20,16 +20,16 @@ namespace Beer
 	class Thread : public NativeThread
 	{
 	public:
-		//typedef FixedStack<StackFrame*> FramesStack;
+		//typedef FixedStack<Frame*> FramesStack;
 
 	protected:
 		VirtualMachine* mVM;
 		GC* mGC;
-		//StackFrame* mLastFrame;
+		//Frame* mLastFrame;
 		//WorkStack mStack;
 		//FramesStack mFrames;
-		StackFrame* mRootFrame;
-		StackFrame* mTopFrame;
+		Frame* mRootFrame;
+		Frame* mTopFrame;
 		Heap* mHeap;
 
 		enum
@@ -53,13 +53,14 @@ namespace Beer
 
 		INLINE Heap* getHeap() { return mHeap; }
 
-		INLINE StackFrame* getStackFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
-		INLINE bool hasStackFrame() { return mRootFrame->stackSize() != 0; }
-		StackFrame* openStackFrame();
-		void closeStackFrame();
-		StackFrame* getPreviousFrame();
+		// TODO: move all Frames to Task
+		INLINE Frame* getFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
+		INLINE bool hasFrame() { return mRootFrame->stackSize() != 0; }
+		Frame* openFrame();
+		void closeFrame();
+		Frame* getPreviousFrame();
 
-		INLINE StackFrame* getStackFrames() { return mRootFrame; }
+		INLINE Frame* getFrames() { return mRootFrame; }
 
 		void getIntegerClass(StackRef<Class> ret);
 		void getFloatClass(StackRef<Class> ret);
@@ -86,12 +87,12 @@ namespace Beer
 	protected:
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 
-		INLINE void fetchTopStackFrame()
+		INLINE void fetchTopFrame()
 		{
-			if(hasStackFrame()) mTopFrame = mRootFrame->stackTop<StackFrame>();
+			if(hasFrame()) mTopFrame = mRootFrame->stackTop<Frame>();
 			else mTopFrame = NULL;
 		}
 
-		StackFrame* allocFrame(uint32 stackSize, uint32 argsCout);
+		Frame* allocFrame(uint32 stackSize, uint32 argsCout);
 	};
 };

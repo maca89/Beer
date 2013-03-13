@@ -3,7 +3,7 @@
 #include "Thread.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "Integer.h"
 #include "Float.h"
 #include "String.h"
@@ -95,7 +95,7 @@ namespace Beer
 		template <typename T>
 		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }
 
-		//void createInstance(StackFrame* frame, Class* klass); // pushes onto stack
+		//void createInstance(Frame* frame, Class* klass); // pushes onto stack
 
 	protected:
 		// Thread

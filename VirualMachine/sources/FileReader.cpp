@@ -2,7 +2,7 @@
 #include "FileReader.h"
 #include "Method.h"
 #include "VirtualMachine.h"
-#include "StackFrame.h"
+#include "Frame.h"
 #include "String.h"
 #include "Boolean.h"
 #include "Float.h"
