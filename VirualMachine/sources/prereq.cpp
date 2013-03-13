@@ -50,12 +50,12 @@ MethodNotFoundException::MethodNotFoundException(Object* instance, Class* klass,
 #if defined(BEER_STACK_DEBUGGING)
 DebugStackCheck::DebugStackCheck(StackFrame* frame) : frame(frame)
 {
-	startIndex = frame->stack->size();
+	startIndex = frame->stackSize();
 }
 
 DebugStackCheck::~DebugStackCheck()
 {
-	if(frame->stack->size() != startIndex)
+	if(frame->stackSize() != startIndex)
 	{
 		BEER_DBG_BREAKPOINT();
 		throw CriticalAssertException(BEER_WIDEN("Stack is corrupted"));

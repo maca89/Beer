@@ -3,6 +3,7 @@
 #include "Method.h"
 #include "VirtualMachine.h"
 #include "LoadedObject.h"
+#include "Debugger.h"
 
 using namespace Beer;
 
@@ -14,17 +15,21 @@ void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task
 
 void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 {
+	NULL_ASSERT(*receiver);
+
 	TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
 
 	thread->getVM()->getThreads().insert(thread2);
 
+	StackFrame* frame = thread2->getStackFrame();
+
 	// push receiver
-	StackFrame* frame = thread2->openStackFrame();
-	frame->stackPush(*receiver); // push receiver
+	frame->stackPush(*receiver);
 
 	// push method
 	StackRef<Method> method(frame, frame->stackPush());
 
+	// fetch method
 	{
 		// push selector
 		StackRef<String> selector(frame, frame->stackPush());
@@ -35,6 +40,8 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 			thread->getClass(receiver)
 		));
 
+		NULL_ASSERT(*klass); // TODO
+
 		// find method
 		Class::findMethod(thread2, klass, selector, method);
 		frame->stackMoveTop(-2); // pop class, selector
@@ -42,10 +49,9 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 
 	NULL_ASSERT(*method); // TODO
 
-	Method* m = *method; // ugly, TODO
-	frame->stackMoveTop(-1); // pop method
-	thread2->openStackFrame()->method = m; // ugly, TODO
+	//thread->getVM()->getDebugger()->printFrameStack(thread2, frame);
 
+	thread2->openStackFrame();
 	thread2->run();
 }
 

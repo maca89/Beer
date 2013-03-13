@@ -88,7 +88,9 @@ void VirtualMachine::init(uint32 stackInitSize)
 {
 	this->Thread::init();
 
-	mDebugger = new Debugger(this);
+	mDebugger = new Debugger(this, mGC);
+	mDebugger->init();
+
 	mClassLoader = new ClassLoader(this, mHeap);
 
 	Bytecode::init(this);
@@ -97,7 +99,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 	// init objects and their classes
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	{
-		StackFrame* frame = openStackFrame();
+		StackFrame* frame = getStackFrame();
 
 		StackRef<Integer> childIdClass(frame, frame->stackPush());
 		createInteger(childIdClass, Object::CHILD_ID_CLASS);
@@ -153,7 +155,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 		// create Object class
 		{
 			StackRef<Class> objectClass(frame, frame->stackPush(
-				mClassLoader->createClass<Class>(*objectClassName, 1, 0, 5) // extends Object, has 5 methods
+				mClassLoader->createClass<Class>(*objectClassName, 1, 0, 6) // extends Object, has 6 methods
 			));
 
 			// fix references
@@ -197,10 +199,13 @@ void VirtualMachine::init(uint32 stackInitSize)
 
 		// default Object methods
 		mClassLoader->addMethod(mObjectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
+		mClassLoader->addMethod(mObjectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
+		mClassLoader->addMethod(mObjectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
+
 
 		frame->stackMoveTop(-5); // clean
-		DBG_ASSERT(frame->stackSize() == 0, BEER_WIDEN("Stack was not properly cleaned"));
-		closeStackFrame();
+		DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
+		//closeStackFrame();
 	}
 
 	// preloading of some classes
@@ -245,41 +250,56 @@ void VirtualMachine::work()
 	for(ClassReflectionTable::iterator it = mClasses.begin(); it != mClasses.end(); it++)
 	{
 		StackRef<Class> klass(frame, frame->stackPush(it->second)); // TODO
-		StackRef<Boolean> substituable(frame, frame->stackPush());
-		//cout << BEER_WIDEN("Class: ") << klass->getName()->c_str() << BEER_WIDEN("\n");
+		bool substituable = false;
 
-		Class::substituable(this, klass, entryPointClass, substituable);
+		// fetch substituable
+		{
+			StackRef<Boolean> tmp(frame, frame->stackPush());
+			Class::substituable(this, klass, entryPointClass, tmp);
+			substituable = tmp->getData();
+			frame->stackMoveTop(-1); // pop tmp
+		}
 
-		if(klass.get() != entryPointClass.get() && substituable->getData())  // TODO
+		if(klass.get() != entryPointClass.get() && substituable)  // TODO
 		{
 			StackRef<Object> instance(frame, frame->stackPush(NULL));
 
 			// create new instance
+#ifdef BEER_FOLDING_BLOCK
 			{
-				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("$Class::createInstance()")))); // TODO
-
 				StackRef<Method> method(frame, frame->stackPush());
-				Class::findMethod(this, klass, selector, method);
-
-				if(method.isNull())
+				
+				// fetch method
 				{
-					throw MethodNotFoundException(*klass, ((Thread*)this)->getClass(klass), *selector); // TODO
+#ifdef BEER_FOLDING_BLOCK
+					StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("$Class::createInstance()")))); // TODO
+					Class::findMethod(this, klass, selector, method);
+
+					if(method.isNull())
+					{
+						throw MethodNotFoundException(*klass, ((Thread*)this)->getClass(klass), *selector); // TODO
+					}
+
+					frame->stackMoveTop(-1); // pop selector
+#endif // BEER_FOLDING_BLOCK
 				}
 
-				StackRef<Object> ret(frame, frame->stackPush(NULL));
+				StackRef<Object> ret(frame, frame->stackPush());
 				frame->stackPush(*klass);
+				frame->stackPush(*method);
 
 				StackFrame* nextFrame = openStackFrame();
-				method->call(this); // pops copied mainClass
-				closeStackFrame();
+				method->call(this); // pops copied klass, copied method
 
-				instance = ret;
-
-				frame->stackMoveTop(-3);
+				instance = *ret;
+				frame->stackMoveTop(-2); // pop method, ret
 			}
+#endif // BEER_FOLDING_BLOCK
+
 
 			// call constuctor
-			{
+#ifdef BEER_FOLDING_BLOCK
+			if(false){
 				StackRef<String> selector(frame, frame->stackPush());
 
 				StackRef<String> tmpString1(frame, frame->stackPush());
@@ -308,45 +328,45 @@ void VirtualMachine::work()
 
 					thread->openStackFrame()->stackMoveTop(1); // for return
 					thread->getStackFrame()->stackPush(*instance); // push receiver
-					thread->openStackFrame()->method = *method;
+					thread->getStackFrame()->stackPush(*method); // push method
 
 					thread->run();
 					thread->wait();
 
-					instance = thread->getStack()->top(0); // fix main // TODO
+					instance = thread->getStackFrame()->stackTop(); // fix main // TODO
 				}
 
 				frame->stackMoveTop(-2); // pop method & selector
 			}
+#endif // BEER_FOLDING_BLOCK
+
 
 			// Task::run()
 			{
-				frame = openStackFrame();
-				frame->stackPush(*instance);
-
-				frame = openStackFrame();
-
-				StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::schedule()")))); // TODO
-
+#ifdef BEER_FOLDING_BLOCK
 				StackRef<Method> method(frame, frame->stackPush());
-				Class::findMethod(this, klass, selector, method);
-
-				if(method.isNull())
+				
+				// fetch method
 				{
-					throw MethodNotFoundException(*instance, *klass, *selector); // TODO
+#ifdef BEER_FOLDING_BLOCK
+					StackRef<String> selector(frame, frame->stackPush(createString(BEER_WIDEN("Task::schedule()")))); // TODO
+					Class::findMethod(this, klass, selector, method);
+
+					if(method.isNull())
+					{
+						throw MethodNotFoundException(*instance, *klass, *selector); // TODO
+					}
+					frame->stackMoveTop(-1); // pop selector
+#endif // BEER_FOLDING_BLOCK
 				}
 
-				frame->method = *method;
-				frame->stackMoveTop(-2); // pop method & selector
-				frame->method->call(this);
-
-				closeStackFrame();
+				openStackFrame();
+				method->call(this);
+#endif // BEER_FOLDING_BLOCK
 			}
-
-			frame->stackMoveTop(-1); // pop instance
 		}
 
-		frame->stackMoveTop(-2); // pop class, substituable
+		frame->stackMoveTop(-1); // pop class
 	}
 
 	frame->stackMoveTop(-1); // pop entrypoint class
@@ -361,8 +381,7 @@ void VirtualMachine::work()
 		}
 	}
 	
-	
-	DBG_ASSERT(frame->stackSize() == 0, BEER_WIDEN("Stack was not properly cleaned"));
+	DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
 }
 
 String* VirtualMachine::createString(const string& s)

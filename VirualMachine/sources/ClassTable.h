@@ -21,9 +21,14 @@ namespace Beer
 
 		uint32 add(Class* klass);
 
+		INLINE Class* translateInline(Object* object) const
+		{
+			return mTable[getInlineClassId(object)];
+		}
+
 		INLINE Class* translate(Thread* thread, StackRef<Object> object) const
 		{
-			Class* klass = mTable[getInlineClassId(*object)];
+			Class* klass = translateInline(*object);
 			if(klass == NULL) return fetchClass(thread, object);
 			return klass;
 		}

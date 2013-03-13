@@ -27,6 +27,8 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 
 	Class::createInstance(thread, receiver, ret); // call super method
 
+	//return;
+
 	/////////////////////////////////////////////////////////
 	// fix missing value types
 	StackRef<Integer> index(frame, frame->stackPush());
@@ -309,17 +311,18 @@ Method* LoadedObjectInitializer::makeMethod(VirtualMachine* vm, ClassLoader* loa
 		frame->stackMoveTop(-1); // pop param
 	}
 
+	Method* result = *method; // ugly
+
 	if(!methodDescr->isAbstract() && !methodDescr->isNative())
 	{
 		// bytecode
 		BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
 		Bytecode* bytecode = new Bytecode(bcDescr->getData(), bcDescr->getSize(), bcDescr->getInstrCount());
-		bytecode->build(vm, mClassFile);
+		bytecode->build(vm, result, mClassFile);
 		method->setBytecode(bytecode);
 	}
 
 
-	Method* result = *method; // ugly
 	frame->stackMoveTop(-2); // pop method, index
 	return result;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "prereq.h"
-#include "StackFrame.h"
+//#include "StackRef.h"
 
 
 namespace Beer
@@ -9,6 +9,9 @@ namespace Beer
 	//class Class;
 	class Thread;
 	class Integer;
+
+	template <typename T>
+	class StackRef;
 
 	#pragma pack(push, 1)
 	class Object
@@ -73,6 +76,7 @@ namespace Beer
 		// methods
 
 		static void BEER_CALL init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);
+		static void BEER_CALL operatorString(Thread* thread, StackRef<Object> receiver, StackRef<String> ret);
 
 		static void BEER_CALL setClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> param);
 		static void BEER_CALL getClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);

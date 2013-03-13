@@ -96,18 +96,19 @@ namespace Beer
 
 		// calls
 
-		INLINE Method* call(Thread* thread)
+		INLINE void call(Thread* thread)
 		{
 			if(isBytecode())
 			{
-				return mBytecode->call(thread);
+				mBytecode->call(thread);
 			}
 			else
 			{
-				return runFunction(thread);
+				runFunction(thread);
 			}
 		}
-		
+
+		// methods
 		
 		static void BEER_CALL getName(Thread* thread, StackRef<Method> receiver, StackRef<String> ret);
 		static void BEER_CALL setName(Thread* thread, StackRef<Method> receiver, StackRef<String> value);
@@ -118,7 +119,11 @@ namespace Beer
 		static void BEER_CALL getParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret);
 		static void BEER_CALL setParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value);
 
+		// shorcuts
+
+		static void BEER_CALL getParam(Thread* thread, StackRef<Method> receiver, StackRef<Param> ret, Integer::IntegerData index);
+
 	protected:
-		Method* runFunction(Thread* thread);
+		void runFunction(Thread* thread);
 	};
 };

@@ -23,7 +23,7 @@ namespace Beer
 	class LoadedObject : public Object
 	{
 	public:
-		static void BEER_CALL createInstance(Thread* thread/*, StackFrame* frame*/, StackRef<Class> receiver, StackRef<Object> ret);
+		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret);
 	};
 
 	class LoadedObjectInitializer : public ClassInitializer

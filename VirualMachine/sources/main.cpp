@@ -172,7 +172,7 @@ int __cdecl main(int argc, const char** argv)
 	if(!loadSettings(argc, argv, settings)) return 1;
 
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
-	GenerationalGC* gc = new GenerationalGC(27, 8192);
+	GenerationalGC* gc = new GenerationalGC(27, 32768);
 	VirtualMachine* vm = new VirtualMachine(gc);
 	ClassFileDescriptor* classFile = NULL;
 

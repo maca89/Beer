@@ -8,7 +8,7 @@
 using namespace Beer;
 
 
-Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
+void Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 {
 	StackFrame* frame = thread->getStackFrame();
 	//BEER_STACK_CHECK();
@@ -37,7 +37,6 @@ Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 		= sizeof(StackRef<Object>) * returnCount						// returns
 		+ sizeof(StackRef<Object>) * paramsCount						// params
 		+ sizeof(StackRef<Object>)										// receiver
-		//+ sizeof(StackFrame*)											// stackframe
 		+ sizeof(Thread*);												// thread
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +44,7 @@ Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	for(i = 0; i < returnCount; i++)
 	{
-		elemi = -(static_cast<int32>(returnCount) - static_cast<int32>(i)) - static_cast<int32>(paramsCount);
+		elemi = -(static_cast<int32>(returnCount) - static_cast<int32>(i)) - static_cast<int32>(paramsCount) - 2;
 
 #ifdef BEER_STACK_DEBUGGING
 		__asm // push return
@@ -63,7 +62,7 @@ Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 	}
 	for(i = 0; i < paramsCount; i++)
 	{
-		elemi = -(static_cast<int32>(paramsCount) - static_cast<int32>(i));
+		elemi = -(static_cast<int32>(paramsCount) - static_cast<int32>(i)) - 2;
 
 #ifdef BEER_STACK_DEBUGGING
 		__asm // push param
@@ -83,11 +82,11 @@ Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 	__asm
 	{
 		// push receiver
-		push 0;
+		push -2;
 		push frame;
 	}
 #else
-	objPtr = frame->stackTopPtr(0);
+	objPtr = frame->stackTopPtr(-2);
 	__asm
 	{
 		push objPtr;
@@ -111,9 +110,9 @@ Method* Method::runFunction(Thread* thread/*, StackFrame* frame*/)
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	frame->stackMoveTop(-(paramsCount + 1));
+	//frame->stackMoveTop(-(paramsCount + 2));  // +2: receiver, method
 
-	return NULL; // TODO
+	thread->closeStackFrame();
 }
 
 void BEER_CALL Method::getName(Thread* thread, StackRef<Method> receiver, StackRef<String> ret)
@@ -148,4 +147,10 @@ void BEER_CALL Method::setParam(Thread* thread, StackRef<Method> receiver, Stack
 {
 	DBG_ASSERT(index->getData() < receiver->getParamsCount(), BEER_WIDEN("Unable to add more arguments"));
 	Object::setChild(thread, receiver, value, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData()); // +1 for name
+}
+
+void BEER_CALL Method::getParam(Thread* thread, StackRef<Method> receiver, StackRef<Param> ret, Integer::IntegerData index)
+{
+	DBG_ASSERT(index < receiver->getParamsCount(), BEER_WIDEN("Unknown argument"));
+	Object::getChild(thread, receiver, ret, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index); // +1 for name
 }

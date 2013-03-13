@@ -19,12 +19,16 @@ namespace Beer
 
 	class Thread : public NativeThread
 	{
+	public:
+		//typedef FixedStack<StackFrame*> FramesStack;
+
 	protected:
 		VirtualMachine* mVM;
 		GC* mGC;
 		//StackFrame* mLastFrame;
-		WorkStack mStack;
-		DynamicStack<StackFrame> mFrames;
+		//WorkStack mStack;
+		//FramesStack mFrames;
+		StackFrame* mRootFrame;
 		StackFrame* mTopFrame;
 		Heap* mHeap;
 
@@ -41,7 +45,7 @@ namespace Beer
 		{
 		}
 
-		INLINE WorkStack* getStack() { return &mStack; }
+		//INLINE WorkStack* getStack() { return &mStack; }
 
 		INLINE VirtualMachine* getVM() { return mVM; }
 
@@ -49,19 +53,13 @@ namespace Beer
 
 		INLINE Heap* getHeap() { return mHeap; }
 
-		INLINE StackFrame* openStackFrame()
-		{
-			StackFrame frame(getStackFrame());
-			mFrames.push(frame);
-			fetchTopStackFrame();
-			return getStackFrame();
-		}
+		INLINE StackFrame* getStackFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
+		INLINE bool hasStackFrame() { return mRootFrame->stackSize() != 0; }
+		StackFrame* openStackFrame();
+		void closeStackFrame();
+		StackFrame* getPreviousFrame();
 
-		INLINE bool hasStackFrame() { return mFrames.size() != 0; }
-
-		INLINE void closeStackFrame() { mFrames.pop(); fetchTopStackFrame(); }
-
-		INLINE StackFrame* getStackFrame() { return mTopFrame; }
+		INLINE StackFrame* getStackFrames() { return mRootFrame; }
 
 		void getIntegerClass(StackRef<Class> ret);
 		void getFloatClass(StackRef<Class> ret);
@@ -83,15 +81,17 @@ namespace Beer
 		//INLINE Class* getClass(Reference<String>& name) { return getClass(*name); }
 		Class* getClass(const StackRef<Object>& object);
 
-		void init() { mHeap = mGC->createHeap(); }
+		void init();
 
 	protected:
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 
 		INLINE void fetchTopStackFrame()
 		{
-			if(hasStackFrame()) mTopFrame = mFrames.topPtr(mFrames.topIndex());
+			if(hasStackFrame()) mTopFrame = mRootFrame->stackTop<StackFrame>();
 			else mTopFrame = NULL;
 		}
+
+		StackFrame* allocFrame(uint32 stackSize, uint32 argsCout);
 	};
 };

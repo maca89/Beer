@@ -52,10 +52,11 @@ namespace Beer
 			#define BEER_INSTR_LOAD_THIS		45
 
 			// 50: method control
-			#define BEER_INSTR_INVOKE			50
-			#define BEER_INSTR_INTERFACEINVOKE	51
+			#define BEER_INSTR_VIRTUAL_INVOKE	50
+			#define BEER_INSTR_INTERFACE_INVOKE	51
 			#define BEER_INSTR_STATIC_INVOKE	52
-			#define BEER_INSTR_SPECIALINVOKE	53
+			#define BEER_INSTR_SPECIAL_INVOKE	53
+			#define BEER_INSTR_INVOKE			54
 			#define BEER_INSTR_RETURN			55
 			
 			#define BEER_INSTR_SIZE				127
@@ -154,8 +155,8 @@ namespace Beer
 			// *NO* deleting of mData or mDict !!!
 		}
 
-		Method* call(Thread* thread);
-		void build(VirtualMachine* vm, ClassFileDescriptor* classFile);
+		void call(Thread* thread);
+		void build(VirtualMachine* vm, Method* method, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }
 		INLINE Instruction* getInstruction(uint16 instri) { return reinterpret_cast<Instruction*>(&mData[mDict[instri]]); }

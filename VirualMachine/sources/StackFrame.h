@@ -1,260 +1,150 @@
 #pragma once
 #include "prereq.h"
+#include "Object.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
-//#include "Object.h"
 
 
 namespace Beer
 {
-	class Object;
+	//class Object;
 	class Method;
-	//typedef FixedStack<Object*> WorkStack;
-	typedef DynamicStack<Object*> WorkStack;
 
-	class StackFrame
+	typedef FixedStack<Object*> WorkStack;
+	//typedef DynamicStack<Object*> WorkStack;
+
+	class StackFrame : public Object
 	{
 	public:
-		uint32 frameOffset;
-		StackFrame* prev;
-		WorkStack* stack;
-		Method* method;
-		//uint16 programCounter;
-		byte* ip;
-		uint32 vPC;
-
-		INLINE StackFrame() : prev(NULL), stack(NULL), frameOffset(0), method(NULL), /*programCounter(0),*/ ip(NULL), vPC(0)
+		enum
 		{
+			FRAME_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT,
+		};
+
+	protected:
+		uint32 argsCount;
+		uint32 frameOffset;
+		uint32 vPC;
+		WorkStack stack;
+
+		// stack, TODO
+		uint32 next;
+		uint32 size;
+
+	public:
+		INLINE StackFrame(uint32 argsCount, uint32 stackSize) : stack(stackSize), vPC(0), frameOffset(0), argsCount(argsCount)
+		{
+			next = 0;
+			size = stackSize;
 		}
 
-		INLINE StackFrame(WorkStack* stack)
-			: prev(NULL), stack(stack), frameOffset(stack->size()), method(NULL), /*programCounter(0),*/ ip(NULL), vPC(0)
+		INLINE uint32 getProgramCounter()
 		{
+			return vPC;
 		}
 		
-		INLINE StackFrame(StackFrame* prev)
-			: prev(prev), stack(prev->stack), frameOffset(prev->stack->size()), method(NULL), /*programCounter(0),*/ ip(NULL), vPC(0)
+		INLINE void setProgramCounter(uint32 value)
 		{
+			vPC = value;
 		}
 
-		INLINE ~StackFrame() {}
+		INLINE uint32 incrProgramCounter()
+		{
+			return vPC++;
+		}
+
+		INLINE uint32 getFrameOffset()
+		{
+			return frameOffset;
+		}
+
+		INLINE uint32 getArgumentsCount()
+		{
+			return argsCount;
+		}
+
+		INLINE void setArgumentsCount(uint32 value)
+		{
+			argsCount = value;
+		}
 
 		INLINE int32 stackPush()
 		{
-			return translate(stack->push());
+			return translate(stack.push());
 		}
 
 		INLINE int32 stackPush(Object* obj)
 		{
-			return translate(stack->push(obj));
+			return translate(stack.push(obj));
 		}
 
 		INLINE void stackPop()
 		{
-			return stack->pop();
+			return stack.pop();
 		}
 
 		INLINE Object* stackTop()
 		{
-			return stack->top(0);
+			return stack.top();
 		}
 
 		INLINE int32 stackTopIndex()
 		{
-			return translate(stack->topIndex());
+			return translate(stack.topIndex());
 		}
 
 		INLINE Object* stackTop(int32 index)
 		{
-			return stack->top(translate(index));
+			return stack.top(translate(index));
 		}
 
 		INLINE Object** stackTopPtr(int32 index)
 		{
-			return stack->topPtr(translate(index));
+			return stack.topPtr(translate(index));
+		}
+		
+		template <typename T>
+		INLINE T* stackTop()
+		{
+			return stack.top<T*>();
 		}
 
 		template <typename T>
 		INLINE T* stackTop(int32 index)
 		{
-			return stack->top<T*>(translate(index));
+			return stack.top<T*>(translate(index));
 		}
 
 		INLINE void stackMoveTop(int16 count)
 		{
-			/*if(count > 1000)
-			{
-				int a = 0;
-			}*/
-			stack->move(count);
+			stack.move(count);
 		}
 
 		INLINE void stackStore(int16 index, Object* value)
 		{
-			stack->set(value, translate(index));
+			stack.set(value, translate(index));
 		}
 
 		INLINE uint32 stackSize() 
 		{
-			return stack->size();
+			return stack.size() - frameOffset;
 		}
 
-		INLINE uint32 translate(int32 index) // index <= 0
+		INLINE void stackCheck(int32 count) // must be signed !!!
 		{
-			/*if(static_cast<int64>(frameOffset) + index <= 0)
-			{
-				int a = 0;
-			}*/
-			DBG_ASSERT(static_cast<int64>(frameOffset) + index > 0, BEER_WIDEN("Stack index out of bounds"));
-			return static_cast<int64>(frameOffset) + index - 1;
+			stack.check(count);
 		}
 
+		INLINE uint32 translate(int32 index)
+		{
+			DBG_ASSERT(static_cast<int64>(frameOffset) + argsCount + index >= 0, BEER_WIDEN("Stack index out of bounds"));
+			return static_cast<int64>(frameOffset) + argsCount + index;
+		}
+
+	//protected:
 		INLINE int32 translate(uint32 index)
 		{
-			return static_cast<int64>(index) - frameOffset + 1;
+			return static_cast<int64>(index) - frameOffset - argsCount;
 		}
 	};
-	
-#ifdef BEER_STACK_DEBUGGING
-	#pragma pack(push, 1)
-	template <typename T>
-	class StackRef
-	{
-	protected:
-		StackFrame* mFrame;
-		int32 mIndex;
-		
-	public:
-		INLINE StackRef(StackFrame* frame, int32 index) : mFrame(frame), mIndex(index)
-		{
-		}
-
-		INLINE void operator= (T* obj)
-		{
-			set(obj);
-		}
-
-		INLINE void operator= (StackRef& ref)
-		{
-			set(ref.get());
-		}
-
-		template <typename U>
-		INLINE void operator= (StackRef<U>& ref)
-		{
-			mFrame->stackStore(mIndex, ref.get());
-		}
-
-		INLINE T* operator*()
-		{
-			return get();
-		}
-
-		INLINE const T* operator*() const
-		{
-			return get();
-		}
-
-		INLINE T* operator-> ()
-		{
-			NULL_ASSERT(get());
-			return get();
-		}
-
-		INLINE int32 getIndex() const
-		{
-			return mIndex;
-		}
-
-		INLINE const T* get() const
-		{
-			return mFrame->stackTop<T>(mIndex);
-		}
-
-		INLINE T* get()
-		{
-			return mFrame->stackTop<T>(mIndex);
-		}
-
-		INLINE void set(T* object)
-		{
-			mFrame->stackStore(mIndex, object);
-		}
-
-		INLINE bool isNull() const
-		{
-			return get() == NULL;
-		}
-
-		INLINE operator StackRef<Object>()
-		{
-			return staticCast<Object>();
-		}
-
-		template<typename U>
-		INLINE StackRef<U> staticCast()
-		{
-			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cast
-			return StackRef<U>(mFrame, mIndex);
-		}
-
-		INLINE StackRef push(StackFrame* frame)
-		{
-			return StackRef(frame, frame->stackPush(get()));
-		}
-	};
-	#pragma pack(pop)
-#else
-	#pragma pack(push, 1)
-	template <typename T>
-	class StackRef
-	{
-	protected:
-		Object** mPtr;
-		
-	public:
-		INLINE StackRef(StackFrame* frame, int32 index)
-		{
-			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
-			mPtr = frame->stackTopPtr(index);
-		}
-
-		INLINE StackRef(T** object)
-		{
-			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
-			mPtr = reinterpret_cast<Object**>(object);
-		}
-
-		INLINE void operator= (T* obj) { set(obj); }
-		INLINE void operator= (StackRef& ref) { set(ref.get()); }
-
-		INLINE T* operator*() { return get(); }
-		INLINE const T* operator*() const { return get();}
-
-		INLINE T* operator-> ()
-		{
-			NULL_ASSERT(get());
-			return get();
-		}
-
-		INLINE const T* get() const { return reinterpret_cast<T*>(*mPtr); }
-		INLINE T* get() { return reinterpret_cast<T*>(*mPtr); }
-		INLINE void set(T* object) { *mPtr = object; }
-		INLINE bool isNull() const { return get() == NULL; }
-
-		INLINE Object** getPtr() { return mPtr; }
-
-		INLINE operator StackRef<Object>() { return staticCast<Object>(); }
-
-		template<typename U>
-		INLINE StackRef<U> staticCast()
-		{
-			static_cast<U*>(reinterpret_cast<T*>(NULL)); // check if can be cast
-			return StackRef<U>(reinterpret_cast<U**>(mPtr));
-		}
-
-		INLINE StackRef push(StackFrame* frame) { return StackRef(frame, frame->stackPush(get())); }
-	};
-	#pragma pack(pop)
-#endif // BEER_STACK_DEBUGGING
 };

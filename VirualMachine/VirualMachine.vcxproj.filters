@@ -297,9 +297,6 @@
     <ClInclude Include="sources\NativeThread.h">
       <Filter>Headers\Thread</Filter>
     </ClInclude>
-    <ClInclude Include="sources\TrampolineThread.h">
-      <Filter>Headers\Thread</Filter>
-    </ClInclude>
     <ClInclude Include="sources\Thread.h">
       <Filter>Headers\Thread</Filter>
     </ClInclude>
@@ -361,6 +358,12 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="sources\ForwardPointer.h" />
+    <ClInclude Include="sources\TrampolineThread.h">
+      <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StackRef.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">

@@ -5,6 +5,7 @@
 #include "Class.h"
 #include "Method.h"
 #include "Param.h"
+#include "Debugger.h"
 
 using namespace Beer;
 
@@ -98,6 +99,7 @@ Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 par
 	// set name
 	{
 		StackRef<String> name(frame, frame->stackPush(classname)); // push name
+
 		Class::setName(thread, klass, name);
 		frame->stackMoveTop(-1); // pop name
 	}
@@ -107,6 +109,7 @@ Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 par
 		StackRef<Class> metaClass(frame, frame->stackPush(
 			mVM->getMetaClass()
 		));
+
 		Class::setClass(thread, klass, metaClass);
 		frame->stackMoveTop(-1); // pop metaClass
 	}

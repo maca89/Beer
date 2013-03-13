@@ -6,11 +6,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/parallel-quicksort.class</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/benchmark_1.class</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/parallel-quicksort.class</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/benchmark_10000.class</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

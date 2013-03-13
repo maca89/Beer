@@ -20,6 +20,7 @@ namespace Beer
 	#define SMART_DELETE(_i_) delete (_i_); (_i_) = NULL;
 	#define SMART_DELETE_ARR(_i_) delete[] (_i_); (_i_) = NULL;
 	#define BEER_BREAKPOINT() __asm { INT 3 }
+	#define BEER_FOLDING_BLOCK
 
 #ifdef BEER_DEBUG_MODE
 	#define BEER_DBG_BREAKPOINT() BEER_BREAKPOINT()

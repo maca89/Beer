@@ -17,16 +17,12 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
 
-	StackFrame* frame = thread->getStackFrame();
-	BEER_STACK_CHECK();
+	if(ret.isNull())
+	{
+		throw NotEnoughMemoryException(BEER_WIDEN("Unable to create new instance - Not enough memory"));
+	}
 	
-	//StackRef<Object> object(frame, frame->stackPush()); // push object
-	StackRef<Object> klass(frame, frame->stackPush(*receiver)); // push class
-
-	frame = thread->openStackFrame();
-	Object::setClass(thread, ret, klass);
-	frame->stackMoveTop(-1); // pop class
-	thread->closeStackFrame();
+	Object::setClass(thread, ret, receiver);
 }
 
 void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret)

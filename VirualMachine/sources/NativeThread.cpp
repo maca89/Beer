@@ -46,7 +46,8 @@ DWORD WINAPI NativeThread::staticWork(LPVOID lpThreadParameter)
 		//if(!mVM->getDebugger()->catchException(this, frame, ex))
 		//{
 		//}
-
+		
+		//mVM->getDebugger()->printFrameStack(this, oldFrame);
 		cout << std::endl << "Unhandled exception on a NativeThread: " << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;
 		return 1;
 	}

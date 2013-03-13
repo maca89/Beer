@@ -6,12 +6,13 @@
 //#include "PolymorphicInlineCache.h"
 #include "GenerationalGC.h"
 #include "Heap.h"
+#include "Debugger.h"
 
 using namespace Beer;
 
 #if defined(BEER_STACK_DEBUGGING)
-#define BEER_ASSERT_STACK_START() int __startSize = frame->stack->size();
-#define BEER_ASSERT_STACK_END(params) DBG_ASSERT(__startSize - params == frame->stack->size(), BEER_WIDEN("Stack corrupted"));
+#define BEER_ASSERT_STACK_START() int __startSize = frame->stackSize();
+#define BEER_ASSERT_STACK_END(params) DBG_ASSERT(__startSize - params == frame->stackSize(), BEER_WIDEN("Stack corrupted"));
 #define ASSERT_STACK_PARAMS_2(p1, p2) DBG_ASSERT(p1.getIndex() - 1 == p2.getIndex(), BEER_WIDEN("Given parameters have wrong indices"));
 #define ASSERT_STACK_PARAMS_3(p1, p2, p3) DBG_ASSERT(p1.getIndex() - 2 == p3.getIndex() && p2.getIndex() - 1 == p3.getIndex(), BEER_WIDEN("Given parameters have wrong indices"));
 #define ASSERT_STACK_PARAMS_4(p1, p2, p3, p4) DBG_ASSERT(p1.getIndex() - 3 == p4.getIndex() && p2.getIndex() - 2 == p4.getIndex() && p3.getIndex() - 1 == p4.getIndex(), BEER_WIDEN("Given parameters have wrong indices"));
@@ -25,16 +26,117 @@ using namespace Beer;
 
 
 Thread::Thread(VirtualMachine* vm, GC * gc)
-	: mVM(vm), mStack(1024), mFrames(50), mGC(gc), mTopFrame(NULL)
+	: mVM(vm), mGC(gc), mTopFrame(NULL), mRootFrame(NULL)
 {
-	StackFrame frame(&mStack);
-	mFrames.push(frame);
-	fetchTopStackFrame();
+}
 
+void Thread::init()
+{
 	mHeap = mGC->createHeap();
+
+	mRootFrame = allocFrame(250, 0);
+
+	StackFrame* frame = allocFrame(50, 2);
+	frame->stackMoveTop(2); // simulate method & receiver
+	mRootFrame->stackPush(frame);
+	fetchTopStackFrame();
 
 	PolymorphicInlineCache* methodCache = PolymorphicInlineCache::from(createInstanceMethodCacheBytes);
 	methodCache->clear(CREATE_INSTANCE_CACHE_SIZE);
+}
+
+StackFrame* Thread::allocFrame(uint32 stackSize, uint32 argsCout)
+{
+	StackFrame* frame = NULL;
+	frame = getHeap()->alloc<StackFrame>(StackFrame::FRAME_CHILDREN_COUNT + stackSize);
+	//frame = new StackFrame(frameArgsCount, maxStack); // +2: receiver, method
+
+	new(frame) StackFrame(argsCout, stackSize);
+	//frame->setArgumentsCount(argsCout);
+
+	return frame;
+}
+
+StackFrame* Thread::getPreviousFrame()
+{
+	if(mRootFrame->stackSize() >= 2)
+	{
+		return mRootFrame->stackTop<StackFrame>(mRootFrame->stackTopIndex() - 1);
+	}
+	
+	return NULL;
+}
+
+StackFrame* Thread::openStackFrame()
+{
+	StackFrame* oldFrame = getStackFrame();
+	StackRef<Method> method(oldFrame, oldFrame->stackTopIndex());
+
+	uint16 stackSize = 50;
+	uint16 paramsCount = 0;
+	uint16 returnsCount = 0;
+
+	if(!method.isNull())
+	{
+		paramsCount = method->getParamsCount();
+		returnsCount = method->getReturnsCount();
+		stackSize = method->getMaxStack() + 10;
+	}
+
+	StackFrame* newFrame = allocFrame(stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
+
+	// make space for returns
+	newFrame->stackMoveTop(returnsCount);
+
+	// copy params
+	for(uint16 i = paramsCount; i >= 1; i--) // *BEWARE* index starts at this position to skip the method on stack!
+	{
+		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - i - 1)); // -1 for receiver
+	}
+	
+	//mVM->getDebugger()->printFrameStack(this, oldFrame);
+
+	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - 1)); // copy receiver
+	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
+	
+	mRootFrame->stackPush(newFrame);
+	fetchTopStackFrame();
+	return getStackFrame();
+}
+
+void Thread::closeStackFrame()
+{
+	StackFrame* currentFrame = getStackFrame();
+	StackFrame* previousFrame = getPreviousFrame();
+
+	StackRef<Method> method(currentFrame, -1);
+
+	uint16 paramsCount = 0;
+	uint16 returnsCount = 0;
+	
+	if(!method.isNull())
+	{
+		paramsCount = method->getParamsCount();
+		returnsCount = method->getReturnsCount();
+	}
+
+	if(previousFrame)
+	{
+		// clean previous frame
+		previousFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
+	
+		// push returns on previous frame
+		for(int32 i = returnsCount; i >= 1; i--)
+		{
+			previousFrame->stackPush(currentFrame->stackTop(-paramsCount - i - 2));
+		}
+	}
+
+	// clean current frame
+	currentFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
+
+	mRootFrame->stackPop();
+	mTopFrame = previousFrame;
 }
 
 void Thread::getIntegerClass(StackRef<Class> ret)
@@ -219,17 +321,16 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 			throw MethodNotFoundException(*klass, *klass, *selectorRef);
 		}
 	}
-
-	Method* rawmethod = *method; // ugly, TODO: on stack
-	frame->stackPop(); // pop method
+	
+	//getVM()->getDebugger()->printFrameStack(this, frame);
 
 	// call method
 	{
-		//StackRef<Object> instance(frame, frame->stackPush(NULL)); // ret
-		//klass.copy(); // receiver
-
 		StackFrame* nextFrame = openStackFrame();
-		rawmethod->call(this); // pops class
+		method->call(this); // pops class & method
+		//closeStackFrame();
+	
+		//getVM()->getDebugger()->printFrameStack(this, frame);
 
 		DBG_ASSERT(!ret.isNull(), BEER_WIDEN("No instance created"));
 

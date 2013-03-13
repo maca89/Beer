@@ -61,10 +61,10 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 
 			// 4 bytes = 32bit + referenced string
 			case BEER_INSTR_PUSH_STRING:
-			case BEER_INSTR_INVOKE:
-			case BEER_INSTR_INTERFACEINVOKE:
+			case BEER_INSTR_VIRTUAL_INVOKE:
+			case BEER_INSTR_INTERFACE_INVOKE:
 			case BEER_INSTR_STATIC_INVOKE:
-			case BEER_INSTR_SPECIALINVOKE:
+			case BEER_INSTR_SPECIAL_INVOKE:
 				format.convert(instr->getData<uint32>());
 				bytei += sizeof(uint32);
 				classFile->getDescriptor<StringDescriptor>(instr->getData<uint32>())->convert(format, classFile);

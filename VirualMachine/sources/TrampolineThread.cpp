@@ -10,24 +10,32 @@ using namespace Beer;
 
 void TrampolineThread::work()
 {
+	trampoline();
+}
+
+
+void TrampolineThread::trampoline()
+{
 	mVM->getDebugger()->started();
 		
 	while(hasStackFrame())
 	{
 		StackFrame* frame = getStackFrame();
-		Method* method = frame->method;
+		StackRef<Method> method(frame, -1);
 		
 		// return
-		if(method == NULL)
+		if(method.isNull())
 		{
 			closeStackFrame();
 			continue;
 		}
 
+		//getVM()->getDebugger()->printFrame(this, frame);
+
 		try
 		{
 		#ifdef BEER_DEBUG_MODE
-			if(mVM->getDebugger()->isEnabled()) mVM->getDebugger()->step(frame);
+			if(mVM->getDebugger()->isEnabled()) mVM->getDebugger()->step(this, frame);
 		#endif // BEER_DEBUG_MODE
 
 		//#ifdef BEER_DEBUG_MODE
@@ -44,22 +52,12 @@ void TrampolineThread::work()
 			MethodReflection* oldMethod = method;
 		#endif // BEER_MEASURE_PERFORMANCE
 
-			method = method->call(this);
+			method->call(this);
 
 		#ifdef BEER_MEASURE_PERFORMANCE
 			oldMethod->addTimeSpent(timer.stop());
 		#endif // BEER_MEASURE_PERFORMANCE
-			
-			if(method)
-			{
-				StackFrame* newFrame = openStackFrame();
-				newFrame->method = method;
-				newFrame->stack->check(method->getMaxStack());
-			}
-			else
-			{
-				closeStackFrame();
-			}
+
 		}
 		catch(Exception& ex)
 		{

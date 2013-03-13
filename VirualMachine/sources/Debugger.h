@@ -2,6 +2,7 @@
 #include "prereq.h"
 #include "Bytecode.h"
 #include "StackFrame.h"
+#include "Thread.h"
 
 
 namespace Beer
@@ -11,26 +12,25 @@ namespace Beer
 	class StackFrame;
 	class Class;
 
-	class Debugger
+	class Debugger : public Thread
 	{
 	public:
 		typedef std::list<Object*> ObjectList;
 
 	protected:
-		VirtualMachine* mVM;
 		bool mEnabled;
 		bool mStepping;
 		ObjectList mPrintedObjects;
 
 	public:
-		Debugger(VirtualMachine* vm);
+		Debugger(VirtualMachine* vm, GC* gc);
 		virtual ~Debugger();
 
 		virtual void setEnabled(bool value) { mEnabled = value; }
 		INLINE bool isEnabled() const { return mEnabled; }
 		
 		virtual void started();
-		virtual void step(StackFrame* frame);
+		virtual void step(Thread* thread, StackFrame* frame);
 		virtual void ended();
 
 		virtual void setSteppingMode(bool value) { mStepping = value; }
@@ -41,11 +41,17 @@ namespace Beer
 		virtual void printLastOutput();
 		virtual void printNativeInstruction();
 		virtual void printInstruction(const Bytecode::Instruction* instr, uint16 programCounter);
-		virtual void printObject(Object* object);
-		virtual void printCallStack(StackFrame* frame);
-		virtual void printFrame(StackFrame* frame);
+		virtual void printObject(StackRef<Object> object);
+		virtual void printCallStack(Thread* thread, StackFrame* frame);
+		virtual void printFrame(Thread* thread, StackFrame* frame);
 		virtual void printFrameStack(StackFrame* frame);
-		virtual void printStack();
+		virtual void printClassName(StackRef<Class> klass);
+		virtual void printObjectClassName(StackRef<Object> object);
+		virtual void printMethodSignature(StackRef<Method> method);
+		virtual void printCalledMethodSignature(StackFrame* frame, StackRef<Object> receiver, StackRef<Method> method);
 		virtual void printClassMethods(Class* klass);
+
+	protected:
+		virtual void work() {}
 	};
 }

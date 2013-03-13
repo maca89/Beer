@@ -9,7 +9,8 @@
 using namespace Beer;
 
 
-Debugger::Debugger(VirtualMachine* vm) : mVM(vm), mEnabled(false), mStepping(false)
+Debugger::Debugger(VirtualMachine* vm, GC* gc)
+	: mEnabled(false), mStepping(false), Thread(vm, gc)
 {
 }
 
@@ -41,26 +42,107 @@ void Debugger::printNativeInstruction()
 	cout << std::endl;
 }
 
-void Debugger::printCallStack(StackFrame* frame)
+void Debugger::printClassName(StackRef<Class> klass)
+{
+	StackFrame* frame = getStackFrame();
+
+	StackRef<String> klassName(frame, frame->stackPush());
+	Class::getName(this, klass, klassName);
+	cout << klassName->c_str();
+	frame->stackMoveTop(-1); // pop klassName
+}
+
+void Debugger::printObjectClassName(StackRef<Object> object)
+{
+	StackFrame* frame = getStackFrame();
+
+	StackRef<Class> klass(frame, frame->stackPush(
+		getClass(object)
+	));
+
+	printClassName(klass);
+	
+	frame->stackMoveTop(-1); // pop klass
+}
+
+void Debugger::printCalledMethodSignature(StackFrame* frame, StackRef<Object> receiver, StackRef<Method> method)
+{
+	cout << "method: ";
+	printObjectClassName(receiver);
+	cout << "::";
+	printMethodSignature(method);
+	
+	cout << ", vPC: " << frame->getProgramCounter() > 0 ? frame->getProgramCounter() - 1 : 0;
+
+	cout << ", receiver: ";
+	printObject(receiver);
+}
+
+void Debugger::printMethodSignature(StackRef<Method> method)
+{
+	StackFrame* frame = getStackFrame();
+
+	cout << ((String*)method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str();
+	cout << "(";
+				
+	StackRef<Param> arg(frame, frame->stackPush());
+	StackRef<String> argName(frame, frame->stackPush());
+
+	for(uint16 parami = 0; parami < method->getParamsCount(); parami++)
+	{
+		Method::getParam(this, method, arg, parami);
+		if(!arg.isNull())
+		{
+			Param::getName(this, arg, argName);
+			cout << argName->c_str();
+		}
+		else
+		{
+			cout << "?";
+		}
+		if(parami < method->getParamsCount() -1)
+		{
+			cout << ",";
+		}
+	}
+
+	frame->stackMoveTop(-2); // pop arg, argName
+
+	cout << ")";
+	
+}
+
+void Debugger::printCallStack(Thread* thread, StackFrame* frame)
 {
 	cout << "[CallStack]" << std::endl;
 
 	typedef std::vector<StackFrame*> FrameVector;
-	uint32 framesMax = 10;
+	uint32 framesMax = 5;
 	uint32 frameCounter = 0;
 	uint32 framei = 0;
-	FrameVector frames(framesMax);
-	
-	while(frame)
+	FrameVector myframes(framesMax);
+
+	StackFrame* frames = thread->getStackFrames();
+	for(framei; framei < frames->stackSize(); framei++)
 	{
+		StackFrame* otherFrame = frames->stackTop<StackFrame>(framei);
+		if(otherFrame == frame)
+		{
+			break;
+		}
+
+		// print a couple of first frames
 		if(framei < framesMax)
 		{
 			cout << std::setw(4);
 			cout << std::setfill(BEER_WIDEN(' ')) << "+" << framei << " ";
+			
+			StackRef<Method> receiver(otherFrame, -2);
+			StackRef<Method> method(otherFrame, -1);
 		
-			if(frame->method)
+			if(!method.isNull())
 			{
-				cout << frame->method << " " << ((String*)frame->method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str() << "@" << frame->vPC;// TODO: selector
+				printCalledMethodSignature(otherFrame, receiver, method);
 			}
 			else
 			{
@@ -68,14 +150,12 @@ void Debugger::printCallStack(StackFrame* frame)
 			}
 			cout << std::endl;
 		}
-
+		
 		frameCounter = (frameCounter + 1) % framesMax;
-		frames[frameCounter] = frame;
-
-		framei++;
-		frame = frame->prev;
+		myframes[frameCounter] = otherFrame;
 	}
 
+	// print a couple of last frames
 	if(framei >= framesMax)
 	{
 		cout << std::setw(4);
@@ -83,14 +163,17 @@ void Debugger::printCallStack(StackFrame* frame)
 
 		for(uint32 i = 0; i < framesMax; i++)
 		{
-			frame = frames[(frameCounter + i + 1) % framesMax];
+			StackFrame* otherFrame = myframes[(frameCounter + i + 1) % framesMax];
+			
+			StackRef<Method> receiver(otherFrame, -2);
+			StackRef<Method> method(otherFrame, -1);
 
 			cout << std::setw(4);
 			cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei - i) << " ";
 		
-			if(frame->method)
+			if(!method.isNull())
 			{
-				cout << frame->method << " " << ((String*)frame->method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str() << "@" << frame->vPC;// TODO: selector
+				printCalledMethodSignature(otherFrame, receiver, method);
 			}
 			else
 			{
@@ -99,35 +182,94 @@ void Debugger::printCallStack(StackFrame* frame)
 			cout << std::endl;
 		}
 	}
+
+	// print the last frame
+	StackRef<Method> receiver(frame, -2);
+	StackRef<Method> method(frame, -1);
+
+	cout << std::setw(4);
+	cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei) << " ";
+		
+	if(!method.isNull())
+	{
+		printCalledMethodSignature(frame, receiver, method);
+	}
+	else
+	{
+		cout << "no method";
+	}
+
 	cout << std::endl;
 }
 
-void Debugger::printObject(Object* object)
+void Debugger::printObject(StackRef<Object> object)
 {
+	StackFrame* frame = getStackFrame();
+
 	for(ObjectList::const_iterator it = mPrintedObjects.begin(); it != mPrintedObjects.end(); it++)
 	{
-		if(*it == object)
+		if(*it == *object)
 		{
 			cout << "...";
 			return;
 		}
 	}
 
-	mPrintedObjects.push_back(object);
+	mPrintedObjects.push_back(*object);
 
-	if(object == NULL) cout << "null";
+	if(object.isNull()) cout << "null";
 	else
 	{
-		// TODO
-		Class* klass = NULL; // mVM->getClass(object);
-		if(klass)
-		{
-			if(!klass->isValueType()) cout << "#" << object << " ";
+		// TODO: use Debugger stack
 
-			stringstream ss;
-			//klass->dump(object, ss); // TODO: call String()
-			ss << "*NOT IMPLEMENTED*";//klass->getName()->c_str();
-			cout << ss.str();
+		cout << "#" << *object << " ";
+
+		StackRef<Class> klass(frame, frame->stackPush(
+			getClass(object)
+		));
+
+		if(!klass.isNull())
+		{
+			//if(!klass->isValueType()) cout << "#" << *object << " ";
+
+			StackRef<Method> toStringMethod(frame, frame->stackPush());
+
+			StackRef<String> selector(frame, frame->stackPush());
+			createString(selector, BEER_WIDEN("Object::String()")); // TODO: selector in a pool
+
+			Class::findMethod(this, klass, selector, toStringMethod);
+			frame->stackMoveTop(-1); // pop selector
+
+			// there should be a method, so no check for NULL
+			if(toStringMethod.isNull())
+			{
+				cout << "*no Object::String() method*";
+				frame->stackMoveTop(-1);
+				goto end;
+			}
+
+			// call Object::String()
+			if(true)
+			{
+				StackRef<String> result(frame, frame->stackPush());
+				frame->stackPush(*object);
+				frame->stackPush(*toStringMethod);
+				openStackFrame();
+				toStringMethod->call(this);
+				//closeStackFrame(); // pops copied object, copied method
+
+				cout << result->c_str();
+
+				frame->stackMoveTop(-1); // pop result
+			}
+
+			// just print class name
+			else
+			{
+				printClassName(klass);
+			}
+
+			frame->stackMoveTop(-1); // pop toStringMethod
 
 			if(klass->getPropertiesCount() > 0)
 			{
@@ -156,23 +298,32 @@ void Debugger::printObject(Object* object)
 		}
 		else
 		{
-			cout << "#" << object << " has no class";
+			cout << "*no class*";
 		}
+
+end:
+		frame->stackMoveTop(-1); // pop class
 	}
 
 	mPrintedObjects.pop_back();
 }
 
-void Debugger::printFrame(StackFrame* frame)
+void Debugger::printFrame(Thread* thread, StackFrame* frame)
 {
-	printCallStack(frame);
+	printCallStack(thread, frame);
 	printFrameStack(frame);
 
-	if(frame->method->isBytecode())
+	StackRef<Method> method(frame, -1);
+
+	if(method.isNull())
+	{
+		cout << "[No method]" << std::endl;
+	}
+	else if(method->isBytecode())
 	{
 		//const Bytecode::Instruction* instr = frame->method->getBytecode()->getInstruction(frame->programCounter);
-		const Bytecode::Instruction* instr = reinterpret_cast<const Bytecode::Instruction*>(frame->ip);
-		printInstruction(instr, 0/*frame->programCounter*/);
+		//const Bytecode::Instruction* instr = reinterpret_cast<const Bytecode::Instruction*>(frame->getInstructionPointer());
+		//printInstruction(instr, frame->getProgramCounter());
 	}
 	else
 	{
@@ -182,57 +333,68 @@ void Debugger::printFrame(StackFrame* frame)
 
 void Debugger::printFrameStack(StackFrame* frame)
 {
-	uint32 i = 0; // TODO
-	WorkStack* stack = frame->stack;//mVM->getStack();
+	cout << "[FrameStack]" << std::endl;
 
-	cout << "[FrameStack|offset=" << frame->frameOffset << "]" << std::endl;
-
-	if(frame->frameOffset > 5)
+	StackRef<Method> method(frame, -1);
+	if(method.isNull())
 	{
-		cout << std::setw(4);
-		cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
-		i = frame->frameOffset - 5;
-	}
-
-	for(; i < stack->size(); i++)
-	{
-		Object* obj = stack->top(i);
-		int64 index = int64(i) - frame->frameOffset + 1;
-		cout << "    " << (index >= 0 ? "+" : "") << index << " ";
-		printObject(obj);
-		cout << std::endl;
-	}
-	cout << std::endl;
-}
-
-void Debugger::printStack()
-{
-	uint32 i = 0; // TODO
-	WorkStack* stack = mVM->getStack();
-
-	cout << "[Stack]" << std::endl;
-
-	// TODO
-	if(false)//mVM->hasStackFrame())
-	{
-		StackFrame* frame = NULL;//mVM->getStackFrame();
-		if(frame->frameOffset > 5)
+		for(uint32 i = 0; i < frame->stackSize(); i++)
 		{
-			cout << std::setw(4);
-			cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
-			i = frame->frameOffset - 5;
+			StackRef<Object> object(frame, frame->translate(i));
+
+			int64 index = int64(i) - frame->getFrameOffset() + 1;
+			cout << "    " << (index >= 0 ? "+" : "") << index << " ";
+			printObject(object);
+			cout << std::endl;
+		}
+	}
+	else
+	{
+		uint16 returnsCount = method->getReturnsCount();
+		uint16 argsCount = method->getParamsCount();
+
+		for(uint16 reti = returnsCount; reti >= 1; reti--)
+		{
+			StackRef<Object> object(frame, -reti - argsCount - 2);
+
+			cout << "    " << "ret" << reti << ": ";
+			printObject(object);
+			cout << std::endl;
+		}
+
+		for(uint16 argi = argsCount; argi >= 1; argi--)
+		{
+			StackRef<Object> object(frame, -argi - 2);
+
+			cout << "    " << "arg" << argi << ": ";
+			printObject(object);
+			cout << std::endl;
+		}
+		
+		StackRef<Object> receiver(frame, -2);
+		cout << "    " << "receiver" << ": ";
+		printObject(receiver);
+		cout << std::endl;
+
+		cout << "    " << "method" << ": ";
+		printObject(method);
+		cout << std::endl;
+
+		uint32 vari = 0;
+		for(uint32 i = returnsCount + argsCount + 2; i < frame->stackSize(); i++)
+		{
+			StackRef<Method> object(frame, frame->translate(i));
+
+			int64 index = int64(i) - frame->getFrameOffset() + 1;
+			cout << "    var" << vari << ": ";
+			printObject(object);
+			cout << std::endl;
+			vari++;
 		}
 	}
 
-	for(; i < stack->size(); i++)
-	{
-		Object* obj = stack->top(i);
-		cout << std::setw(4);
-		cout << std::setfill(BEER_WIDEN(' ')) << "+" << i << " ";
-		printObject(obj);
-		cout << std::endl;
-	}
-	cout << std::endl;
+
+	//cout << std::endl;
 }
 
 void Debugger::printClassMethods(Class* klass)
@@ -260,7 +422,7 @@ void Debugger::ended()
 	if(!isEnabled()) return;
 }
 
-void Debugger::step(StackFrame* frame)
+void Debugger::step(Thread* thread, StackFrame* frame)
 {
 	if(!isEnabled()) return;
 	if(isStepping()) system("CLS");
@@ -268,7 +430,7 @@ void Debugger::step(StackFrame* frame)
 	cout << std::endl << "--------- STEP ---------" << std::endl;
 	printLastOutput();
 	//mVM->getHeap()->collect();
-	printFrame(frame);
+	printFrame(thread, frame);
 
 	if(isStepping())
 	{
@@ -283,7 +445,7 @@ bool Debugger::catchException(Thread* thread, StackFrame* frame, const Exception
 {
 	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();
-	printFrame(frame);
+	printFrame(thread, frame);
 
 	if(ex.getName().compare(BEER_WIDEN("MethodNotFoundException")) == 0) // TODO: better
 	{

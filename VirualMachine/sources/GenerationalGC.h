@@ -4,6 +4,7 @@
 #include "NurseryGC.h"
 #include "StackFrame.h"
 #include "Object.h"
+#include "StackRef.h"
 #include "RememeberdSet.h"
 #include "ForwardPointer.h"
 #include "DynamicHeap.h"
@@ -95,31 +96,25 @@ namespace Beer
 			return mReferencesNext++;
 		}
 
-		INLINE Object* getChild(Object* obj, int64 index)
+		INLINE void getChild(StackRef<Object> receiver, StackRef<Object> ret, int64 index)
 		{
-			if (obj->getTypeFlag() == Object::TYPE_FWD_PTR)
+			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
+
+			if (receiver->getTypeFlag() == Object::TYPE_FWD_PTR)
 			{
-				static_cast<ForwardPointer*>(obj)->getObject()->mChildren[index];
+				ret = static_cast<ForwardPointer*>(*receiver)->getObject()->mChildren[index];
 			}
 			else
 			{
-				return obj->mChildren[index];
+				ret = receiver->mChildren[index];
 			}
 		}
 
-		INLINE void pushChild(StackFrame* stack, int64 index)
+		INLINE void setChild(StackRef<Object> receiver, StackRef<Object> child, int64 index)
 		{
-			Object* obj = stack->stackTop();
-			stack->stackPop();
-			stack->stackPush(obj->mChildren[index]);
-		}
-
-		INLINE void setChild(StackFrame* stack, int64 index)
-		{
-			Object* child = stack->stack->top(0);
-			Object* obj = stack->stack->top(-1);
-			obj->mChildren[index] = child;
-			stack->stackMoveTop(-2);
+			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
+			
+			receiver->mChildren[index] = *child;
 
 			AlignedHeap* heap = mNurseryGC->getAllocHeap();
 
