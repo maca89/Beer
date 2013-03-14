@@ -130,14 +130,14 @@ void Thread::getObjectClass(StackRef<Class> ret)
 	ret = mVM->getObjectClass();
 }
 
-void Thread::getIntegerClass(StackRef<Class> ret)
+void Thread::_getIntegerClass(StackRef<Class> ret)
 {
-	ret = mVM->getIntegerClass();
+	ret = mVM->_getIntegerClass();
 }
 
-void Thread::getFloatClass(StackRef<Class> ret)
+void Thread::_getFloatClass(StackRef<Class> ret)
 {
-	ret = mVM->getFloatClass();
+	ret = mVM->_getFloatClass();
 }
 
 void Thread::getStringClass(StackRef<Class> ret)
@@ -155,13 +155,14 @@ void Thread::getPairClass(StackRef<Class> ret)
 	ret = mVM->getPairClass();
 }
 
-void Thread::getClass(StackRef<String> name, StackRef<Class> ret)
+void Thread::findClass(StackRef<String> name, StackRef<Class> ret)
 {
-	ret = mVM->getClass(name);
+	ret = mVM->findClass(name);
 }
 
-void Thread::getMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
+void Thread::findClass(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
 {
+	// TODO: global polymorphic cache
 	Class::findMethod(this, klass, selector, ret);
 }
 
@@ -177,7 +178,7 @@ void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
 	else
 	{
 		StackRef<Class> integerClass(frame, frame->stackPush(NULL));
-		getIntegerClass(integerClass);
+		_getIntegerClass(integerClass);
 
 		staticCreateObject(integerClass, ret, sizeof(Integer));
 		frame->stackMoveTop(-1); // pop integerClass
@@ -192,7 +193,7 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 	BEER_STACK_CHECK();
 
 	StackRef<Class> floatClass(frame, frame->stackPush());
-	getFloatClass(floatClass);
+	_getFloatClass(floatClass);
 
 	floatClass.push(frame);
 
@@ -336,12 +337,12 @@ void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int
 	getFrame()->stackMoveTop(-1); // pop propertiesCount
 }
 
-Class* Thread::getClass(const StackRef<Object>& object)
+Class* Thread::getType(StackRef<Object> object)
 {
 	return mVM->getClassTable()->translate(this, object);
 }
 
-void Thread::getClass(StackRef<Object> object, StackRef<Class> ret)
+void Thread::getType(StackRef<Object> object, StackRef<Class> ret)
 {
 	mVM->getClassTable()->translate(this, object, ret);
 }

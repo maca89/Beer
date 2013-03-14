@@ -24,10 +24,7 @@ namespace Beer
 
 	protected:
 		VirtualMachine* mVM;
-		GC* mGC;
-		//Frame* mLastFrame;
-		//WorkStack mStack;
-		//FramesStack mFrames;
+		GC* mGC;  // is it needed?
 		Frame* mRootFrame;
 		Frame* mTopFrame;
 		Heap* mHeap;
@@ -50,8 +47,9 @@ namespace Beer
 		INLINE VirtualMachine* getVM() { return mVM; }
 
 		INLINE GC* getGC() { return mGC; } // does every thread need GC?
-
+		
 		INLINE Heap* getHeap() { return mHeap; }
+		INLINE Heap* getPermanentHeap() { return mGC->getPermanentHeap(); }
 
 		// TODO: move all Frames to Task
 		INLINE Frame* getFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
@@ -63,14 +61,14 @@ namespace Beer
 		INLINE Frame* getFrames() { return mRootFrame; }
 
 		void getObjectClass(StackRef<Class> ret);
-		void getIntegerClass(StackRef<Class> ret);
-		void getFloatClass(StackRef<Class> ret);
+		void _getIntegerClass(StackRef<Class> ret); // deprecated
+		void _getFloatClass(StackRef<Class> ret); // deprecated
 		void getStringClass(StackRef<Class> ret);
 		void getArrayClass(StackRef<Class> ret);
 		void getPairClass(StackRef<Class> ret);
 
-		void getClass(StackRef<String> name, StackRef<Class> ret);
-		void getMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> method);
+		void findClass(StackRef<String> name, StackRef<Class> ret);
+		void findClass(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
 
 		void createInteger(StackRef<Integer> ret, Integer::IntegerData value);
 		void createFloat(StackRef<Float> ret, Float::FloatData value);
@@ -81,8 +79,8 @@ namespace Beer
 		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
 		
 		
-		Class* getClass(const StackRef<Object>& object); // deprecated
-		void getClass(StackRef<Object> object, StackRef<Class> ret);
+		Class* getType(StackRef<Object> object); // deprecated
+		void getType(StackRef<Object> object, StackRef<Class> ret);
 
 		void init();
 

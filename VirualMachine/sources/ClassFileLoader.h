@@ -4,7 +4,7 @@
 
 namespace Beer
 {
-	class VirtualMachine;
+	class Thread;
 	class ClassFileDescriptor;
 	class ClassDescriptor;
 
@@ -16,7 +16,7 @@ namespace Beer
 		virtual ClassFileDescriptor* loadClassFile(byte* data, uint32 dataLength) = 0;
 		virtual void printClassFile(ClassFileDescriptor* classFile) = 0;
 
-		virtual void loadClasses(VirtualMachine* vm, ClassFileDescriptor* classFile) = 0;
-		virtual void loadClass(VirtualMachine* vm, ClassFileDescriptor* classFile, ClassDescriptor* classDescr) = 0;
+		virtual void loadClasses(Thread* thread, ClassFileDescriptor* classFile) = 0;
+		virtual void loadClass(Thread* thread, ClassFileDescriptor* classFile, ClassDescriptor* classDescr) = 0;
 	};
 };

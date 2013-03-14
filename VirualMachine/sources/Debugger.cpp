@@ -30,7 +30,7 @@ void Debugger::printInstruction(const Bytecode::Instruction* instr, uint16 progr
 	cout /*<< std::endl*/ << BEER_WIDEN("[Instruction]") << std::endl;
 	cout << std::setw(4);
 	cout << std::setfill(BEER_WIDEN(' ')) << BEER_WIDEN("+") << programCounter << BEER_WIDEN(" ");
-	instr->printTranslated(mVM);
+	instr->printTranslated(this);
 	cout << std::endl;
 }
 
@@ -59,7 +59,7 @@ void Debugger::printObjectClassName(StackRef<Object> object)
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush(
-		getClass(object)
+		getType(object)
 	));
 
 	printClassName(klass);
@@ -229,7 +229,7 @@ void Debugger::printObject(StackRef<Object> object)
 		cout << "#" << *object << " ";
 
 		StackRef<Class> klass(frame, frame->stackPush(
-			getClass(object)
+			getType(object)
 		));
 
 		if(!klass.isNull())
@@ -477,7 +477,7 @@ bool Debugger::catchException(Thread* thread, Frame* frame, const Exception& ex)
 		NULL_ASSERT(*receiver); // TODO
 
 		StackRef<Class> klass(myframe, myframe->stackPush());
-		getClass(receiver, klass);
+		getType(receiver, klass);
 
 		printClassMethods(klass);
 		

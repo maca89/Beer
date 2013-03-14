@@ -9,35 +9,6 @@
 using namespace Beer;
 
 
-void Array::toString(Thread* thread, string& out)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Object> object(frame, frame->stackPush());
-	StackRef<Integer> index(frame, frame->stackPush());
-	StackRef<Array> receiver(frame, frame->stackPush(this));
-
-	out += BEER_WIDEN("[");
-	for(int32 i = 0; i < getSize(); i++)
-	{
-		thread->createInteger(index, i);
-		Array::operatorGet(thread, receiver, index, object);
-		if(!object.isNull())
-		{
-			stringstream n;
-			n << object.staticCast<Integer>()->getData(); // TODO: call Object::String()
-			out += n.str();
-		}
-		else out += BEER_WIDEN("0");
-
-		if(i < getSize() - 1) out += BEER_WIDEN(", ");
-	}
-	out += BEER_WIDEN("]");
-
-	frame->stackMoveTop(-3); // pop object & index & receiver
-}
-
 void BEER_CALL Array::init(Thread* thread, StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret)
 {
 	Frame* frame = thread->getFrame();
@@ -87,6 +58,40 @@ void BEER_CALL Array::operatorSet(Thread* thread, StackRef<Array> receiver, Stac
 	Object::setChild(thread, receiver, object, OBJECT_CHILDREN_COUNT + itemIndex);
 }
 
+void BEER_CALL Array::operatorString(Thread* thread, StackRef<Array> receiver, StackRef<String> ret)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Object> object(frame, frame->stackPush());
+	StackRef<Integer> index(frame, frame->stackPush());
+	StackRef<Integer> length(frame, frame->stackPush());
+
+	Array::getLength(thread, receiver, length);
+
+	string out = BEER_WIDEN("["); // TODO: use String*
+	
+	for(int32 i = 0; i < length->getData(); i++)
+	{
+		thread->createInteger(index, i);
+		Array::operatorGet(thread, receiver, index, object);
+		if(!object.isNull())
+		{
+			stringstream n;
+			n << object.staticCast<Integer>()->getData(); // TODO: call Object::String()
+			out += n.str();
+		}
+		else out += BEER_WIDEN("0");
+
+		if(i < length->getData() - 1) out += BEER_WIDEN(", ");
+	}
+	out += BEER_WIDEN("]");
+
+	thread->createString(ret, out);
+
+	frame->stackMoveTop(-3); // pop object, index, length
+}
+
 void BEER_CALL Array::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Array> ret)
 {
 	Frame* frame = thread->getFrame();
@@ -103,7 +108,7 @@ void BEER_CALL Array::createInstance(Thread* thread, StackRef<Class> receiver, S
 
 void ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	loader->createClass<Class>(thread, name, ret, 1, 0, 5);
+	loader->createClass<Class>(thread, name, ret, 1, 0, 6);
 }
 
 void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
@@ -114,13 +119,14 @@ void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stack
 	{
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
-		loader->extendClass(klass, objectClass);
+		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
 	
-	loader->addMethod(klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);
-	loader->addMethod(klass, BEER_WIDEN("getLength"), BEER_WIDEN("Array::getLength()"), &Array::getLength, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("get"), BEER_WIDEN("Array::get(Integer)"), &Array::operatorGet, 1, 1);
-	loader->addMethod(klass, BEER_WIDEN("set"), BEER_WIDEN("Array::set(Integer,Integer)"), &Array::operatorSet, 0, 2);
-	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Array::createInstance, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("getLength"), BEER_WIDEN("Array::getLength()"), &Array::getLength, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("get"), BEER_WIDEN("Array::get(Integer)"), &Array::operatorGet, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("set"), BEER_WIDEN("Array::set(Integer,Integer)"), &Array::operatorSet, 0, 2);
+	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Array::String()"), &Array::operatorString, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Array::createInstance, 1, 0);
 }

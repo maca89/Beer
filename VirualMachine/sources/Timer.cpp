@@ -56,12 +56,12 @@ void TimerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stack
 	{
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
-		loader->extendClass(klass, objectClass);
+		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
 
-	loader->addMethod(klass, BEER_WIDEN("Timer"), BEER_WIDEN("Timer::Timer()"), &Timer::init, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("start"), BEER_WIDEN("Timer::start()"), &Timer::start, 0, 0);
-	loader->addMethod(klass, BEER_WIDEN("stop"), BEER_WIDEN("Timer::stop()"), &Timer::stop, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Timer::createInstance, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Timer"), BEER_WIDEN("Timer::Timer()"), &Timer::init, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("start"), BEER_WIDEN("Timer::start()"), &Timer::start, 0, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("stop"), BEER_WIDEN("Timer::stop()"), &Timer::stop, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Timer::createInstance, 1, 0);
 }

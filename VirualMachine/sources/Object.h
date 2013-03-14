@@ -78,6 +78,7 @@ namespace Beer
 		static void BEER_CALL init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);
 		static void BEER_CALL operatorString(Thread* thread, StackRef<Object> receiver, StackRef<String> ret);
 
+		// TODO: rename to getType, now it is confused with other methods
 		static void BEER_CALL setClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> param);
 		static void BEER_CALL getClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);
 

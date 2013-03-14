@@ -3,6 +3,7 @@ native class Array
   interface
   {
     Array(Integer length);
+    String;
     
     Integer getLength();
     

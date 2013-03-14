@@ -63,10 +63,12 @@ namespace Beer
 		void addClass(Class* reflection);
 		//void removeClass(ClassReflection* reflection);
 		//bool hasClass(string name) const;
-		Class* getClass(StackRef<String> name);
 
 		// deprecated, TODO: get rid of
-		Class* getClass(string name);
+		Class* findClass(StackRef<String> name);
+
+		// deprecated, TODO: get rid of
+		Class* findClass(string name);
 
 		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
@@ -79,23 +81,18 @@ namespace Beer
 		void init(uint32 stackInitSize);
 		void destroy();
 
-		// TODO: get rid of these
+		// deprecated, TODO: get rid of these
 		String* createString(const string& s);
 		Pair* createPair(Object* first, Object* second);
 		
 		INLINE Class* getMetaClass() { return mMetaClass; }
 		INLINE Class* getObjectClass() { return mObjectClass; }
-		INLINE Class* getFloatClass() { return mFloatClass; }
-		INLINE Class* getIntegerClass() { return mIntegerClass; }
+		INLINE Class* _getFloatClass() { return mFloatClass; }
+		INLINE Class* _getIntegerClass() { return mIntegerClass; }
 		INLINE Class* getBooleanClass() { return mBooleanClass; }
 		INLINE Class* getStringClass() { return mStringClass; }
 		INLINE Class* getArrayClass() { return mArrayClass; }
-		INLINE Class* getPairClass() { return getClass(BEER_WIDEN("Pair")); }
-
-		template <typename T>
-		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }
-
-		//void createInstance(Frame* frame, Class* klass); // pushes onto stack
+		INLINE Class* getPairClass() { return findClass(BEER_WIDEN("Pair")); }
 
 	protected:
 		// Thread

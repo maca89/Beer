@@ -178,7 +178,7 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 	return size;
 }
 
-void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
+void Bytecode::Instruction::printTranslated(Thread* thread) const
 {
 	switch (opcode)
 	{
@@ -232,7 +232,7 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case BEER_INSTR_PUSH_STRING:
 		{
-			Reference<String> str(vm->getGC(), getData<uint32>());
+			Reference<String> str(thread->getGC(), getData<uint32>());
 			cout << "PUSH_STRING \"" << str->c_str() << "\"";
 		}
 		break;
@@ -248,11 +248,13 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case BEER_INSTR_NEW: // ugly, TODO
 		{
-			Frame* frame = vm->getFrame();
+			Frame* frame = thread->getFrame();
+			BEER_STACK_CHECK();
+
 			StackRef<Class> klass(frame, frame->stackPush(static_cast<Class*>(reinterpret_cast<Object*>(getData<uint32>()))));
 			StackRef<String> name(frame, frame->stackPush());
 
-			Class::getName(vm, klass, name);
+			Class::getName(thread, klass, name);
 
 			cout << "NEW " << name->c_str();
 
@@ -278,28 +280,28 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 	case BEER_INSTR_VIRTUAL_INVOKE:
 		{
-			Reference<String> selector(vm->getGC(), getData<uint32>());
+			Reference<String> selector(thread->getGC(), getData<uint32>());
 			cout << "INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_INTERFACE_INVOKE:
 		{
-			Reference<String> selector(vm->getGC(), getData<uint32>());
+			Reference<String> selector(thread->getGC(), getData<uint32>());
 			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_STATIC_INVOKE:
 		{
-			Reference<String> selector(vm->getGC(), getData<uint32>());
+			Reference<String> selector(thread->getGC(), getData<uint32>());
 			cout << "STATIC_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_SPECIAL_INVOKE:
 		{
-			Reference<String> selector(vm->getGC(), getData<uint32>());
+			Reference<String> selector(thread->getGC(), getData<uint32>());
 			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
@@ -394,9 +396,8 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 	}
 }
 
-void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* classFile)
+void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classFile)
 {
-	Thread* thread = (Thread*)vm; // TODO: pass as argument
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
@@ -485,7 +486,7 @@ void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* cl
 					BEER_BC_SAVE_OPCODE(opcode);
 					// TODO!!!
 					const char16* cstring = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> string = String::gTranslate(vm, cstring);
+					Reference<String> string = String::gTranslate(thread, cstring);
 					builder.add((int32)string.getId());
 				}
 				break;
@@ -506,10 +507,10 @@ void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* cl
 						StackRef<Class> klass(frame, frame->stackPush());
 
 						StackRef<String> name(frame, frame->stackPush(
-							*String::gTranslate(vm, cstring)
+							*String::gTranslate(thread, cstring)
 						));
 
-						thread->getClass(name, klass);
+						thread->findClass(name, klass);
 
 						builder.add((Object*)*klass); // TODO: pass Reference
 						frame->stackMoveTop(-2); // pop name, klass
@@ -522,9 +523,9 @@ void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* cl
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> selector = String::gTranslate(vm, cselector);
+					Reference<String> selector = String::gTranslate(thread, cselector);
 #ifdef BEER_INLINE_OPTIMALIZATION
-					Bytecode::OpCode newOpcode = vm->getInlineFunctionTable()->find(selector.get());
+					Bytecode::OpCode newOpcode = thread->getVM()->getInlineFunctionTable()->find(selector.get());
 					if(newOpcode != BEER_INSTR_NOP)
 					{
 						BEER_BC_SAVE_OPCODE(newOpcode);
@@ -550,7 +551,7 @@ void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* cl
 					BEER_BC_SAVE_OPCODE(opcode);
 
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> selector = String::gTranslate(vm, cselector);
+					Reference<String> selector = String::gTranslate(thread, cselector);
 					builder.add((int32)selector.getId());
 					
 					PolymorphicInlineCache* cache = PolymorphicInlineCache::from(builder.alloc(PolymorphicInlineCache::countSize(mMethodCachesLength)));
@@ -841,7 +842,7 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 
 		// find method using inline cache
 		MonomorphicInlineCache* cache = MonomorphicInlineCache::from(ip + sizeof(int32));
-		Class* klass = thread->getClass(object);
+		Class* klass = thread->getType(object);
 		Method* method = cache->find(thread, klass, *selector);
 
 		// lookup failed
@@ -870,13 +871,13 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 
 		// find method using inline cache
 		PolymorphicInlineCache* cache = PolymorphicInlineCache::from(ip + sizeof(int32));
-		Class* klass = thread->getClass(object); // TODO
+		Class* klass = thread->getType(object); // TODO
 		Method* method = cache->find(thread, klass, selector.get(), mMethodCachesLength);
 
 		// lookup failed
 		if(!method)
 		{
-			throw MethodNotFoundException(*object, thread->getClass(object), *selector);
+			throw MethodNotFoundException(*object, klass, *selector);
 		}
 
 		frame->stackPush(method);

@@ -57,18 +57,18 @@ void CharacterClassInitializer::initClass(Thread* thread, ClassLoader* loader, S
 	{
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
-		loader->extendClass(klass, objectClass);
+		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
 
 	klass->markAsValueType();
 	
-	loader->addMethod(klass, BEER_WIDEN("Character"), BEER_WIDEN("Character::Character()"), &Character::init, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("String"), BEER_WIDEN("Character::String()"), &Character::operatorString, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("Integer"), BEER_WIDEN("Character::Integer()"), &Character::operatorInteger, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("Character::Character()"), &Character::init, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Character::String()"), &Character::operatorString, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Character::Integer()"), &Character::operatorInteger, 1, 0);
 
-	loader->addMethod(klass, BEER_WIDEN("=="), BEER_WIDEN("Character::==(Character)"), &Character::operatorEqual, 1, 1);
-	loader->addMethod(klass, BEER_WIDEN("!="), BEER_WIDEN("Character::!=(Character)"), &Character::operatorNotEqual, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Character::==(Character)"), &Character::operatorEqual, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Character::!=(Character)"), &Character::operatorNotEqual, 1, 1);
 
-	loader->addMethod(klass, BEER_WIDEN("Character"), BEER_WIDEN("$Class::createInstance()"), &Character::createInstance, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("$Class::createInstance()"), &Character::createInstance, 1, 0);
 }

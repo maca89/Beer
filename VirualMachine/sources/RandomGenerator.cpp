@@ -84,19 +84,19 @@ void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loa
 	{
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
-		loader->extendClass(klass, objectClass);
+		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
 	
-	loader->addMethod(klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator(Integer)"), &RandomGenerator::initInteger, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator(Integer)"), &RandomGenerator::initInteger, 1, 1);
 
-	loader->addMethod(klass, BEER_WIDEN("Integer"), BEER_WIDEN("RandomGenerator::Integer()"), &RandomGenerator::operatorInteger, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("Boolean"), BEER_WIDEN("RandomGenerator::Boolean()"), &RandomGenerator::operatorBoolean, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("Float"), BEER_WIDEN("RandomGenerator::Float()"), &RandomGenerator::operatorFloat, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("Character"), BEER_WIDEN("RandomGenerator::Character()"), &RandomGenerator::operatorCharacter, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("RandomGenerator::Integer()"), &RandomGenerator::operatorInteger, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Boolean"), BEER_WIDEN("RandomGenerator::Boolean()"), &RandomGenerator::operatorBoolean, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("RandomGenerator::Float()"), &RandomGenerator::operatorFloat, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("RandomGenerator::Character()"), &RandomGenerator::operatorCharacter, 1, 0);
 
-	loader->addMethod(klass, BEER_WIDEN("toss"), BEER_WIDEN("RandomGenerator::toss(Float)"), &RandomGenerator::toss, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("toss"), BEER_WIDEN("RandomGenerator::toss(Float)"), &RandomGenerator::toss, 1, 1);
 
-	loader->addMethod(klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &RandomGenerator::createInstance, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &RandomGenerator::createInstance, 1, 0);
 }

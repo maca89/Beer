@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "MyClassFileLoader.h"
 
+#include "Thread.h"
 #include "VirtualMachine.h"
 #include "ClassLoader.h"
 #include "LoadedObject.h"
@@ -139,21 +140,20 @@ void MyClassFileLoader::printClassFile(ClassFileDescriptor* classFile)
 	}
 }
 
-void MyClassFileLoader::loadClass(VirtualMachine* vm, ClassFileDescriptor* classFile, ClassDescriptor* classDescr)
+void MyClassFileLoader::loadClass(Thread* thread, ClassFileDescriptor* classFile, ClassDescriptor* classDescr)
 {
-	ClassLoader* loader = vm->getClassLoader();
+	ClassLoader* loader = thread->getVM()->getClassLoader();
 	const char16* name_narrow = classDescr->getName(classFile)->c_str();
-	Reference<String> name = String::gTranslate(vm, name_narrow);
+	Reference<String> name = String::gTranslate(thread, name_narrow);
 
 	loader->addClassInitializer(
-		name.translate(vm->getGC())->c_str(), 
+		name.translate(thread->getGC())->c_str(), 
 		new LoadedObjectInitializer(classFile, classDescr)
 	);
 }
 		
-void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* classFile)
+void MyClassFileLoader::loadClasses(Thread* thread, ClassFileDescriptor* classFile)
 {
-	Thread* thread = (Thread*)vm; // TODO: pass as argument
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
@@ -163,7 +163,7 @@ void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* cla
 	{
 		ClassDescriptor* classDescr = classFile->getDescriptor<ClassDescriptor>(classFile->getClassId(classFile->getExternalClassesLength() + classi));
 		const StringDescriptor* classNameDescr = classDescr->getName(classFile);
-		loadClass(vm, classFile, classDescr); // lazy load because of parents and interfaces
+		loadClass(thread, classFile, classDescr); // lazy load because of parents and interfaces
 	}
 
 	for(uint16 classi = 0; classi < classFile->getDefinedClassesLength(); classi++)
@@ -173,10 +173,10 @@ void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* cla
 		const char16* cclassName = classNameDescr->c_str();
 
 		StackRef<String> className(frame, frame->stackPush(
-			*String::gTranslate(vm, cclassName)
+			*String::gTranslate(thread, cclassName)
 		));
 
-		vm->getClass(className); // actual load
+		thread->getVM()->findClass(className); // actual load, TODO
 
 		frame->stackMoveTop(-1); // pop className
 	}

@@ -42,14 +42,14 @@ namespace Beer
 			mItemClass = klass;
 		}
 
-		NOINLINE void toString(Thread* thread, string& out);
-
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Array> ret);
 
 		static void BEER_CALL init(Thread* thread, StackRef<Array> receiver, StackRef<Integer> length, StackRef<Array> ret);
 		static void BEER_CALL getLength(Thread* thread, StackRef<Array> receiver, StackRef<Integer> ret);
 		static void BEER_CALL operatorGet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> ret);
 		static void BEER_CALL operatorSet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object);
+
+		static void BEER_CALL operatorString(Thread* thread, StackRef<Array> receiver, StackRef<String> ret);
 	};
 
 	class ArrayClassInitializer : public ClassInitializer

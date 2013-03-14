@@ -125,7 +125,7 @@ namespace Beer
 			// print
 
 			NOINLINE uint16 printRaw(const ClassFileDescriptor* classFile) const; // returns size of the whole instruction
-			NOINLINE void printTranslated(VirtualMachine* vm) const;
+			NOINLINE void printTranslated(Thread* thread) const;
 		};
 		#pragma pack(pop)
 
@@ -156,7 +156,7 @@ namespace Beer
 		}
 
 		void call(Thread* thread);
-		void build(VirtualMachine* vm, Method* method, ClassFileDescriptor* classFile);
+		void build(Thread* thread, Method* method, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }
 		INLINE Instruction* getInstruction(uint16 instri) { return reinterpret_cast<Instruction*>(&mData[mDict[instri]]); }

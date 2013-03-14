@@ -70,7 +70,7 @@ bool VirtualMachine::hasClass(string name) const
 	return (mClasses.find(name) != mClasses.end()) || mClassLoader->canLoadClass(name);
 }*/
 	
-Class* VirtualMachine::getClass(StackRef<String> name)
+Class* VirtualMachine::findClass(StackRef<String> name)
 {
 	ClassReflectionTable::iterator it = mClasses.find(name->c_str()); // TODO
 	if(it != mClasses.end()) return mClasses.find(name->c_str())->second; // TODO
@@ -91,7 +91,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 	mDebugger = new Debugger(this, mGC);
 	mDebugger->init();
 
-	mClassLoader = new ClassLoader(this, mHeap);
+	mClassLoader = new ClassLoader(); 
 
 	Bytecode::init(this);
 
@@ -159,8 +159,8 @@ void VirtualMachine::init(uint32 stackInitSize)
 			mClassLoader->createClass<Class>(this, objectClassName, objectClass, 1, 0, 6); // extends Object, has 6 methods
 
 			// fix references
-			mClassLoader->extendClass(metaClass.staticCast<Class>(), objectClass);
-			mClassLoader->extendClass(objectClass, objectClass);
+			Class::addParent(this, metaClass.staticCast<Class>(), objectClass);
+			Class::addParent(this, objectClass, objectClass);
 
 			mObjectClass = *objectClass;
 		}
@@ -192,13 +192,13 @@ void VirtualMachine::init(uint32 stackInitSize)
 		}
 
 		// fix metaclass methods
-		mClassLoader->addMethod(metaClass.staticCast<Class>(), BEER_WIDEN("MetaClass"), BEER_WIDEN("MetaClass::MetaClass()"), &MetaClass::init, 1, 0);
+		mClassLoader->addMethod(this, metaClass.staticCast<Class>(), BEER_WIDEN("MetaClass"), BEER_WIDEN("MetaClass::MetaClass()"), &MetaClass::init, 1, 0);
 		//mClassLoader->addMethod(*(metaClass.staticCast<Class>()), BEER_WIDEN("findMethod"), BEER_WIDEN("Class::findMethod(String)"), &MetaClass::findMethod, 1, 1);
 
 		// default Object methods
-		mClassLoader->addMethod(objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
-		mClassLoader->addMethod(objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
-		mClassLoader->addMethod(objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
+		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
+		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
+		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
 
 
 		frame->stackMoveTop(-6); // clean
@@ -207,17 +207,17 @@ void VirtualMachine::init(uint32 stackInitSize)
 	}
 
 	// preloading of some classes
-	mFloatClass = getClass(BEER_WIDEN("Float"));
-	mBooleanClass = getClass(BEER_WIDEN("Boolean"));
-	mIntegerClass = getClass(BEER_WIDEN("Integer"));
-	mArrayClass = getClass(BEER_WIDEN("Array"));
-	//mTaskClass = getClass(BEER_WIDEN("Task"));
+	mFloatClass = findClass(BEER_WIDEN("Float"));
+	mBooleanClass = findClass(BEER_WIDEN("Boolean"));
+	mIntegerClass = findClass(BEER_WIDEN("Integer"));
+	mArrayClass = findClass(BEER_WIDEN("Array"));
+	//mTaskClass = findClass(BEER_WIDEN("Task"));
 
 	// !!! the order is important !!!
 	////////////////////////////////////////////////////// xxxxxxx0 // Object
 	getClassTable()->add(mIntegerClass);							// xxxxxx01 // Integer
 	getClassTable()->add(mBooleanClass);							// xxxx0011 // Boolean
-	getClassTable()->add(getClass(BEER_WIDEN("Character")));		// xxxx0111 // Character
+	getClassTable()->add(findClass(BEER_WIDEN("Character")));		// xxxx0111 // Character
 	
 	// other
 #ifdef BEER_INLINE_OPTIMALIZATION
@@ -237,7 +237,7 @@ void VirtualMachine::destroy()
 void VirtualMachine::work()
 {
 	Frame* frame = getFrame();
-	StackRef<Class> entryPointClass(frame, frame->stackPush(getClass(BEER_WIDEN("EntryPoint")))); // TODO
+	StackRef<Class> entryPointClass(frame, frame->stackPush(findClass(BEER_WIDEN("EntryPoint")))); // TODO
 
 	if(entryPointClass.isNull())
 	{
@@ -257,7 +257,7 @@ void VirtualMachine::work()
 			frame->stackMoveTop(-1); // pop tmp
 		}
 
-		/*{
+		if(false){
 			StackRef<String> klassName(frame, frame->stackPush());
 			Class::getName(this, klass, klassName);
 			cout << klassName->c_str() << "\n";
@@ -277,7 +277,7 @@ void VirtualMachine::work()
 			}
 
 			frame->stackMoveTop(-1); // pop klassName
-		}*/
+		}
 
 		if(klass.get() != entryPointClass.get() && substituable)  // TODO
 		{
@@ -298,7 +298,7 @@ void VirtualMachine::work()
 
 					if(method.isNull())
 					{
-						throw MethodNotFoundException(*klass, ((Thread*)this)->getClass(klass), *selector); // TODO
+						throw MethodNotFoundException(*klass, ((Thread*)this)->getType(klass), *selector); // TODO
 					}
 
 					frame->stackMoveTop(-1); // pop selector
@@ -448,7 +448,7 @@ Pair* VirtualMachine::createPair(Object* first, Object* second)
 	return p;
 }
 
-Class* VirtualMachine::getClass(string name)
+Class* VirtualMachine::findClass(string name)
 {
 	Frame* frame = getFrame();
 	BEER_STACK_CHECK();
@@ -456,7 +456,7 @@ Class* VirtualMachine::getClass(string name)
 	StackRef<String> nameOnStack(frame, frame->stackPush());
 	((Thread*)this)->createString(nameOnStack, name);
 	
-	Class* c = getClass(nameOnStack);
+	Class* c = findClass(nameOnStack);
 	frame->stackMoveTop(-1); // pop nameOnStack
 	return c;
 }

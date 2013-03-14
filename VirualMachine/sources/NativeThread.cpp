@@ -9,7 +9,7 @@ NativeThread::NativeThread()
 {
 	mHandle = CreateThread(
 		NULL,
-		4*1024, // 4KB is default page size, smaller value is useless
+		4*1024, // 4KB is default page size, however the real (kernel) stack may be up to 64KB
 		&staticWork,
 		this,
 		CREATE_SUSPENDED,

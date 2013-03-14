@@ -67,18 +67,29 @@ void BEER_CALL Console::printlnBoolean(Thread* thread, StackRef<Console> receive
 
 void BEER_CALL Console::printArray(Thread* thread, StackRef<Console> receiver, StackRef<Array> arg)
 {
-	// TODO
-	string str;
-	arg->toString(thread->getVM(), str);
-	Console::getOutput() << str;
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<String> serialisedArray(frame, frame->stackPush());
+	Array::operatorString(thread, arg, serialisedArray);
+
+	Console::printString(thread, receiver, serialisedArray);
+
+	frame->stackMoveTop(-1); // pop serialisedArray
 }
 
 void BEER_CALL Console::printlnArray(Thread* thread, StackRef<Console> receiver, StackRef<Array> arg)
 {
-	// TODO
-	string str;
-	arg->toString(thread->getVM(), str);
-	Console::getOutput() << str << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<String> serialisedArray(frame, frame->stackPush());
+	Array::operatorString(thread, arg, serialisedArray);
+
+	Console::printString(thread, receiver, serialisedArray);
+	Console::getOutput() << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
+	
+	frame->stackMoveTop(-1); // pop serialisedArray
 }
 
 void BEER_CALL Console::readInteger(Thread* thread, StackRef<Console> receiver, StackRef<Integer> ret)
@@ -150,30 +161,30 @@ void ConsoleClassInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 	{
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
-		loader->extendClass(klass, objectClass);
+		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
 	
-	loader->addMethod(klass, BEER_WIDEN("Console"), BEER_WIDEN("Console::Console()"), &Console::init, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Console"), BEER_WIDEN("Console::Console()"), &Console::init, 1, 0);
 
-	loader->addMethod(klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println()"), &Console::println, 0, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println()"), &Console::println, 0, 0);
 
-	loader->addMethod(klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Integer)"),		&Console::printInteger,		0, 1);
-	loader->addMethod(klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Integer)"),	&Console::printlnInteger,	0, 1);
-	loader->addMethod(klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Float)"),		&Console::printFloat,		0, 1);
-	loader->addMethod(klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Float)"),		&Console::printlnFloat,		0, 1);
-	loader->addMethod(klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(String)"),		&Console::printString,		0, 1);
-	loader->addMethod(klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(String)"),		&Console::printlnString,	0, 1);
-	loader->addMethod(klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Boolean)"),		&Console::printBoolean,		0, 1);
-	loader->addMethod(klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Boolean)"),	&Console::printlnBoolean,	0, 1);
-	loader->addMethod(klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Array)"),		&Console::printArray,		0, 1);
-	loader->addMethod(klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Array)"),		&Console::printlnArray,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Integer)"),		&Console::printInteger,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Integer)"),	&Console::printlnInteger,	0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Float)"),		&Console::printFloat,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Float)"),		&Console::printlnFloat,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(String)"),		&Console::printString,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(String)"),		&Console::printlnString,	0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Boolean)"),		&Console::printBoolean,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Boolean)"),	&Console::printlnBoolean,	0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("print"),	BEER_WIDEN("Console::print(Array)"),		&Console::printArray,		0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("println"), BEER_WIDEN("Console::println(Array)"),		&Console::printlnArray,		0, 1);
 
-	loader->addMethod(klass, BEER_WIDEN("readInteger"), BEER_WIDEN("Console::readInteger()"),	&Console::readInteger,	1, 0);
-	loader->addMethod(klass, BEER_WIDEN("readFloat"),	BEER_WIDEN("Console::readFloat()"),		&Console::readFloat,	1, 0);
-	loader->addMethod(klass, BEER_WIDEN("readBoolean"), BEER_WIDEN("Console::readBoolean()"),	&Console::readBoolean,	1, 0);
-	loader->addMethod(klass, BEER_WIDEN("readLine"),	BEER_WIDEN("Console::readLine()"),		&Console::readLine,		1, 0);
-	loader->addMethod(klass, BEER_WIDEN("readFailed"),	BEER_WIDEN("Console::readFailed()"),	&Console::readFailed,	1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("readInteger"), BEER_WIDEN("Console::readInteger()"),	&Console::readInteger,	1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("readFloat"),	BEER_WIDEN("Console::readFloat()"),		&Console::readFloat,	1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("readBoolean"), BEER_WIDEN("Console::readBoolean()"),	&Console::readBoolean,	1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("readLine"),	BEER_WIDEN("Console::readLine()"),		&Console::readLine,		1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("readFailed"),	BEER_WIDEN("Console::readFailed()"),	&Console::readFailed,	1, 0);
 
-	loader->addMethod(klass, BEER_WIDEN("getArg"), BEER_WIDEN("Console::getArg(Integer)"), &Console::getArg, 1, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("getArg"), BEER_WIDEN("Console::getArg(Integer)"), &Console::getArg, 1, 1);
 }

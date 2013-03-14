@@ -19,7 +19,7 @@ void BEER_CALL Object::operatorString(Thread* thread, StackRef<Object> receiver,
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush(
-		thread->getClass(receiver)
+		thread->getType(receiver)
 	));
 
 	Class::getName(thread, klass, ret);

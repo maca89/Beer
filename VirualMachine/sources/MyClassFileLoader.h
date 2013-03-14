@@ -16,7 +16,7 @@ namespace Beer
 		virtual ClassFileDescriptor* loadClassFile(byte* data, uint32 dataLength);
 		virtual void printClassFile(ClassFileDescriptor* classFile);
 
-		virtual void loadClass(VirtualMachine* vm, ClassFileDescriptor* classFile, ClassDescriptor* classDescr);
-		virtual void loadClasses(VirtualMachine* vm, ClassFileDescriptor* classFile);
+		virtual void loadClass(Thread* thread, ClassFileDescriptor* classFile, ClassDescriptor* classDescr);
+		virtual void loadClasses(Thread* thread, ClassFileDescriptor* classFile);
 	};
 };

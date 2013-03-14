@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "ClassLoader.h"
 #include "VirtualMachine.h"
-#include "Heap.h"
 #include "Class.h"
 #include "Method.h"
 #include "Param.h"
@@ -10,7 +9,7 @@
 using namespace Beer;
 
 
-ClassLoader::ClassLoader(VirtualMachine* vm, Heap* heap) : mVM(vm), mClassHeap(heap)
+ClassLoader::ClassLoader()
 {
 }
 
@@ -94,7 +93,7 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	ret = mClassHeap->alloc<Class>(
+	ret = thread->getPermanentHeap()->alloc<Class>(
 			staticSize, 
 			Object::OBJECT_CHILDREN_COUNT + 1 + parents + methods + properties // +1 for name
 	);
@@ -109,7 +108,7 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 	// set class
 	{
 		StackRef<Class> metaClass(frame, frame->stackPush(
-			mVM->getMetaClass()
+			thread->getVM()->getMetaClass()
 		));
 
 		Class::setClass(thread, ret, metaClass);
@@ -122,12 +121,15 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 	ret->mParentNext = ret->mMethodNext = ret->mPropertyNext = 0;
 
 	// TODO: where??
-	mVM->addClass(*ret);
+	thread->getVM()->addClass(*ret);
+
+	ClassInitializer* initializer = getClassInitializer(classname->c_str());
+	if(initializer) initializer->initClass(thread, this, ret);
 }
 
-void ClassLoader::createMethod(StackRef<Method> ret, Cb fn, uint16 returns, uint16 params)
+void ClassLoader::createMethod(Thread* thread, StackRef<Method> ret, Cb fn, uint16 returns, uint16 params)
 {
-	ret = mClassHeap->alloc<Method>(
+	ret = thread->getPermanentHeap()->alloc<Method>(
 		Method::METHOD_CHILDREN_COUNT + returns + params + 10
 	);
 
@@ -145,9 +147,9 @@ void ClassLoader::createMethod(StackRef<Method> ret, Cb fn, uint16 returns, uint
 	ret->mParamsCount = params;
 }
 
-void ClassLoader::addMethod(StackRef<Class> klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
+void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
 {
-	Frame* frame = mVM->getFrame();
+	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 	
 	StackRef<Pair> pair(frame, frame->stackPush());
@@ -155,25 +157,24 @@ void ClassLoader::addMethod(StackRef<Class> klass, const char_t* name, const cha
 	// create pair
 	{
 		StackRef<Method> method(frame, frame->stackPush());
-		createMethod(method, fn, returns, params);
+		createMethod(thread, method, fn, returns, params);
 
 		StackRef<String> str(frame, frame->stackPush());
-		((Thread*)mVM)->createString(str, name); // TODO: constant
+		thread->createString(str, name); // TODO: constant
 
-		Method::setName(mVM, method, str);
+		Method::setName(thread, method, str);
 		
-		((Thread*)mVM)->createString(str, selector); // TODO: constant
-		((Thread*)mVM)->createPair(str, method, pair);
+		thread->createString(str, selector); // TODO: constant
+		thread->createPair(str, method, pair);
 		frame->stackMoveTop(-2); // pop str, method
 	}
 
-	Class::addMethod(mVM, klass, pair);
+	Class::addMethod(thread, klass, pair);
 	frame->stackMoveTop(-1); // pop pair
 }
 
-void ClassLoader::addMethod(StackRef<Class> klass, StackRef<Method> method, const char_t* selector)
+void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const char_t* selector)
 {
-	Thread* thread = (Thread*)mVM; // TODO
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 	
@@ -192,21 +193,16 @@ void ClassLoader::addMethod(StackRef<Class> klass, StackRef<Method> method, cons
 	frame->stackMoveTop(-1); // pop pair
 }
 
-void ClassLoader::createParam(StackRef<Param> ret)
+void ClassLoader::createParam(Thread* thread, StackRef<Param> ret)
 {
-	ret = mClassHeap->alloc<Param>(
+	ret = thread->getPermanentHeap()->alloc<Param>(
 		Param::PARAM_CHILDREN_COUNT
 	);
 }
 
-void ClassLoader::createProperty(StackRef<Property> ret)
+void ClassLoader::createProperty(Thread* thread, StackRef<Property> ret)
 {
-	ret = mClassHeap->alloc<Property>(
+	ret = thread->getPermanentHeap()->alloc<Property>(
 		Property::PROPERTY_CHILDREN_COUNT
 	);
-}
-
-void ClassLoader::extendClass(StackRef<Class> klass, StackRef<Class> extending)
-{
-	Class::addParent(mVM, klass, extending);
 }

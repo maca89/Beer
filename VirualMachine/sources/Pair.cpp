@@ -53,14 +53,14 @@ void PairClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackR
 	{
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
-		loader->extendClass(klass, objectClass);
+		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
 
-	loader->addMethod(klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair()"), &Pair::init, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair(Object,Object)"), &Pair::init_ObjectObject, 1, 2);
-	loader->addMethod(klass, BEER_WIDEN("getFirst"), BEER_WIDEN("Pair::getFirst()"), &Pair::getFirst, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("setFirst"), BEER_WIDEN("Pair::setFirst(Object)"), &Pair::setFirst, 0, 1);
-	loader->addMethod(klass, BEER_WIDEN("getSecond"), BEER_WIDEN("Pair::getSecond()"), &Pair::getSecond, 1, 0);
-	loader->addMethod(klass, BEER_WIDEN("setSecond"), BEER_WIDEN("Pair::setSecond(Object)"), &Pair::setSecond, 0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair()"), &Pair::init, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair(Object,Object)"), &Pair::init_ObjectObject, 1, 2);
+	loader->addMethod(thread, klass, BEER_WIDEN("getFirst"), BEER_WIDEN("Pair::getFirst()"), &Pair::getFirst, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("setFirst"), BEER_WIDEN("Pair::setFirst(Object)"), &Pair::setFirst, 0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("getSecond"), BEER_WIDEN("Pair::getSecond()"), &Pair::getSecond, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("setSecond"), BEER_WIDEN("Pair::setSecond(Object)"), &Pair::setSecond, 0, 1);
 }
