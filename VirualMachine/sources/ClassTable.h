@@ -26,11 +26,17 @@ namespace Beer
 			return mTable[getInlineClassId(object)];
 		}
 
-		INLINE Class* translate(Thread* thread, StackRef<Object> object) const
+		INLINE Class* translate(Thread* thread, StackRef<Object> object) const // deprecated
 		{
 			Class* klass = translateInline(*object);
-			if(klass == NULL) return fetchClass(thread, object);
+			if(klass == NULL) klass = fetchClass(thread, object);
 			return klass;
+		}
+
+		INLINE void translate(Thread* thread, StackRef<Object> object, StackRef<Class> ret) const
+		{
+			ret = translateInline(*object);
+			if(ret.isNull()) Object::getClass(thread, object, ret);
 		}
 
 		INLINE Class* operator[] (uint32 index) const
@@ -45,6 +51,6 @@ namespace Beer
 		}
 
 	protected:
-		static Class* fetchClass(Thread* thread, StackRef<Object> object);
+		static Class* fetchClass(Thread* thread, StackRef<Object> object); // deprecated
 	};
 };

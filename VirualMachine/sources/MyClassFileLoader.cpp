@@ -153,6 +153,10 @@ void MyClassFileLoader::loadClass(VirtualMachine* vm, ClassFileDescriptor* class
 		
 void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* classFile)
 {
+	Thread* thread = (Thread*)vm; // TODO: pass as argument
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
 	// TODO: check external classes and load them
 
 	for(uint16 classi = 0; classi < classFile->getDefinedClassesLength(); classi++)
@@ -167,8 +171,13 @@ void MyClassFileLoader::loadClasses(VirtualMachine* vm, ClassFileDescriptor* cla
 		ClassDescriptor* classDescr = classFile->getDescriptor<ClassDescriptor>(classFile->getClassId(classFile->getExternalClassesLength() + classi));
 		const StringDescriptor* classNameDescr = classDescr->getName(classFile);
 		const char16* cclassName = classNameDescr->c_str();
-		Reference<String> className = String::gTranslate(vm, cclassName);
 
-		vm->getClass(*className); // actual load
+		StackRef<String> className(frame, frame->stackPush(
+			*String::gTranslate(vm, cclassName)
+		));
+
+		vm->getClass(className); // actual load
+
+		frame->stackMoveTop(-1); // pop className
 	}
 }

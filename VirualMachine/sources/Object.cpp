@@ -60,17 +60,3 @@ void Object::setChild(Thread* thread, StackRef<Object> receiver, StackRef<Object
 	NULL_ASSERT(*receiver);
 	thread->getGC()->setChild(receiver, child, index);
 }
-
-
-
-/*ClassReflection* ObjectClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, string name)
-{
-	return loader->createClass<ObjectClass>(name, 0, 0, 0);
-}*/
-
-/*void ObjectClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, ClassReflection* klass)
-{
-	//MethodReflection* initMethod = loader->createMethod<MethodReflection>(BEER_WIDEN("Object"), 1, 0);
-	//initMethod->setFunction(&BeerObject_init);
-	//klass->setMethod(0, vm->createPair(vm->createString((string(klass->getName()) + BEER_WIDEN("::Object()")).c_str()), initMethod));
-}*/

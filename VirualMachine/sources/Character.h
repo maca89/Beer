@@ -33,21 +33,21 @@ namespace Beer
 			return reinterpret_cast<Character*>((data << SignatureBits) | 7);
 		}
 
-		static void BEER_CALL createInstance(Thread* thread/*, Frame* frame*/, StackRef<Class> receiver, StackRef<Character> ret);
+		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Character> ret);
 
-		static void BEER_CALL init(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Character> ret1);
+		static void BEER_CALL init(Thread* thread, StackRef<Character> receiver, StackRef<Character> ret1);
 
-		static void BEER_CALL operatorString(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<String> ret);
-		static void BEER_CALL operatorInteger(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Integer> ret);
-		static void BEER_CALL operatorEqual(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorNotEqual(Thread* thread/*, Frame* frame*/, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorString(Thread* thread, StackRef<Character> receiver, StackRef<String> ret);
+		static void BEER_CALL operatorInteger(Thread* thread, StackRef<Character> receiver, StackRef<Integer> ret);
+		static void BEER_CALL operatorEqual(Thread* thread, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorNotEqual(Thread* thread, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret);
 	};
 
 	class CharacterClassInitializer : public ClassInitializer
 	{
 	public:
 		// ClassInitializer
-		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
+		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret);
+		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass);
 	};
 };

@@ -62,6 +62,7 @@ namespace Beer
 
 		INLINE Frame* getFrames() { return mRootFrame; }
 
+		void getObjectClass(StackRef<Class> ret);
 		void getIntegerClass(StackRef<Class> ret);
 		void getFloatClass(StackRef<Class> ret);
 		void getStringClass(StackRef<Class> ret);
@@ -79,8 +80,9 @@ namespace Beer
 		void createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret);
 		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
 		
-		//INLINE Class* getClass(Reference<String>& name) { return getClass(*name); }
-		Class* getClass(const StackRef<Object>& object);
+		
+		Class* getClass(const StackRef<Object>& object); // deprecated
+		void getClass(StackRef<Object> object, StackRef<Class> ret);
 
 		void init();
 

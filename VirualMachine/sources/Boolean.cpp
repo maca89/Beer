@@ -43,15 +43,24 @@ void BEER_CALL Boolean::createInstance(Thread* thread, StackRef<Class> receiver,
 	ret = Boolean::makeInlineValue(false);
 }
 
-Class* BooleanClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void BooleanClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 7);
+	loader->createClass<Class>(thread, name, ret, 1, 0, 7);
 }
 
-void BooleanClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void BooleanClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
+
 	klass->markAsValueType();
-	loader->extendClass(klass, vm->getObjectClass());
 	
 	loader->addMethod(klass, BEER_WIDEN("Boolean"), BEER_WIDEN("Boolean::Boolean()"), &Boolean::init, 1, 0);
 

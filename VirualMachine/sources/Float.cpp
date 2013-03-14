@@ -9,17 +9,17 @@
 using namespace Beer;
 
 
-void BEER_CALL Float::init(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> ret)
+void BEER_CALL Float::init(Thread* thread, StackRef<Float> receiver, StackRef<Float> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL Float::operatorInteger(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Integer> ret)
+void BEER_CALL Float::operatorInteger(Thread* thread, StackRef<Float> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, static_cast<Integer::IntegerData>(receiver->getData()));
 }
 
-void BEER_CALL Float::operatorString(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<String> ret)
+void BEER_CALL Float::operatorString(Thread* thread, StackRef<Float> receiver, StackRef<String> ret)
 {
 	stringstream ss;
 	ss << std::setprecision(8) << std::fixed << receiver->getData();
@@ -27,75 +27,84 @@ void BEER_CALL Float::operatorString(Thread* thread/*, Frame* frame*/, StackRef<
 	thread->createString(ret, ss.str());
 }
 
-void BEER_CALL Float::operatorAdd(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
+void BEER_CALL Float::operatorAdd(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
 {
 	thread->createFloat(ret, arg->getData() + receiver->getData());
 }
 
-void BEER_CALL Float::operatorSub(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
+void BEER_CALL Float::operatorSub(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
 {
 	thread->createFloat(ret, arg->getData() - receiver->getData());
 }
 
-void BEER_CALL Float::operatorMul(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
+void BEER_CALL Float::operatorMul(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
 {
 	thread->createFloat(ret, arg->getData() * receiver->getData());
 }
 
-void BEER_CALL Float::operatorDiv(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
+void BEER_CALL Float::operatorDiv(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Float> ret)
 {
 	thread->createFloat(ret, arg->getData() / receiver->getData());
 }
 
-void BEER_CALL Float::operatorMinus(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> ret)
+void BEER_CALL Float::operatorMinus(Thread* thread, StackRef<Float> receiver, StackRef<Float> ret)
 {
 	thread->createFloat(ret, -receiver->getData());
 }
 
-void BEER_CALL Float::operatorEqual(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
+void BEER_CALL Float::operatorEqual(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
 }
 
-void BEER_CALL Float::operatorNotEqual(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
+void BEER_CALL Float::operatorNotEqual(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() != arg->getData());
 }
 
-void BEER_CALL Float::operatorSmaller(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
+void BEER_CALL Float::operatorSmaller(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() < arg->getData());
 }
 
-void BEER_CALL Float::operatorSmallerEqual(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
+void BEER_CALL Float::operatorSmallerEqual(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() <= arg->getData());
 }
 
-void BEER_CALL Float::operatorGreater(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
+void BEER_CALL Float::operatorGreater(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() > arg->getData());
 }
 
-void BEER_CALL Float::operatorGreaterEqual(Thread* thread/*, Frame* frame*/, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
+void BEER_CALL Float::operatorGreaterEqual(Thread* thread, StackRef<Float> receiver, StackRef<Float> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->getData() >= arg->getData());
 }
 
-void BEER_CALL Float::createInstance(Thread* thread/*, Frame* frame*/, StackRef<Class> receiver, StackRef<Float> ret)
+void BEER_CALL Float::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Float> ret)
 {
 	thread->createFloat(ret, 0);
 }
 
-Class* FloatClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void FloatClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 15);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 15);
 }
 
-void FloatClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void FloatClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
+
 	klass->markAsValueType();
-	loader->extendClass(klass, vm->getObjectClass());
 	
 	loader->addMethod(klass, BEER_WIDEN("Float"), BEER_WIDEN("Float::Float()"), &Float::init, 1, 0);
 	loader->addMethod(klass, BEER_WIDEN("Integer"), BEER_WIDEN("Float::Integer()"), &Float::operatorInteger, 1, 0);

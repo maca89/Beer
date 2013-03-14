@@ -31,21 +31,34 @@ void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, S
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
+	StackRef<Integer> propertiesCount(frame, frame->stackPush());
+	Class::getPropertiesCount(thread, receiver, propertiesCount);
+
 	ret = thread->getHeap()->alloc<Timer>(
-		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
+		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
 	);
+
+	frame->stackMoveTop(-1); // pop propertiesCount
 
 	Class::setClass(thread, ret, receiver);
 }
 
-Class* TimerClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void TimerClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 4);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 4);
 }
 
-void TimerClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void TimerClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 
 	loader->addMethod(klass, BEER_WIDEN("Timer"), BEER_WIDEN("Timer::Timer()"), &Timer::init, 1, 0);
 	loader->addMethod(klass, BEER_WIDEN("start"), BEER_WIDEN("Timer::start()"), &Timer::start, 0, 0);

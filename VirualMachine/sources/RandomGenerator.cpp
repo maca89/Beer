@@ -9,13 +9,19 @@ using namespace Beer;
 
 void BEER_CALL RandomGenerator::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<RandomGenerator> ret)
 {
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Integer> propertiesCount(frame, frame->stackPush());
+	Class::getPropertiesCount(thread, receiver, propertiesCount);
+
 	ret = thread->getHeap()->alloc<RandomGenerator>(
-		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
+		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
 	);
 
-	Object* obj = *ret;
-
 	Class::setClass(thread, ret, receiver);
+
+	frame->stackMoveTop(-1); // pop propertiesCount
 }
 
 void BEER_CALL RandomGenerator::init(Thread* thread, StackRef<RandomGenerator> receiver, StackRef<RandomGenerator> ret)
@@ -65,14 +71,22 @@ void BEER_CALL RandomGenerator::toss(Thread* thread, StackRef<RandomGenerator> r
 	ret = Boolean::makeInlineValue(random < max);
 }
 
-Class* RandomGeneratorClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void RandomGeneratorClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 8);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 8);
 }
 
-void RandomGeneratorClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 	
 	loader->addMethod(klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);
 	loader->addMethod(klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator(Integer)"), &RandomGenerator::initInteger, 1, 1);

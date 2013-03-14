@@ -48,8 +48,11 @@ bool ClassLoader::hasClassInitializer(string name) const
 	return mClassInitializers.find(name) != mClassInitializers.end();
 }
 
-void ClassLoader::loadClass(String* name)
+void ClassLoader::loadClass(Thread* thread, StackRef<String> name)
 {
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
 	for(StringList::iterator it = mBeingLoaded.begin(); it != mBeingLoaded.end(); it++)
 	{
 		if(strcmp(it->c_str(), name->c_str()) == 0) // TODO
@@ -66,8 +69,12 @@ void ClassLoader::loadClass(String* name)
 
 	mBeingLoaded.push_back(name->c_str()); // TODO
 	ClassInitializer* classInit = it->second;
-	Class* klass = classInit->createClass(mVM, this, name);
+
+	StackRef<Class> klass(frame, frame->stackPush());
+	classInit->createClass(thread, this, name, klass);
 	//mVM->addClass(klass); // where to put this???
+	frame->stackMoveTop(-1); // pop klass
+
 	mBeingLoaded.pop_back();
 
 	delete it->second; // ugly
@@ -79,29 +86,24 @@ bool ClassLoader::canLoadClass(string name)
 	return hasClassInitializer(name);
 }
 
-Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods)
+void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackRef<Class> ret, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods)
 {
 	// TODO
 	//mVM->getMetaClass()->invoke(BEER_WIDEN("Class::createInstance"), );
 
-	Thread* thread = mVM;
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	StackRef<Class> klass(frame, frame->stackPush(
-		mClassHeap->alloc<Class>(
+	ret = mClassHeap->alloc<Class>(
 			staticSize, 
 			Object::OBJECT_CHILDREN_COUNT + 1 + parents + methods + properties // +1 for name
-	)));
+	);
 	
-	klass->mFlags = 0;
+	ret->mFlags = 0;
 	
 	// set name
 	{
-		StackRef<String> name(frame, frame->stackPush(classname)); // push name
-
-		Class::setName(thread, klass, name);
-		frame->stackMoveTop(-1); // pop name
+		Class::setName(thread, ret, classname);
 	}
 
 	// set class
@@ -110,59 +112,50 @@ Class* ClassLoader::createClass(String* classname, uint32 staticSize, uint16 par
 			mVM->getMetaClass()
 		));
 
-		Class::setClass(thread, klass, metaClass);
+		Class::setClass(thread, ret, metaClass);
 		frame->stackMoveTop(-1); // pop metaClass
 	}
 
-	klass->mParentsCount = parents;
-	klass->mPropertiesCount = properties;
-	klass->mMethodsCount = methods;
-	klass->mParentNext = klass->mMethodNext = klass->mPropertyNext = 0;
+	ret->mParentsCount = parents;
+	ret->mPropertiesCount = properties;
+	ret->mMethodsCount = methods;
+	ret->mParentNext = ret->mMethodNext = ret->mPropertyNext = 0;
 
 	// TODO: where??
-	mVM->addClass(*klass);
-
-	Class* c = *klass;
-	frame->stackMoveTop(-1); // pop class
-
-	return c;
+	mVM->addClass(*ret);
 }
 
-Method* ClassLoader::createMethod(Cb fn, uint16 returns, uint16 params)
+void ClassLoader::createMethod(StackRef<Method> ret, Cb fn, uint16 returns, uint16 params)
 {
-	Method* method = mClassHeap->alloc<Method>(
+	ret = mClassHeap->alloc<Method>(
 		Method::METHOD_CHILDREN_COUNT + returns + params + 10
 	);
 
-	new(method) Method(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
+	new(*ret) Method(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
 
 	// init flags, TODO: is it really needed?
-	method->mFlags = 0;
+	ret->mFlags = 0;
 
-	method->setMaxStack(20); // default value, TODO: get rid of
+	ret->setMaxStack(20); // default value, TODO: get rid of
 	
-	method->setFunction(fn);
+	ret->setFunction(fn);
 	
 	// TODO: garbaged
-	method->mReturnsCount = returns;
-	method->mParamsCount = params;
-
-	return method;
+	ret->mReturnsCount = returns;
+	ret->mParamsCount = params;
 }
 
-void ClassLoader::addMethod(Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
+void ClassLoader::addMethod(StackRef<Class> klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
 {
 	Frame* frame = mVM->getFrame();
 	BEER_STACK_CHECK();
 	
-	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
 	StackRef<Pair> pair(frame, frame->stackPush());
 
 	// create pair
 	{
-		StackRef<Method> method(frame, frame->stackPush(
-			createMethod(fn, returns, params)
-		));
+		StackRef<Method> method(frame, frame->stackPush());
+		createMethod(method, fn, returns, params);
 
 		StackRef<String> str(frame, frame->stackPush());
 		((Thread*)mVM)->createString(str, name); // TODO: constant
@@ -170,67 +163,50 @@ void ClassLoader::addMethod(Class* klass, const char_t* name, const char_t* sele
 		Method::setName(mVM, method, str);
 		
 		((Thread*)mVM)->createString(str, selector); // TODO: constant
-		((Thread*)mVM)->createPair(str, method, pair); // pops str, method
+		((Thread*)mVM)->createPair(str, method, pair);
+		frame->stackMoveTop(-2); // pop str, method
 	}
 
-	Class::addMethod(mVM, klassOnStack, pair);
-	frame->stackMoveTop(-2); // pop class, pair
+	Class::addMethod(mVM, klass, pair);
+	frame->stackMoveTop(-1); // pop pair
 }
 
-void ClassLoader::addMethod(Class* klass, Method* method, const char_t* selector)
+void ClassLoader::addMethod(StackRef<Class> klass, StackRef<Method> method, const char_t* selector)
 {
 	Thread* thread = (Thread*)mVM; // TODO
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 	
-	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
 	StackRef<Pair> pair(frame, frame->stackPush());
-	StackRef<Method> methodOnStack(frame, frame->stackPush(method));
-	StackRef<String> selectorOnStack(frame, frame->stackPush());
-		
-	thread->createString(selectorOnStack, selector); // TODO
-	thread->createPair(selectorOnStack, methodOnStack, pair); // pops selector, method
-			
-	Class::addMethod(thread, klassOnStack, pair);
-	frame->stackMoveTop(-2); // pop class, pair
+
+	// create pair
+	{
+		StackRef<String> selectorOnStack(frame, frame->stackPush());
+		thread->createString(selectorOnStack, selector); // TODO
+
+		thread->createPair(selectorOnStack, method, pair);
+		frame->stackMoveTop(-1); // pop selectorOnStack
+	}
+
+	Class::addMethod(thread, klass, pair);
+	frame->stackMoveTop(-1); // pop pair
 }
 
-Param* ClassLoader::createParam()
+void ClassLoader::createParam(StackRef<Param> ret)
 {
-	Param* param = mClassHeap->alloc<Param>(
+	ret = mClassHeap->alloc<Param>(
 		Param::PARAM_CHILDREN_COUNT
 	);
-
-	//new(param) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
-
-	return param;
 }
 
-Property* ClassLoader::createProperty()
+void ClassLoader::createProperty(StackRef<Property> ret)
 {
-	Property* prop = mClassHeap->alloc<Property>(
+	ret = mClassHeap->alloc<Property>(
 		Property::PROPERTY_CHILDREN_COUNT
 	);
-
-	//new(prop) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
-
-	return prop;
 }
 
 void ClassLoader::extendClass(StackRef<Class> klass, StackRef<Class> extending)
 {
 	Class::addParent(mVM, klass, extending);
-}
-
-void ClassLoader::extendClass(Class* klass, Class* extending)
-{
-	Frame* frame = mVM->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Class> klassOnStack(frame, frame->stackPush(klass));
-	StackRef<Class> extendingOnStack(frame, frame->stackPush(extending));
-
-	extendClass(klassOnStack, extendingOnStack);
-
-	frame->stackMoveTop(-2); // pop class & extending
 }

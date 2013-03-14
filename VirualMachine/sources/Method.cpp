@@ -8,7 +8,7 @@
 using namespace Beer;
 
 
-void Method::runFunction(Thread* thread/*, Frame* frame*/)
+void Method::runFunction(Thread* thread)
 {
 	Frame* frame = thread->getFrame();
 	//BEER_STACK_CHECK();

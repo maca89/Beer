@@ -46,14 +46,13 @@ namespace Beer
 		Class* mFloatClass;
 		Class* mIntegerClass;
 		Class* mBooleanClass;
-		Class* mPairClass;
 		Class* mArrayClass;
 
 	public:
 		INLINE VirtualMachine(GC * gc)
 			: Thread(this, gc),
 			mClassLoader(NULL), mDebugger(NULL),
-			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mPairClass(NULL), mArrayClass(NULL)
+			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL)
 		{
 		}
 
@@ -64,9 +63,10 @@ namespace Beer
 		void addClass(Class* reflection);
 		//void removeClass(ClassReflection* reflection);
 		//bool hasClass(string name) const;
-		Class* getClass(String* name);
+		Class* getClass(StackRef<String> name);
 
-		INLINE Class* getClass(string name) { return getClass(createString(name)); } // TODO: get rid of
+		// deprecated, TODO: get rid of
+		Class* getClass(string name);
 
 		INLINE Heap* getHeap() const { return mHeap; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
@@ -90,7 +90,7 @@ namespace Beer
 		INLINE Class* getBooleanClass() { return mBooleanClass; }
 		INLINE Class* getStringClass() { return mStringClass; }
 		INLINE Class* getArrayClass() { return mArrayClass; }
-		INLINE Class* getPairClass() { return getClass(BEER_WIDEN("Pair")); } //return mPairClass;
+		INLINE Class* getPairClass() { return getClass(BEER_WIDEN("Pair")); }
 
 		template <typename T>
 		INLINE T* getStringClass() const { return static_cast<T*>(mStringClass); }

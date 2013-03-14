@@ -81,15 +81,22 @@ void BEER_CALL Task::getId(Thread* thread, StackRef<Task> receiver, StackRef<Int
 	ret = Integer::makeInlineValue(1);
 }
 
-
-Class* TaskInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void TaskInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 7);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 7);
 }
 
-void TaskInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 	
 	loader->addMethod(klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);
 	

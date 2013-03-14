@@ -40,15 +40,22 @@ void BEER_CALL Pair::setSecond(Thread* thread, StackRef<Pair> receiver, StackRef
 	Object::setChild(thread, receiver, value, CHILD_ID_PAIR_SECOND);
 }
 
-
-Class* PairClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void PairClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 2, 6);
+	return loader->createClass<Class>(thread, name, ret, 1, 2, 6);
 }
 
-void PairClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void PairClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 
 	loader->addMethod(klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair()"), &Pair::init, 1, 0);
 	loader->addMethod(klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair(Object,Object)"), &Pair::init_ObjectObject, 1, 2);

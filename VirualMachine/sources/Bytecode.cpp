@@ -396,6 +396,10 @@ void Bytecode::Instruction::printTranslated(VirtualMachine* vm) const
 
 void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* classFile)
 {
+	Thread* thread = (Thread*)vm; // TODO: pass as argument
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
 	BytecodeBuilder builder(mData, mDataSize, mDictSize);
 	
 	//int32 i = 0;
@@ -498,9 +502,17 @@ void Bytecode::build(VirtualMachine* vm, Method* method, ClassFileDescriptor* cl
 #endif // BEER_INLINE_OPTIMALIZATION
 					{
 						BEER_BC_SAVE_OPCODE(opcode);
-						Reference<String> name = String::gTranslate(vm, cstring);
-						Class* klass = vm->getClass(*name);
-						builder.add((Object*)klass); // TODO: pass Reference
+
+						StackRef<Class> klass(frame, frame->stackPush());
+
+						StackRef<String> name(frame, frame->stackPush(
+							*String::gTranslate(vm, cstring)
+						));
+
+						thread->getClass(name, klass);
+
+						builder.add((Object*)*klass); // TODO: pass Reference
+						frame->stackMoveTop(-2); // pop name, klass
 					}
 				}
 				break;
@@ -772,6 +784,7 @@ BEER_BC_LABEL(INSTR_NEW):
 		StackRef<Object> instance(frame, frame->stackPush());
 		StackRef<Class> klass(frame, frame->stackPush(BEER_BC_DATA_PTR(Object*))); // TODO
 		thread->createInstance(klass, instance);
+		frame->stackMoveTop(-1); // pop  klass
 	}
 	BEER_BC_NEXT(sizeof(Object*));
 
@@ -1042,8 +1055,7 @@ BEER_BC_LABEL(OPTIMAL_ARRAY_ALLOC):
 		StackRef<Integer> length(frame, frame->stackTopIndex());
 		StackRef<Array> instance(frame, frame->stackPush());
 
-		StackRef<Integer> copiedLength(frame, frame->stackPush(*length)); // TODO: better syntax
-		thread->createArray(copiedLength, instance); // pops copied length
+		thread->createArray(length, instance);
 	}
 	BEER_BC_NEXT(0);
 #endif // BEER_INLINE_OPTIMALIZATION

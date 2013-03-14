@@ -12,24 +12,24 @@ using namespace Beer;
 StringPool String::gPool = StringPool(); // TODO: get rid of
 
 
-void BEER_CALL String::init(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> ret)
+void BEER_CALL String::init(Thread* thread, StackRef<String> receiver, StackRef<String> ret)
 {
 	ret = receiver;
 }
 
-void BEER_CALL String::getLength(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Integer> ret)
+void BEER_CALL String::getLength(Thread* thread, StackRef<String> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, receiver->size());
 }
 
-void BEER_CALL String::operatorGet(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
+void BEER_CALL String::operatorGet(Thread* thread, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret)
 {
 	Integer::IntegerData indexdata = index.get()->getData();
 	BOUNDS_ASSERT(indexdata, receiver->size());
 	ret = Character::makeInlineValue(receiver->c_str()[indexdata]);
 }
 
-void BEER_CALL String::operatorAddString(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddString(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -43,7 +43,7 @@ void BEER_CALL String::operatorAddString(Thread* thread/*, Frame* frame*/, Stack
 	ret->copyData(receiver->size(), arg->size(), arg->c_str());
 }
 
-void BEER_CALL String::operatorAddInteger(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddInteger(Thread* thread, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -63,7 +63,7 @@ void BEER_CALL String::operatorAddInteger(Thread* thread/*, Frame* frame*/, Stac
 
 }
 
-void BEER_CALL String::operatorAddFloat(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddFloat(Thread* thread, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -82,7 +82,7 @@ void BEER_CALL String::operatorAddFloat(Thread* thread/*, Frame* frame*/, StackR
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
 }
 
-void BEER_CALL String::operatorAddBoolean(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddBoolean(Thread* thread, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -101,7 +101,7 @@ void BEER_CALL String::operatorAddBoolean(Thread* thread/*, Frame* frame*/, Stac
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
-void BEER_CALL String::operatorAddCharacter(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddCharacter(Thread* thread, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -116,7 +116,7 @@ void BEER_CALL String::operatorAddCharacter(Thread* thread/*, Frame* frame*/, St
 	ret->copyData(receiver->size(), 1, &c);
 }
 
-void BEER_CALL String::operatorAddArray(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
+void BEER_CALL String::operatorAddArray(Thread* thread, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -134,37 +134,37 @@ void BEER_CALL String::operatorAddArray(Thread* thread/*, Frame* frame*/, StackR
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 }
 
-void BEER_CALL String::operatorEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+void BEER_CALL String::operatorEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) == 0);
 }
 
-void BEER_CALL String::operatorNotEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+void BEER_CALL String::operatorNotEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) != 0);
 }
 
-void BEER_CALL String::operatorSmaller(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+void BEER_CALL String::operatorSmaller(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) < 0);
 }
 
-void BEER_CALL String::operatorSmallerEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+void BEER_CALL String::operatorSmallerEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) <= 0);
 }
 
-void BEER_CALL String::operatorGreater(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+void BEER_CALL String::operatorGreater(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) > 0);
 }
 
-void BEER_CALL String::operatorGreaterEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
+void BEER_CALL String::operatorGreaterEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) >= 0);
 }
 
-void BEER_CALL String::createInstance(Thread* thread/*, Frame* frame*/, StackRef<Class> receiver, StackRef<String> ret)
+void BEER_CALL String::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<String> ret)
 {
 	Frame* frame = thread->getFrame();
 	// TODO: probably not working
@@ -172,14 +172,22 @@ void BEER_CALL String::createInstance(Thread* thread/*, Frame* frame*/, StackRef
 	thread->createString(length, ret);
 }
 
-Class* StringClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void StringClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
 	throw Exception(BEER_WIDEN("Implemented elsewehere"), __WFILE__, __LINE__);
 }
 
-void StringClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 
 	loader->addMethod(klass, BEER_WIDEN("String"), BEER_WIDEN("String::String()"), &String::init, 1, 0);
 
@@ -219,7 +227,9 @@ Reference<String> StringPool::translate(Thread* thread, const char16* str)
 		thread->createInteger(lengthOnStack, length);
 
 		// TODO: why the cast??
-		thread->createString(lengthOnStack, strOnStack); // pops length
+		thread->createString(lengthOnStack, strOnStack);
+		frame->stackMoveTop(-1); // pop lengthOnStack
+
 		strOnStack->copyData(str, length);
 
 		Reference<String> result(thread->getGC(), *strOnStack);

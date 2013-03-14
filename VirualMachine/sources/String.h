@@ -125,31 +125,31 @@ namespace Beer
 		}
 
 
-		static void BEER_CALL createInstance(Thread* thread/*, Frame* frame*/, StackRef<Class> receiver, StackRef<String> ret);
+		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
 
-		static void BEER_CALL init(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> ret);
-		static void BEER_CALL getLength(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Integer> ret);
-		static void BEER_CALL operatorGet(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret);
-		static void BEER_CALL operatorAddString(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret);
-		static void BEER_CALL operatorAddInteger(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret);
-		static void BEER_CALL operatorAddFloat(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret);
-		static void BEER_CALL operatorAddBoolean(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret);
-		static void BEER_CALL operatorAddCharacter(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret);
-		static void BEER_CALL operatorAddArray(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret);
+		static void BEER_CALL init(Thread* thread, StackRef<String> receiver, StackRef<String> ret);
+		static void BEER_CALL getLength(Thread* thread, StackRef<String> receiver, StackRef<Integer> ret);
+		static void BEER_CALL operatorGet(Thread* thread, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret);
+		static void BEER_CALL operatorAddString(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret);
+		static void BEER_CALL operatorAddInteger(Thread* thread, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret);
+		static void BEER_CALL operatorAddFloat(Thread* thread, StackRef<String> receiver, StackRef<Float> arg, StackRef<String> ret);
+		static void BEER_CALL operatorAddBoolean(Thread* thread, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret);
+		static void BEER_CALL operatorAddCharacter(Thread* thread, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret);
+		static void BEER_CALL operatorAddArray(Thread* thread, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret);
 		
-		static void BEER_CALL operatorEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorNotEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorSmaller(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorSmallerEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorGreater(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
-		static void BEER_CALL operatorGreaterEqual(Thread* thread/*, Frame* frame*/, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorNotEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorSmaller(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorSmallerEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorGreater(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
+		static void BEER_CALL operatorGreaterEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
 	};
 
 	class StringClassInitializer : public ClassInitializer
 	{
 	public:
 		// ClassInitializer
-		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
+		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret);
+		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass);
 	};
 };

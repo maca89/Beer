@@ -45,6 +45,7 @@ void Debugger::printNativeInstruction()
 void Debugger::printClassName(StackRef<Class> klass)
 {
 	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
 
 	StackRef<String> klassName(frame, frame->stackPush());
 	Class::getName(this, klass, klassName);
@@ -55,6 +56,7 @@ void Debugger::printClassName(StackRef<Class> klass)
 void Debugger::printObjectClassName(StackRef<Object> object)
 {
 	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush(
 		getClass(object)
@@ -81,6 +83,7 @@ void Debugger::printCalledMethodSignature(Frame* frame, StackRef<Object> receive
 void Debugger::printMethodSignature(StackRef<Method> method)
 {
 	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
 
 	cout << ((String*)method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str();
 	cout << "(";
@@ -205,6 +208,7 @@ void Debugger::printCallStack(Thread* thread, Frame* frame)
 void Debugger::printObject(StackRef<Object> object)
 {
 	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
 
 	for(ObjectList::const_iterator it = mPrintedObjects.begin(); it != mPrintedObjects.end(); it++)
 	{
@@ -255,8 +259,7 @@ void Debugger::printObject(StackRef<Object> object)
 				frame->stackPush(*object);
 				frame->stackPush(*toStringMethod);
 				openFrame();
-				toStringMethod->call(this);
-				//closeFrame(); // pops copied object, copied method
+				toStringMethod->call(this); // pops copied object, copied method
 
 				cout << result->c_str();
 
@@ -271,10 +274,13 @@ void Debugger::printObject(StackRef<Object> object)
 
 			frame->stackMoveTop(-1); // pop toStringMethod
 
-			if(klass->getPropertiesCount() > 0)
+			StackRef<Integer> propertiesCount(frame, frame->stackPush());
+			Class::getPropertiesCount(this, klass, propertiesCount);
+
+			if(propertiesCount->getData() > 0)
 			{
 				cout << " {";
-				for(uint32 i = 0; i < klass->getPropertiesCount(); i++)
+				for(uint32 i = 0; i < propertiesCount->getData(); i++)
 				{
 					// TODO
 					/*Property* prop = klass->getProperty(i);
@@ -295,6 +301,8 @@ void Debugger::printObject(StackRef<Object> object)
 				}
 				cout << "}";
 			}
+
+			frame->stackMoveTop(-1); // pop propertiesCount
 		}
 		else
 		{
@@ -397,10 +405,16 @@ void Debugger::printFrameStack(Frame* frame)
 	//cout << std::endl;
 }
 
-void Debugger::printClassMethods(Class* klass)
+void Debugger::printClassMethods(StackRef<Class> klass)
 {
+	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Integer> methodsCount(frame, frame->stackPush());
+	Class::getMethodsCount(this, klass, methodsCount);
+
 	cout << "[Class " << ((String*)klass->getChildren()[Class::CHILD_ID_CLASS_NAME])->c_str() << "]" << std::endl;
-	for(uint16 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
+	for(uint16 methodi = 0; methodi < methodsCount->getData(); methodi++)
 	{
 		/*Pair* definedMethod = klass->getMethod(methodi);
 		if(definedMethod)
@@ -409,6 +423,8 @@ void Debugger::printClassMethods(Class* klass)
 			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " NOT IMPLEMENTED" << definedMethod->_getFirst<String>()->c_str() << std::endl;// TODO: selector
 		}*/
 	}
+
+	frame->stackMoveTop(-1); // pop methodsCount
 }
 
 void Debugger::started()
@@ -443,6 +459,9 @@ void Debugger::step(Thread* thread, Frame* frame)
 
 bool Debugger::catchException(Thread* thread, Frame* frame, const Exception& ex)
 {
+	Frame* myframe = getFrame();
+	BEER_STACK_CHECK();
+
 	cout << std::endl << "--------- EXCEPTION ---------" << std::endl;
 	printLastOutput();
 	printFrame(thread, frame);
@@ -450,9 +469,19 @@ bool Debugger::catchException(Thread* thread, Frame* frame, const Exception& ex)
 	if(ex.getName().compare(BEER_WIDEN("MethodNotFoundException")) == 0) // TODO: better
 	{
 		cout << std::endl;
-		StackRef<Object> receiver(frame, frame->stackTopIndex());
-		Class* klass = ((Thread*)mVM)->getClass(receiver);
+
+		StackRef<Object> receiver(myframe, myframe->stackPush(
+			frame->stackTop()
+		));
+
+		NULL_ASSERT(*receiver); // TODO
+
+		StackRef<Class> klass(myframe, myframe->stackPush());
+		getClass(receiver, klass);
+
 		printClassMethods(klass);
+		
+		myframe->stackMoveTop(-2);  //pop receiver & klass
 	}
 	
 	cout << "\n[" << ex.getName() << "]\n" << ex.getMessage() << " @" << ex.getFilename() << ":" << ex.getFileline() << std::endl;

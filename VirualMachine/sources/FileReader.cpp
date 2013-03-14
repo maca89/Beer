@@ -59,18 +59,22 @@ void BEER_CALL FileReader::readEnded(Thread* thread, StackRef<FileReader> receiv
 	ret = Boolean::makeInlineValue(receiver->mFile->eof());
 }
 
-
-Class* FileReaderClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void FileReaderClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 8);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 8);
 }
 
-void FileReaderClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void FileReaderClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
 
-	Method* method = NULL;
-	uint16 methodi = 0;
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 
 	loader->addMethod(klass, BEER_WIDEN("FileReader"), BEER_WIDEN("FileReader::FileReader()"), &FileReader::init, 1, 0);
 

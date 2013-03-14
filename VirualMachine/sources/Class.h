@@ -45,7 +45,8 @@ namespace Beer
 		uint32 mParentsCount;
 		uint32 mPropertiesCount;
 		uint32 mMethodsCount;
-
+		
+		// TODO: garbaged
 		uint32 mParentNext;
 		uint32 mPropertyNext;
 		uint32 mMethodNext;
@@ -68,9 +69,9 @@ namespace Beer
 
 		// parents
 
-		INLINE uint16 getParentsCount() const { return mParentsCount; }
-		INLINE uint16 getMethodsCount() const { return mMethodsCount; }
-		INLINE uint32 getPropertiesCount() const { return mPropertiesCount; }
+		//INLINE uint16 getParentsCount() const { return mParentsCount; }
+		//INLINE uint16 getMethodsCount() const { return mMethodsCount; }
+		//INLINE uint32 getPropertiesCount() const { return mPropertiesCount; }
 
 		// methods
 
@@ -81,15 +82,31 @@ namespace Beer
 		
 		static void BEER_CALL getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
 		static void BEER_CALL setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value);
-
+		
 		static void BEER_CALL getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret);
+		static void BEER_CALL getParentsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value);
 		
 		static void BEER_CALL getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret);
+		static void BEER_CALL getPropertiesCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value);
 		
 		static void BEER_CALL getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret);
+		static void BEER_CALL getMethodsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value);
+
+	protected:
+		static void BEER_CALL getPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+		static void BEER_CALL getMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+		static void BEER_CALL getParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+
+		static void BEER_CALL incrPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+		static void BEER_CALL incrMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+		static void BEER_CALL incrParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+
+		static bool hasPropertyFreeSlot(Thread* thread, StackRef<Class> receiver);
+		static bool hasMethodFreeSlot(Thread* thread, StackRef<Class> receiver);
+		static bool hasParentFreeSlot(Thread* thread, StackRef<Class> receiver);
 	};
 	//#pragma pack(pop)
 };

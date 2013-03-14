@@ -96,6 +96,14 @@ namespace Beer
 			return mReferencesNext++;
 		}
 
+		/*INLINE void setFrameChild(StackRef<StackFrame> frame, Object* object, int64 index)
+		{
+		}
+
+		INLINE void getFrameChild(StackRef<StackFrame> frame, int64 index)
+		{
+		}*/
+
 		INLINE void getChild(StackRef<Object> receiver, StackRef<Object> ret, int64 index)
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));

@@ -95,22 +95,28 @@ void BEER_CALL Array::createInstance(Thread* thread, StackRef<Class> receiver, S
 	StackRef<Integer> length = StackRef<Integer>(frame, -2); // ctor parameter
 	
 	StackRef<Array> object(frame, frame->stackPush());
-	StackRef<Integer> copiedLength = length.push(frame);
-	
-	thread->createArray(copiedLength, object); // pops copied length
+	thread->createArray(length, object);
 	ret = object;
 
 	frame->stackPop(); // pop object (is stored in ret)
 }
 
-Class* ArrayClassInitializer::createClass(VirtualMachine* vm, ClassLoader* loader, String* name)
+void ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(name, 1, 0, 5);
+	loader->createClass<Class>(thread, name, ret, 1, 0, 5);
 }
 
-void ArrayClassInitializer::initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass)
+void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
-	loader->extendClass(klass, vm->getObjectClass());
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		loader->extendClass(klass, objectClass);
+		frame->stackMoveTop(-1); //  pop objectClass
+	}
 	
 	loader->addMethod(klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);
 	loader->addMethod(klass, BEER_WIDEN("getLength"), BEER_WIDEN("Array::getLength()"), &Array::getLength, 1, 0);

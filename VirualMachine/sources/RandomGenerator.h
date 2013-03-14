@@ -36,7 +36,7 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name);
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass);
+		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret);
+		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass);
 	};
 };

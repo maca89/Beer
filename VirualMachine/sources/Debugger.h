@@ -49,7 +49,7 @@ namespace Beer
 		virtual void printObjectClassName(StackRef<Object> object);
 		virtual void printMethodSignature(StackRef<Method> method);
 		virtual void printCalledMethodSignature(Frame* frame, StackRef<Object> receiver, StackRef<Method> method);
-		virtual void printClassMethods(Class* klass);
+		virtual void printClassMethods(StackRef<Class> klass);
 
 	protected:
 		virtual void work() {}

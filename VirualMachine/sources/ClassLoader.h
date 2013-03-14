@@ -18,8 +18,8 @@ namespace Beer
 	public:
 		virtual ~ClassInitializer() {}
 
-		virtual Class* createClass(VirtualMachine* vm, ClassLoader* loader, String* name) = 0;
-		virtual void initClass(VirtualMachine* vm, ClassLoader* loader, Class* klass) = 0;
+		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret) = 0;
+		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass) = 0;
 	};
 
 	class ClassLoader // TODO: interface
@@ -42,48 +42,36 @@ namespace Beer
 		ClassInitializer* getClassInitializer(string classname);
 		bool hasClassInitializer(string name) const;
 
-		//virtual void loadInternalClasses(); // lazy loaded
-
-		void loadClass(String* name);
+		void loadClass(Thread* thread, StackRef<String> name);
 		bool canLoadClass(string name);
 		//void unloadClass(string name) // TODO
 		
 		template <typename T>
-		INLINE T* createClass(String* name, uint16 parents, uint16 properties, uint16 methods)
+		INLINE void createClass(Thread* thread, StackRef<String> name, StackRef<Class> ret, uint16 parents, uint16 properties, uint16 methods)
 		{
-			T* klass = static_cast<T*>(createClass(name, sizeof(T), parents, properties, methods));
-			//new(klass) T(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
+			createClass(thread, name, ret, sizeof(T), parents, properties, methods);
 	
 			ClassInitializer* initializer = getClassInitializer(name->c_str());
-			if(initializer) initializer->initClass(mVM, this, klass);
-
-			return klass;
+			if(initializer) initializer->initClass(thread, this, ret);
 		}
 
-		void addMethod(Class* klass, Method* method, const char_t* selector);
-		void addMethod(Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params);
-		Method* createMethod(Cb fn, uint16 returns, uint16 params);
+		void addMethod(StackRef<Class> klass, StackRef<Method> method, const char_t* selector);
+		void addMethod(StackRef<Class> klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+		void createMethod(StackRef<Method> ret, Cb fn, uint16 returns, uint16 params);
 		
 		template <typename T>
-		INLINE void addMethod(Class* klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
+		INLINE void addMethod(StackRef<Class> klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
 		{
 			addMethod(klass, name, selector, reinterpret_cast<Cb>(fn), returns, params);
 		}
 
-		template <typename T>
-		INLINE Method* createMethod(T fn, uint16 returns, uint16 params)
-		{
-			return createMethod(reinterpret_cast<Cb>(fn), returns, params);
-		}
+		void createParam(StackRef<Param> ret);
+		void createProperty(StackRef<Property> ret);
 
-		Param* createParam();
-		Property* createProperty();
-
-		void extendClass(Class* klass, Class* extending); // deprecated
 		void extendClass(StackRef<Class> klass, StackRef<Class> extending);
 
 	protected:
-		Class* createClass(String* name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);
+		void createClass(Thread* thread, StackRef<String> name, StackRef<Class> ret, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);
 		
 	};
 };
