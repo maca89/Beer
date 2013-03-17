@@ -29,7 +29,7 @@
     <ClCompile Include="sources\NurseryGC.cpp" />
     <ClCompile Include="sources\Param.cpp" />
     <ClCompile Include="sources\Array.cpp" />
-    <ClCompile Include="sources\BytecodeBuilder.cpp" />
+    <ClCompile Include="sources\BytecodeOutputStream.cpp" />
     <ClCompile Include="sources\BytecodeDescriptor.cpp" />
     <ClCompile Include="sources\Character.cpp" />
     <ClCompile Include="sources\ClassTable.cpp" />
@@ -80,7 +80,8 @@
   <ItemGroup>
     <ClInclude Include="sources\AllocationBlock.h" />
     <ClInclude Include="sources\Boolean.h" />
-    <ClInclude Include="sources\BytecodeOptimisation.h" />
+    <ClInclude Include="sources\BytecodeInputStream.h" />
+    <ClInclude Include="sources\BytecodePass.h" />
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />
@@ -96,7 +97,7 @@
     <ClInclude Include="sources\MonomorphicInlineCache.h" />
     <ClInclude Include="sources\ClassTable.h" />
     <ClInclude Include="sources\Array.h" />
-    <ClInclude Include="sources\BytecodeBuilder.h" />
+    <ClInclude Include="sources\BytecodeOutputStream.h" />
     <ClInclude Include="sources\BytecodeDescriptor.h" />
     <ClInclude Include="sources\CachedOutput.h" />
     <ClInclude Include="sources\Debugger.h" />
@@ -127,6 +128,7 @@
     <ClInclude Include="sources\Method.h" />
     <ClInclude Include="sources\MyClassFileLoader.h" />
     <ClInclude Include="sources\ParamDescriptor.h" />
+    <ClInclude Include="sources\Pool.h" />
     <ClInclude Include="sources\prereq.h" />
     <ClInclude Include="sources\Property.h" />
     <ClInclude Include="sources\QuickSort.h" />

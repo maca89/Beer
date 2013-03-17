@@ -45,7 +45,7 @@ void BEER_CALL Boolean::createInstance(Thread* thread, StackRef<Class> receiver,
 
 void BooleanClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	loader->createClass<Class>(thread, name, ret, 1, 0, 7);
+	loader->createClass<Class>(thread, name, ret, 1, 0, 7 + Object::OBJECT_METHODS_COUNT);
 }
 
 void BooleanClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

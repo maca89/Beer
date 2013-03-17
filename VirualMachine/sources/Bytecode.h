@@ -1,6 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Frame.h"
+#include "Pool.h"
 
 
 namespace Beer
@@ -10,8 +11,9 @@ namespace Beer
 	class ClassFileDescriptor;
 	class Method;
 	class Thread;
+	class Pool;
 
-	class Bytecode //: public Object, TODO
+	class Bytecode //: public Object
 	{
 	public:
 		enum 
@@ -53,10 +55,9 @@ namespace Beer
 
 			// 50: method control
 			#define BEER_INSTR_VIRTUAL_INVOKE	50
-			#define BEER_INSTR_INTERFACE_INVOKE	51
-			#define BEER_INSTR_STATIC_INVOKE	52
+			#define BEER_INSTR_INTERFACE_INVOKE 51
 			#define BEER_INSTR_SPECIAL_INVOKE	53
-			#define BEER_INSTR_INVOKE			54
+			#define BEER_INSTR_STACK_INVOKE		54
 			#define BEER_INSTR_RETURN			55
 			
 			#define BEER_INSTR_SIZE				127
@@ -85,11 +86,12 @@ namespace Beer
 
 			// optimalised instructions - the numbers may change!
 			// Integer
-			#define BEER_OPTIMAL_INTEGER_PUSH_INLINED	(BEER_INSTR_SIZE + 18)
-			#define BEER_OPTIMAL_ARRAY_ALLOC			(BEER_INSTR_SIZE + 19)
+			#define BEER_OPTIMAL_ARRAY_ALLOC			(BEER_INSTR_SIZE + 18)
+			// Class
+			#define BEER_OPTIMAL_CACHED_INVOKE			(BEER_INSTR_SIZE + 19)
 			
 			// important
-			#define BEER_FILL_OPCODE_TABLE				(BEER_OPTIMAL_ARRAY_ALLOC + 1)
+			#define BEER_FILL_OPCODE_TABLE				(BEER_OPTIMAL_CACHED_INVOKE + 1)
 			#define BEER_MAX_OPCODE						BEER_FILL_OPCODE_TABLE
 		};
 
@@ -97,7 +99,7 @@ namespace Beer
 		typedef uint8 OpCode;
 
 		#pragma pack(push, 1)
-		struct Instruction
+		struct Instruction // deprecated
 		{
 			uint8 opcode;
 			byte data; // should be used as array!
@@ -125,25 +127,26 @@ namespace Beer
 			// print
 
 			NOINLINE uint16 printRaw(const ClassFileDescriptor* classFile) const; // returns size of the whole instruction
-			NOINLINE void printTranslated(Thread* thread) const;
 		};
 		#pragma pack(pop)
 
 	protected:
 		uint16 mDictSize;
-		uint16* mDict;
-		
+		uint32* mDict;
+
 		uint32 mDataSize;
 		byte* mData;
 
 		uint8 mMethodCachesLength;
+
+		Pool* mPool;
 
 		static void* LabelTable[BEER_MAX_OPCODE * sizeof(void*)];
 		
 
 	public:
 		INLINE Bytecode(byte data[], uint32 size, uint16 instrCount)
-			: mDict(NULL), mDictSize(0), mMethodCachesLength(3)
+			: mDict(NULL), mDictSize(0), mMethodCachesLength(3), mPool(NULL)
 		{
 			mDataSize = size;
 			mData = data;
@@ -163,9 +166,27 @@ namespace Beer
 
 		INLINE uint16 getInstructionCount() const { return mDictSize; }
 
+		void printTranslatedInstruction(Thread* thread, const Instruction* instr);
+
 		static void init(Thread* thread); // important!!!
 
 	protected:
-		//INLINE bool isBuilt() const { return mDict != NULL; }
+		void checkPool(Thread* thread);
+		uint16 createPoolSlot(Thread* thread);
+
+		INLINE void loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret)
+		{
+			Pool::getItem(thread, mPool, index, ret);
+		}
+		
+		uint16 storeToPool(Thread* thread, StackRef<Object> object);
+		
+		INLINE void updateAtPool(Thread* thread, uint16 index, StackRef<Object> object)
+		{
+			Pool::setItem(thread, mPool, index, object);
+		}
+
+		void createPool(Thread* thread, uint16 length);
+		//PolymorphicCache* createPolymorphicCache(Thread* thread, uint16 length);
 	};
 };

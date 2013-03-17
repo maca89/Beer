@@ -108,7 +108,7 @@ void BEER_CALL Array::createInstance(Thread* thread, StackRef<Class> receiver, S
 
 void ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	loader->createClass<Class>(thread, name, ret, 1, 0, 6);
+	loader->createClass<Class>(thread, name, ret, 1, 0, 6 + Object::OBJECT_METHODS_COUNT);
 }
 
 void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

@@ -42,7 +42,7 @@ void BEER_CALL Pair::setSecond(Thread* thread, StackRef<Pair> receiver, StackRef
 
 void PairClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 2, 6);
+	return loader->createClass<Class>(thread, name, ret, 1, 2, 6 + Object::OBJECT_METHODS_COUNT);
 }
 
 void PairClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

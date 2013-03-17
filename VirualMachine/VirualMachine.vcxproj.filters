@@ -145,9 +145,6 @@
     <ClCompile Include="sources\Bytecode.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
-    <ClCompile Include="sources\BytecodeBuilder.cpp">
-      <Filter>Sources\Bytecode</Filter>
-    </ClCompile>
     <ClCompile Include="sources\PolymorphicInlineCache.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
@@ -156,6 +153,9 @@
     </ClCompile>
     <ClCompile Include="sources\RandomGenerator.cpp">
       <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BytecodeOutputStream.cpp">
+      <Filter>Sources\Bytecode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -238,9 +238,6 @@
       <Filter>Headers\ClassModel</Filter>
     </ClInclude>
     <ClInclude Include="sources\Bytecode.h">
-      <Filter>Headers\Bytecode</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\BytecodeBuilder.h">
       <Filter>Headers\Bytecode</Filter>
     </ClInclude>
     <ClInclude Include="sources\BytecodeDescriptor.h">
@@ -339,9 +336,6 @@
     <ClInclude Include="sources\VirtualMachine.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="sources\BytecodeOptimisation.h">
-      <Filter>Headers\Bytecode</Filter>
-    </ClInclude>
     <ClInclude Include="sources\InlineFunctionTable.h">
       <Filter>Headers\Bytecode</Filter>
     </ClInclude>
@@ -363,6 +357,18 @@
     </ClInclude>
     <ClInclude Include="sources\Frame.h">
       <Filter>Headers\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodePass.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodeOutputStream.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodeInputStream.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Pool.h">
+      <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

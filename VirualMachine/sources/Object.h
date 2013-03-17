@@ -39,7 +39,7 @@ namespace Beer
 			// #1 children count
 			// #2 class
 			OBJECT_CHILDREN_COUNT = 2,
-
+			OBJECT_METHODS_COUNT = 6,
 
 			CHILD_ID_CLASS = 1,
 		};

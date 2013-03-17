@@ -25,12 +25,12 @@ void Debugger::printLastOutput()
 	cout << std::endl;
 }
 
-void Debugger::printInstruction(const Bytecode::Instruction* instr, uint16 programCounter)
+void Debugger::printInstruction(Bytecode* bc, const Bytecode::Instruction* instr, uint16 programCounter)
 {
 	cout /*<< std::endl*/ << BEER_WIDEN("[Instruction]") << std::endl;
 	cout << std::setw(4);
 	cout << std::setfill(BEER_WIDEN(' ')) << BEER_WIDEN("+") << programCounter << BEER_WIDEN(" ");
-	instr->printTranslated(this);
+	bc->printTranslatedInstruction(this, instr);
 	cout << std::endl;
 }
 
@@ -236,25 +236,35 @@ void Debugger::printObject(StackRef<Object> object)
 		{
 			//if(!klass->isValueType()) cout << "#" << *object << " ";
 
-			StackRef<Method> toStringMethod(frame, frame->stackPush());
-
-			StackRef<String> selector(frame, frame->stackPush());
-			createString(selector, BEER_WIDEN("Object::String()")); // TODO: selector in a pool
-
-			Class::findMethod(this, klass, selector, toStringMethod);
-			frame->stackMoveTop(-1); // pop selector
-
-			// there should be a method, so no check for NULL
-			if(toStringMethod.isNull())
+			// is string
+			if(*klass == getVM()->getStringClass())
 			{
-				cout << "*no Object::String() method*";
-				frame->stackMoveTop(-1);
-				goto end;
+				cout << BEER_WIDEN("\"") << object.staticCast<String>()->c_str()  << BEER_WIDEN("\""); // TODO: print just a first fe chars
 			}
-
-			// call Object::String()
-			if(true)
+			else // to string
 			{
+				/*if(!klass->isValueType())
+				{
+					printClassName(klass);
+				}*/
+
+				StackRef<Method> toStringMethod(frame, frame->stackPush());
+
+				StackRef<String> selector(frame, frame->stackPush());
+				createString(selector, BEER_WIDEN("Object::String()")); // TODO: selector in a pool
+
+				Class::findMethod(this, klass, selector, toStringMethod);
+				frame->stackMoveTop(-1); // pop selector
+
+				// there should be a method, so no check for NULL
+				if(toStringMethod.isNull())
+				{
+					cout << "*no Object::String() method*";
+					frame->stackMoveTop(-1);
+					goto end;
+				}
+
+				// call Object::String()
 				StackRef<String> result(frame, frame->stackPush());
 				frame->stackPush(*object);
 				frame->stackPush(*toStringMethod);
@@ -263,43 +273,54 @@ void Debugger::printObject(StackRef<Object> object)
 
 				cout << result->c_str();
 
-				frame->stackMoveTop(-1); // pop result
+				frame->stackMoveTop(-2); // pop result, toStringMethod
 			}
-
-			// just print class name
-			else
-			{
-				printClassName(klass);
-			}
-
-			frame->stackMoveTop(-1); // pop toStringMethod
 
 			StackRef<Integer> propertiesCount(frame, frame->stackPush());
 			Class::getPropertiesCount(this, klass, propertiesCount);
 
 			if(propertiesCount->getData() > 0)
 			{
+				StackRef<Integer> index(frame, frame->stackPush());
+
 				cout << " {";
 				for(uint32 i = 0; i < propertiesCount->getData(); i++)
 				{
-					// TODO
-					/*Property* prop = klass->getProperty(i);
-					Object* child = object->_getChild<Object>(i);
-				
-					if(prop) cout << prop->getName() << ": ";
+					createInteger(index, i);
 
-					if(child == NULL)
+					StackRef<Property> prop(frame, frame->stackPush());
+					Class::getProperty(this, klass, index, prop);
+
+					if(!prop.isNull())
 					{
-						cout << "null";
-					}
-					else
-					{
-						printObject(child);
+						// print name
+						{
+							StackRef<String> name(frame, frame->stackPush());
+							Property::getName(this, prop, name);
+
+							cout << name->c_str() << ": ";
+							frame->stackMoveTop(-1); // pop name
+						}
+
+						// print child
+						{
+							createInteger(index, Object::OBJECT_CHILDREN_COUNT + i);
+
+							StackRef<Object> child(frame, frame->stackPush());
+							Object::getChild(this, object, index, child);
+
+							printObject(child);
+							frame->stackMoveTop(-1); // pop child
+						}
+
+						if(i < propertiesCount->getData() - 1) cout << ", ";
 					}
 
-					if(i < klass->getPropertiesCount() - 1) cout << ", ";*/
+					frame->stackMoveTop(-1); // pop prop
 				}
 				cout << "}";
+
+				frame->stackMoveTop(-1); // pop index
 			}
 
 			frame->stackMoveTop(-1); // pop propertiesCount

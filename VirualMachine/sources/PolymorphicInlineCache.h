@@ -8,10 +8,17 @@ namespace Beer
 	class Method;
 	class Class;
 
-	#pragma pack(push, 1)
-	class PolymorphicInlineCache
+	//#pragma pack(push, 1)
+	class PolymorphicCache : public Object
 	{
 	public:
+		enum
+		{
+			POLYCACHE_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 2,
+			CHILD_ID_LOCKS = OBJECT_CHILDREN_COUNT,
+			CHILD_ID_METHODS = OBJECT_CHILDREN_COUNT + 1
+		};
+
 		struct CachedMethod
 		{
 			Class* klass;
@@ -34,14 +41,14 @@ namespace Beer
 
 		NOINLINE Method* find(Thread* thread, Class* klass, String* selector, uint16 methodsLength);
 
-		INLINE static PolymorphicInlineCache* from(void* ptr)
+		INLINE static PolymorphicCache* from(void* ptr)
 		{
-			return reinterpret_cast<PolymorphicInlineCache*>(ptr);
+			return reinterpret_cast<PolymorphicCache*>(ptr);
 		}
 		INLINE static uint16 countSize(uint16 methods)
 		{
-			return /*sizeof(uint16) +*/ sizeof(CachedMethod) * methods;
+			return /*sizeof(PolymorphicCache) +*/ sizeof(CachedMethod) * methods;
 		}
 	};
-	#pragma pack(pop)
+	//#pragma pack(pop)
 };

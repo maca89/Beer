@@ -61,7 +61,7 @@ void BEER_CALL FileReader::readEnded(Thread* thread, StackRef<FileReader> receiv
 
 void FileReaderClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 8);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 8 + Object::OBJECT_METHODS_COUNT);
 }
 
 void FileReaderClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

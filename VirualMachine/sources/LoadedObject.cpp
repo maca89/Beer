@@ -81,11 +81,6 @@ void LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader, S
 		}
 	}
 
-	if(strcmp(name->c_str(), BEER_WIDEN("Task")) == 0)
-	{
-		methodsLength++; // dorun
-	}
-
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
 		StackRef<String> parentClassName(frame, frame->stackPush());
@@ -97,9 +92,26 @@ void LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader, S
 		StackRef<Integer> propertiesCount(frame, frame->stackPush());
 		Class::getPropertiesCount(thread, parent, propertiesCount);
 
-		propertiesLength += static_cast<uint16>(propertiesCount->getData());
+		StackRef<Integer> methodsCount(frame, frame->stackPush());
+		Class::getMethodsCount(thread, parent, methodsCount);
 
-		frame->stackMoveTop(-3); // pop parentClassName, parent, propertiesCount
+		propertiesLength += static_cast<uint16>(propertiesCount->getData());
+		methodsLength += static_cast<uint16>(methodsCount->getData());
+
+		frame->stackMoveTop(-4); // pop parentClassName, parent, propertiesCount, methodsCount
+	}
+
+	if(mClassDescr->getParentsLength() == 0)
+	{
+		StackRef<Class> objectKlass(frame, frame->stackPush());
+		thread->getObjectClass(objectKlass);
+
+		StackRef<Integer> methodsCount(frame, frame->stackPush());
+		Class::getMethodsCount(thread, objectKlass, methodsCount);
+
+		methodsLength += static_cast<uint16>(methodsCount->getData());
+
+		frame->stackMoveTop(-2); // pop objectKlass, methodsCount
 	}
 
 	loader->createClass<Class>(

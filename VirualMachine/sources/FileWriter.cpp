@@ -74,7 +74,7 @@ void BEER_CALL FileWriter::writeFailed(Thread* thread, StackRef<FileWriter> rece
 
 void FileWriterClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 10);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 10 + Object::OBJECT_METHODS_COUNT);
 }
 
 void FileWriterClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

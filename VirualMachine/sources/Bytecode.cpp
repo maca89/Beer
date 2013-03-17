@@ -10,7 +10,8 @@
 #include "Method.h"
 #include "ClassFileDescriptor.h"
 #include "StringDescriptor.h"
-#include "BytecodeBuilder.h"
+#include "BytecodeInputStream.h"
+#include "BytecodeOutputStream.h"
 #include "MonomorphicInlineCache.h"
 #include "PolymorphicInlineCache.h"
 #include "Debugger.h"
@@ -25,10 +26,56 @@ using namespace Beer;
 #define BEER_BC_DISPATCH	BEER_BC_DISPATCH_SWITCH
 
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
-#define BEER_BC_SAVE_OPCODE(opcode) builder.add((uint8)opcode)
+#define BEER_BC_SAVE_OPCODE(opcode) ostream.write<uint8>(opcode)
 #elif BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
-#define BEER_BC_SAVE_OPCODE(opcode) builder.add((void*)LabelTable[opcode])
+#define BEER_BC_SAVE_OPCODE(opcode) ostream.write((void*)LabelTable[opcode])
 #endif // BEER_BC_DISPATCH
+
+
+void Bytecode::checkPool(Thread* thread)
+{
+	if(!mPool)
+	{
+		createPool(thread, 10);
+	}
+	else if(!mPool->hasFreeSlot())
+	{
+		createPool(thread, 2 * mPool->getSize());
+	}
+}
+
+uint16 Bytecode::createPoolSlot(Thread* thread)
+{
+	checkPool(thread);
+	return mPool->createSlot();
+}
+
+uint16 Bytecode::storeToPool(Thread* thread, StackRef<Object> object)
+{
+	checkPool(thread);
+
+	uint16 ret = 0;
+	Pool::addItem(thread, mPool, object, ret);
+	return ret;
+}
+
+void Bytecode::createPool(Thread* thread, uint16 length)
+{
+	// TODO: get from VM's pool of pools
+
+	Pool* p = thread->getPermanentHeap()->alloc<Pool>(Pool::POOL_CHILDREN_COUNT + length);
+	p->setSize(length);
+	p->setNext(0);
+	p->clear();
+
+	if(mPool)
+	{
+		p->copyFrom(mPool);
+		mPool->clear();
+	}
+
+	mPool = p;
+}
 
 uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) const
 {
@@ -138,7 +185,7 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 		break;
 
 	case BEER_INSTR_VIRTUAL_INVOKE:
-		cout << "INVOKE " << getData<uint32>();
+		cout << "VIRTUAL_INVOKE " << getData<uint32>();
 		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData<uint32>())->c_str();
 		size += sizeof(uint32);
 		break;
@@ -149,20 +196,14 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 		size += sizeof(uint32);
 		break;
 	
-	case BEER_INSTR_STATIC_INVOKE:
-		cout << "STATIC_INVOKE " << getData<uint32>();
-		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData<uint32>())->c_str();
-		size += sizeof(uint32);
-		break;
-	
 	case BEER_INSTR_SPECIAL_INVOKE:
-		cout << "SPECIALINVOKE " << getData<uint32>();
+		cout << "SPECIAL_INVOKE " << getData<uint32>();
 		cout << " // " << classFile->getDescriptor<StringDescriptor>(getData<uint32>())->c_str();
 		size += sizeof(uint32);
 		break;
 	
-	case BEER_INSTR_INVOKE:
-		cout << "INVOKE";
+	case BEER_INSTR_STACK_INVOKE:
+		cout << "STACK_INVOKE";
 		break;
 	
 	case BEER_INSTR_RETURN:
@@ -178,24 +219,27 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 	return size;
 }
 
-void Bytecode::Instruction::printTranslated(Thread* thread) const
+void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* instr)
 {
-	switch (opcode)
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	switch (instr->opcode)
 	{
 	case BEER_INSTR_NOP:
 		cout << "NOP";
 		break;
 
 	case BEER_INSTR_JMP:
-		cout << "JMP " << getData<uint16>();
+		cout << "JMP " << instr->getData<uint16>();
 		break;
 
 	case BEER_INSTR_JMP_TRUE:
-		cout << "JMP_TRUE " << getData<uint16>();
+		cout << "JMP_TRUE " << instr->getData<uint16>();
 		break;
 
 	case BEER_INSTR_JMP_FALSE:
-		cout << "JMP_FALSE " << getData<uint16>();
+		cout << "JMP_FALSE " << instr->getData<uint16>();
 		break;
 
 	case BEER_INSTR_POP:
@@ -203,62 +247,61 @@ void Bytecode::Instruction::printTranslated(Thread* thread) const
 		break;
 
 	case BEER_INSTR_TOP:
-		cout << "TOP " << getData<int16>();
+		cout << "TOP " << instr->getData<int16>();
 		break;
 
 	case BEER_INSTR_STORE:
-		cout << "STORE " << getData<int16>();
+		cout << "STORE " << instr->getData<int16>();
 		break;
 
 	case BEER_INSTR_MOVE_TOP:
-		cout << "MOVE_TOP " << getData<int16>();
-		break;
-
-	case BEER_INSTR_PUSH_INT8:
-		cout << "PUSH_INT8 " << static_cast<uint32>(getData<int8>());
-		break;
-
-	case BEER_INSTR_PUSH_INT32:
-		cout << "PUSH_INT32 " << getData<int32>();
+		cout << "MOVE_TOP " << instr->getData<int16>();
 		break;
 
 	case BEER_INSTR_PUSH_INT64:
-		cout << "PUSH_INT64 " << getData<int64>();
+		{
+			StackRef<Integer> value(frame, frame->stackPush());
+			loadFromPool(thread, instr->getData<int16>(), value);
+
+			cout << "PUSH_INT64 " << value->getData();
+			frame->stackMoveTop(-1); // pop value
+		}
 		break;
 
 	case BEER_INSTR_PUSH_FLOAT:
-		cout << "PUSH_FLOAT " << getData<float64>();
+		cout << "PUSH_FLOAT " << instr->getData<float64>();
 		break;
 
 	case BEER_INSTR_PUSH_STRING:
 		{
-			Reference<String> str(thread->getGC(), getData<uint32>());
-			cout << "PUSH_STRING \"" << str->c_str() << "\"";
+			StackRef<String> value(frame, frame->stackPush());
+			loadFromPool(thread, instr->getData<int16>(), value);
+
+			cout << "PUSH_STRING \"" << value->c_str() << "\"";
+			frame->stackMoveTop(-1); // pop value
 		}
 		break;
 
 	case BEER_INSTR_PUSH_CHAR:
 		//cout << "PUSH_CHAR " << getData_uint16(); // TODO
-		cout << "PUSH_CHAR " << getData<uint8>(); // TODO
+		cout << "PUSH_CHAR " << instr->getData<uint8>(); // TODO
 		break;
 
 	case BEER_INSTR_PUSH_BOOL:
-		cout << "PUSH_BOOL " << static_cast<uint32>(getData<uint8>());
+		cout << "PUSH_BOOL " << static_cast<uint32>(instr->getData<uint8>());
 		break;
 
 	case BEER_INSTR_NEW: // ugly, TODO
 		{
-			Frame* frame = thread->getFrame();
-			BEER_STACK_CHECK();
-
-			StackRef<Class> klass(frame, frame->stackPush(static_cast<Class*>(reinterpret_cast<Object*>(getData<uint32>()))));
 			StackRef<String> name(frame, frame->stackPush());
+
+			StackRef<Class> klass(frame, frame->stackPush());
+			loadFromPool(thread, instr->getData<int16>(), klass);
 
 			Class::getName(thread, klass, name);
 
 			cout << "NEW " << name->c_str();
-
-			frame->stackMoveTop(-2); // pop class & name
+			frame->stackMoveTop(-2); // pop class, name
 		}
 		break;
 
@@ -267,51 +310,44 @@ void Bytecode::Instruction::printTranslated(Thread* thread) const
 		break;
 
 	case BEER_INSTR_ASSIGN:
-		cout << "ASSIGN " << getData<uint16>();
+		cout << "ASSIGN " << instr->getData<uint16>();
 		break;
 
 	case BEER_INSTR_LOAD:
-		cout << "LOAD " << getData<uint16>();
+		cout << "LOAD " << instr->getData<uint16>();
 		break;
 
 	case BEER_INSTR_LOAD_THIS:
-		cout << "LOAD_THIS " << getData<uint16>();
+		cout << "LOAD_THIS " << instr->getData<uint16>();
 		break;
 
 	case BEER_INSTR_VIRTUAL_INVOKE:
 		{
-			Reference<String> selector(thread->getGC(), getData<uint32>());
-			cout << "INVOKE \"" << selector->c_str() << "\"";
+			Reference<String> selector(thread->getGC(), instr->getData<uint32>());
+			cout << "VIRTUAL_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_INTERFACE_INVOKE:
 		{
-			Reference<String> selector(thread->getGC(), getData<uint32>());
+			Reference<String> selector(thread->getGC(), instr->getData<uint32>());
 			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
-		}
-		break;
-	
-	case BEER_INSTR_STATIC_INVOKE:
-		{
-			Reference<String> selector(thread->getGC(), getData<uint32>());
-			cout << "STATIC_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 	
 	case BEER_INSTR_SPECIAL_INVOKE:
 		{
-			Reference<String> selector(thread->getGC(), getData<uint32>());
+			Reference<String> selector(thread->getGC(), instr->getData<uint32>());
 			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
 		}
 		break;
 
-	case BEER_INSTR_INVOKE:
-		cout << "INVOKE";
+	case BEER_INSTR_STACK_INVOKE:
+		cout << "STACK_INVOKE";
 		break;
 	
 	case BEER_INSTR_RETURN:
-		cout << "RETURN " << getData<uint16>();
+		cout << "RETURN " << instr->getData<uint16>();
 		break;
 		
 	case BEER_INLINE_BOOLEAN_EQUAL:
@@ -382,10 +418,6 @@ void Bytecode::Instruction::printTranslated(Thread* thread) const
 		cout << "INLINE_ARRAY_SET_ITEM";
 		break;*/
 
-	case BEER_OPTIMAL_INTEGER_PUSH_INLINED:
-		cout << "OPTIMAL_INTEGER_PUSH_INLINED" << " " << ((Integer*)(getData<Object*>()))->getData();
-		break;
-
 	case BEER_OPTIMAL_ARRAY_ALLOC:
 		cout << "OPTIMAL_ARRAY_ALLOC";
 		break;
@@ -401,13 +433,18 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	BytecodeBuilder builder(mData, mDataSize, mDictSize);
-	
-	//int32 i = 0;
+	BytecodeInputStream istream(mData, mDataSize);
+	BytecodeOutputStream ostream(mDictSize);
 
-	while(!builder.done())
+#if BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
+	ostream.setAlignMemory(true);
+#endif // BEER_BC_DISPATCH
+
+	while(!istream.end())
 	{
-		Bytecode::OpCode opcode = builder.next();
+		ostream.next();
+
+		Bytecode::OpCode opcode = istream.read<Bytecode::OpCode>();
 		//cout << i++ << "\t" << opcode << "\t"; builder.getOldInstruction()->printRaw(classFile); cout << "\n";
 
 		switch(opcode)
@@ -423,11 +460,10 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 
 			// 1 byte = 8bit
 
-			case BEER_INSTR_PUSH_INT8:
 			case BEER_INSTR_PUSH_BOOL:
 			case BEER_INSTR_PUSH_CHAR:// TODO: 16bit
 				BEER_BC_SAVE_OPCODE(opcode);
-				builder.copy(sizeof(uint8));
+				ostream.write(istream.read<uint8>());
 				break;
 
 			// 2 bytes = 16bit
@@ -436,17 +472,17 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 			case BEER_INSTR_STORE:
 				{
 					BEER_BC_SAVE_OPCODE(opcode);
-					int16 value = builder.getData<int16>();
-					if(value > 0) builder.add(static_cast<int16>(value - 1)); // -1 because local vars start at 0 (not at 1)
-					else builder.add(static_cast<int16>(value - 2)); // -2 because arguments start at -1 (not at 0) and there is method added ad -1 arg
+					int16 value = istream.read<int16>();
+					if(value > 0) ostream.write<int16>(value - 1); // -1 because local vars start at 0 (not at 1)
+					else ostream.write<int16>(value - 2); // -2 because arguments start at -1 (not at 0) and there is method added ad -1 arg
 				}
 				break;
 
 			case BEER_INSTR_RETURN:
 				{
 					BEER_BC_SAVE_OPCODE(opcode);
-					uint16 value = builder.getData<uint16>();
-					builder.add(static_cast<uint16>(value - method->getParamsCount() - 1));
+					uint16 value = istream.read<uint16>();
+					ostream.write(static_cast<uint16>(value - method->getParamsCount() - 1));
 				}
 				break;
 
@@ -458,42 +494,30 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 			case BEER_INSTR_LOAD:
 			case BEER_INSTR_ASSIGN:
 				BEER_BC_SAVE_OPCODE(opcode);
-				builder.copy(sizeof(uint16));
+				ostream.write(istream.read<uint16>());
 				break;
 
 			// 4 bytes = 32bit
 
-			case BEER_INSTR_PUSH_INT32:
-				{
-					Integer::IntegerData value = builder.getData<int32>();
-#ifdef BEER_INLINE_OPTIMALIZATION
-					if(Integer::canBeInlineValue(value))
-					{
-						BEER_BC_SAVE_OPCODE(BEER_OPTIMAL_INTEGER_PUSH_INLINED);
-						builder.add((Object*)Integer::makeInlineValue(value));
-					}
-					else
-#endif // BEER_INLINE_OPTIMALIZATION
-					{
-						BEER_BC_SAVE_OPCODE(opcode);
-						builder.add(static_cast<int32>(value));
-					}
-				}
-				break;
-
 			case BEER_INSTR_PUSH_STRING:
 				{
 					BEER_BC_SAVE_OPCODE(opcode);
-					// TODO!!!
-					const char16* cstring = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> string = String::gTranslate(thread, cstring);
-					builder.add((int32)string.getId());
+					// TODO: load from classfile pool
+					const char16* cstring = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
+					Reference<String> str = String::gTranslate(thread, cstring);
+					
+					StackRef<String> value(frame, frame->stackPush(
+						*str
+					));
+
+					ostream.write<uint16>(storeToPool(thread, value));
+					frame->stackMoveTop(-1); // pop value
 				}
 				break;
 
 			case BEER_INSTR_NEW:
 				{
-					const char16* cstring = classFile->getClassName(builder.getData<int32>())->c_str();
+					const char16* cstring = classFile->getClassName(istream.read<int32>())->c_str();
 #ifdef BEER_INLINE_OPTIMALIZATION
 					if(strcmp(cstring, BEER_WIDEN("Array")) == 0)
 					{
@@ -512,20 +536,20 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 
 						thread->findClass(name, klass);
 
-						builder.add((Object*)*klass); // TODO: pass Reference
+						ostream.write<uint16>(storeToPool(thread, klass.staticCast<Object>()));
+
 						frame->stackMoveTop(-2); // pop name, klass
 					}
 				}
 				break;
 
 			case BEER_INSTR_VIRTUAL_INVOKE:
-			case BEER_INSTR_STATIC_INVOKE:
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
-					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
-					Reference<String> selector = String::gTranslate(thread, cselector);
+					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
+					Reference<String> refselector = String::gTranslate(thread, cselector);
 #ifdef BEER_INLINE_OPTIMALIZATION
-					Bytecode::OpCode newOpcode = thread->getVM()->getInlineFunctionTable()->find(selector.get());
+					Bytecode::OpCode newOpcode = thread->getVM()->getInlineFunctionTable()->find(refselector.get());
 					if(newOpcode != BEER_INSTR_NOP)
 					{
 						BEER_BC_SAVE_OPCODE(newOpcode);
@@ -534,13 +558,17 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 #endif // BEER_INLINE_OPTIMALIZATION
 					{
 						BEER_BC_SAVE_OPCODE(opcode);
-						builder.add((int32)selector.getId());
+						
+						StackRef<String> selector(frame, frame->stackPush(
+							*refselector
+						));
+						
+						ostream.write<uint16>(storeToPool(thread, selector));
+						//ostream.write<uint16>(createPoolSlot(thread)); // for method
 
-						// TODO!!!
-						MonomorphicInlineCache* cache = MonomorphicInlineCache::from(builder.alloc(MonomorphicInlineCache::countSize()));
-						cache->clear();
+						frame->stackMoveTop(-1); // pop selector
 
-						//BEER_BC_SAVE_OPCODE(BEER_INSTR_INVOKE);
+						//BEER_BC_SAVE_OPCODE(BEER_INSTR_STACK_INVOKE);
 					}
 				}
 				break;
@@ -550,35 +578,86 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 				{
 					BEER_BC_SAVE_OPCODE(opcode);
 
-					const char16* cselector = classFile->getDescriptor<StringDescriptor>(builder.getData<int32>())->c_str();
+					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
 					Reference<String> selector = String::gTranslate(thread, cselector);
-					builder.add((int32)selector.getId());
+					ostream.write((int32)selector.getId());
 					
-					PolymorphicInlineCache* cache = PolymorphicInlineCache::from(builder.alloc(PolymorphicInlineCache::countSize(mMethodCachesLength)));
+					PolymorphicCache* cache = PolymorphicCache::from(ostream.alloc(PolymorphicCache::countSize(mMethodCachesLength)));
 					cache->clear(mMethodCachesLength);
 
-					//BEER_BC_SAVE_OPCODE(BEER_INSTR_INVOKE);
+					//BEER_BC_SAVE_OPCODE(BEER_INSTR_STACK_INVOKE);
 				}
 				break;
 
-			case BEER_INSTR_INVOKE:
+			case BEER_INSTR_STACK_INVOKE:
 				BEER_BC_SAVE_OPCODE(opcode);
 				break;
 
-			// 8 bytes = 64bit
+			// push int
+
+			case BEER_INSTR_PUSH_INT8:
+				{
+					BEER_BC_SAVE_OPCODE(BEER_INSTR_PUSH_INT64);
+					
+					StackRef<Integer> value(frame, frame->stackPush());
+					thread->createInteger(value, istream.read<int8>()); // TODO: on permanent heap
+
+					ostream.write<uint16>(storeToPool(thread, value.staticCast<Object>()));
+					frame->stackMoveTop(-1); // pop value
+				}
+				break;
+
+			case BEER_INSTR_PUSH_INT32:
+				{
+					BEER_BC_SAVE_OPCODE(BEER_INSTR_PUSH_INT64);
+					
+					StackRef<Integer> value(frame, frame->stackPush());
+					thread->createInteger(value, istream.read<int32>()); // TODO: on permanent heap
+
+					ostream.write<uint16>(storeToPool(thread, value.staticCast<Object>()));
+					frame->stackMoveTop(-1); // pop value
+				}
+				break;
 			case BEER_INSTR_PUSH_INT64:
+				{
+					BEER_BC_SAVE_OPCODE(BEER_INSTR_PUSH_INT64);
+					
+					StackRef<Integer> value(frame, frame->stackPush());
+					thread->createInteger(value, istream.read<int64>()); // TODO: on permanent heap
+
+					ostream.write<uint16>(storeToPool(thread, value.staticCast<Object>()));
+					frame->stackMoveTop(-1); // pop value
+				}
+				break;
+
+			// 8 bytes = 64bit
+
 			case BEER_INSTR_PUSH_FLOAT:
 				BEER_BC_SAVE_OPCODE(opcode);
-				builder.copy(sizeof(uint64));
+				ostream.write(istream.read<uint64>());
 				break;
 
 			default:
 				throw BytecodeException(BEER_WIDEN("Unknown opcode"));
 				break;
 		}
+
+		//ostream.write<uint32>(0);
 	}
 
-	builder.finish(&mData, mDataSize, &mDict, mDictSize);
+	ostream.finish(&mData, mDataSize, &mDict, mDictSize);
+
+	if(false){
+		cout << "-------------------\n";
+
+		for(uint16 i = 0; i < mDictSize; i++)
+		{
+			const Instruction* instr = reinterpret_cast<const Instruction*>(&mData[mDict[i]]);
+			cout << "\t";
+			printTranslatedInstruction(thread, instr);
+			cout << "\n";
+		}
+	}
 }
 
 void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
@@ -595,7 +674,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_BC_DATA(type) *reinterpret_cast<type*>(ip)
 
-#define BEER_BC_MOVE(howmuch)
+#define BEER_BC_MOVE(howmuch) ip += howmuch
 
 #define BEER_BC_JUMP(instri) frame->setProgramCounter(instri);
 
@@ -632,9 +711,9 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_BC_NEXT(skip) BEER_BC_MOVE(skip); BEER_BC_PASS();
 
-#define BEER_BC_FETCH() jumpAddr = *(reinterpret_cast<void**>(ip)); BEER_BC_MOVE(sizeof(void*));
+#define BEER_BC_FETCH() /*BEER_BC_MOVE(reinterpret_cast<uint32>(ip) % 4);*/ /*ip = reinterpret_cast<byte*>(getInstruction(vPC));*/ jumpAddr = *(reinterpret_cast<void**>(ip)); BEER_BC_MOVE(sizeof(void*));
 
-#define BEER_BC_PASS() vPC++; BEER_BC_FETCH(); __asm jmp jumpAddr;
+#define BEER_BC_PASS() BEER_BC_FETCH(); vPC++; __asm jmp jumpAddr;
 
 #define BEER_BC_RETURN() frame->setProgramCounter(vPC); return;
 
@@ -740,26 +819,12 @@ BEER_BC_LABEL(INSTR_MOVE_TOP):
 	frame->stackMoveTop(BEER_BC_DATA(int16));
 	BEER_BC_NEXT(sizeof(int16));
 
-BEER_BC_LABEL(INSTR_PUSH_INT8):
-	{
-		StackRef<Integer> ret(frame, frame->stackPush());
-		thread->createInteger(ret, BEER_BC_DATA(int8));
-	}
-	BEER_BC_NEXT(sizeof(int8));
-		
-BEER_BC_LABEL(INSTR_PUSH_INT32):
-	{
-		StackRef<Integer> ret(frame, frame->stackPush());
-		thread->createInteger(ret, BEER_BC_DATA(int32));
-	}
-	BEER_BC_NEXT(sizeof(int32));
-
 BEER_BC_LABEL(INSTR_PUSH_INT64):
 	{
-		StackRef<Integer> ret(frame, frame->stackPush());
-		thread->createInteger(ret, static_cast<Integer::IntegerData>(BEER_BC_DATA(int64)));
+		StackRef<Object> value(frame, frame->stackPush());
+		loadFromPool(thread, BEER_BC_DATA(uint16), value);
 	}
-	BEER_BC_NEXT(sizeof(int64));
+	BEER_BC_NEXT(sizeof(Object*));
 
 BEER_BC_LABEL(INSTR_PUSH_FLOAT):
 	{
@@ -769,8 +834,11 @@ BEER_BC_LABEL(INSTR_PUSH_FLOAT):
 	BEER_BC_NEXT(sizeof(float64));
 
 BEER_BC_LABEL(INSTR_PUSH_STRING):
-	frame->stackPush(thread->getGC()->translate(BEER_BC_DATA(int32)));
-	BEER_BC_NEXT(sizeof(int32));
+	{
+		StackRef<Object> str(frame, frame->stackPush());
+		loadFromPool(thread, BEER_BC_DATA(uint16), str);
+	}
+	BEER_BC_NEXT(sizeof(uint16));
 
 BEER_BC_LABEL(INSTR_PUSH_CHAR):
 	frame->stackPush(Character::makeInlineValue(BEER_BC_DATA(uint8))); // TODO: char16
@@ -783,11 +851,13 @@ BEER_BC_LABEL(INSTR_PUSH_BOOL):
 BEER_BC_LABEL(INSTR_NEW):
 	{
 		StackRef<Object> instance(frame, frame->stackPush());
-		StackRef<Class> klass(frame, frame->stackPush(BEER_BC_DATA_PTR(Object*))); // TODO
+		StackRef<Class> klass(frame, frame->stackPush());
+		loadFromPool(thread, BEER_BC_DATA(uint16), klass);
+
 		thread->createInstance(klass, instance);
 		frame->stackMoveTop(-1); // pop  klass
 	}
-	BEER_BC_NEXT(sizeof(Object*));
+	BEER_BC_NEXT(sizeof(uint16));
 
 BEER_BC_LABEL(INSTR_CLONE):
 	throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
@@ -832,34 +902,54 @@ BEER_BC_LABEL(INSTR_LOAD_THIS):
 	BEER_BC_NEXT(sizeof(uint16));
 
 BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
-BEER_BC_LABEL(INSTR_STATIC_INVOKE):
 BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 	{
 		StackRef<Object> object(frame, frame->stackTopIndex());
 		NULL_ASSERT(object.get());
 
-		Reference<String> selector(thread->getGC(), BEER_BC_DATA(int32));
+		StackRef<Method> method(frame, frame->stackPush());
 
-		// find method using inline cache
-		MonomorphicInlineCache* cache = MonomorphicInlineCache::from(ip + sizeof(int32));
-		Class* klass = thread->getType(object);
-		Method* method = cache->find(thread, klass, *selector);
-
-		// lookup failed
-		if(!method)
+		// fetch method
 		{
-			BEER_DBG_BREAKPOINT();
-			throw MethodNotFoundException(*object, klass, *selector);
+			StackRef<String> selector(frame, frame->stackPush());
+			loadFromPool(thread, BEER_BC_DATA(uint16), selector);
+
+			StackRef<Class> klass(frame, frame->stackPush());
+			thread->getType(object, klass);
+
+			Class::findMethod(thread, klass, selector, method); // lookup
+
+			if(method.isNull())
+			{
+				BEER_DBG_BREAKPOINT();
+				throw MethodNotFoundException(*object, *klass, *selector); // lookup failed
+			}
+
+			frame->stackMoveTop(-2); // pop selector, klass
 		}
-				
-		frame->stackPush(method);
-		thread->openFrame();
+
+		// set new opcode
+		{
+			Instruction* instr = getInstruction(frame->getProgramCounter() - 1);
+			instr->setOpcode(BEER_OPTIMAL_CACHED_INVOKE);
+			instr->setData<uint16>(storeToPool(thread, method));
+		}
 		
-		BEER_BC_MOVE(sizeof(int32) + MonomorphicInlineCache::countSize());
-		//BEER_BC_RETURN();
+		thread->openFrame();
 	}
+	BEER_BC_MOVE(sizeof(uint16));
 	BEER_BC_RETURN();
-	BEER_BC_NEXT(0); // should not happen
+
+BEER_BC_LABEL(OPTIMAL_CACHED_INVOKE):
+	{
+		StackRef<Method> method(frame, frame->stackPush());
+		loadFromPool(thread, BEER_BC_DATA(uint16), method); // load from cache
+		DBG_ASSERT(*method != NULL, BEER_WIDEN("Method is null"));
+
+		thread->openFrame();
+	}
+	BEER_BC_MOVE(sizeof(uint16));
+	BEER_BC_RETURN();
 		
 // no caching
 BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
@@ -870,7 +960,7 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 		Reference<String> selector(thread->getGC(), BEER_BC_DATA(int32));
 
 		// find method using inline cache
-		PolymorphicInlineCache* cache = PolymorphicInlineCache::from(ip + sizeof(int32));
+		PolymorphicCache* cache = PolymorphicCache::from(ip + sizeof(int32));
 		Class* klass = thread->getType(object); // TODO
 		Method* method = cache->find(thread, klass, selector.get(), mMethodCachesLength);
 
@@ -882,14 +972,11 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 
 		frame->stackPush(method);
 		thread->openFrame();
-		
-		BEER_BC_MOVE(sizeof(int32) + PolymorphicInlineCache::countSize(mMethodCachesLength));
-		//BEER_BC_RETURN();
 	}
+	BEER_BC_MOVE(sizeof(int32) + PolymorphicCache::countSize(mMethodCachesLength));
 	BEER_BC_RETURN();
-	BEER_BC_NEXT(0); // should not happen
 
-BEER_BC_LABEL(INSTR_INVOKE):
+BEER_BC_LABEL(INSTR_STACK_INVOKE):
 	thread->openFrame();
 	BEER_BC_RETURN();
 
@@ -1045,12 +1132,6 @@ BEER_BC_LABEL(INLINE_ARRAY_SET_ITEM):
 	}
 	BEER_BC_NEXT(0);*/
 
-BEER_BC_LABEL(OPTIMAL_INTEGER_PUSH_INLINED):
-	{
-		frame->stackPush(static_cast<Integer*>(BEER_BC_DATA_PTR(Object*)));
-	}
-	BEER_BC_NEXT(sizeof(Object*));
-
 BEER_BC_LABEL(OPTIMAL_ARRAY_ALLOC):
 	{
 		StackRef<Integer> length(frame, frame->stackTopIndex());
@@ -1082,9 +1163,6 @@ LABEL_FILL_OPCODE_TABLE:
 	BEER_CALLABLE_LABEL(INSTR_STORE);
 	BEER_CALLABLE_LABEL(INSTR_MOVE_TOP);
 	//built-in types control
-	BEER_CALLABLE_LABEL(INSTR_PUSH_INT8);
-	//BEER_CALLABLE_LABEL(INSTR_PUSH_INT16);
-	BEER_CALLABLE_LABEL(INSTR_PUSH_INT32);
 	BEER_CALLABLE_LABEL(INSTR_PUSH_INT64);
 	BEER_CALLABLE_LABEL(INSTR_PUSH_FLOAT);
 	BEER_CALLABLE_LABEL(INSTR_PUSH_STRING);

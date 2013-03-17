@@ -27,6 +27,7 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			case BEER_INSTR_NOP:
 			case BEER_INSTR_POP:
 			case BEER_INSTR_CLONE:
+			case BEER_INSTR_STACK_INVOKE:
 				break;
 
 			// 1 byte = 8bit
@@ -63,7 +64,6 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			case BEER_INSTR_PUSH_STRING:
 			case BEER_INSTR_VIRTUAL_INVOKE:
 			case BEER_INSTR_INTERFACE_INVOKE:
-			case BEER_INSTR_STATIC_INVOKE:
 			case BEER_INSTR_SPECIAL_INVOKE:
 				format.convert(instr->getData<uint32>());
 				bytei += sizeof(uint32);

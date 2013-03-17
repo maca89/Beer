@@ -19,7 +19,6 @@ namespace Beer
 	class Class;
 	class Pair;
 
-	class GarbageCollector;
 	class ClassFileLoader;
 	class ClassLoader;
 	class Thread;
@@ -29,9 +28,10 @@ namespace Beer
 	typedef std::set<Thread*> ThreadSet;
 	typedef std::map<string, Class*> ClassReflectionTable;
 
-	class VirtualMachine : public Thread
+	class VirtualMachine : protected Thread
 	{
 	protected:
+		//GenerationalGC* mGC;
 		ClassReflectionTable mClasses;
 		ClassLoader* mClassLoader;
 		Debugger* mDebugger;
@@ -48,19 +48,23 @@ namespace Beer
 		Class* mBooleanClass;
 		Class* mArrayClass;
 
+
 	public:
-		INLINE VirtualMachine(GC * gc)
+		INLINE VirtualMachine(GenerationalGC* gc)
 			: Thread(this, gc),
 			mClassLoader(NULL), mDebugger(NULL),
 			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL)
+			//mGC(NULL)
 		{
 		}
 
 		INLINE ~VirtualMachine()
 		{
 		}
+
+		void loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile);
 	
-		void addClass(Class* reflection);
+		void addClass(Thread* thread, Class* reflection);
 		//void removeClass(ClassReflection* reflection);
 		//bool hasClass(string name) const;
 
@@ -70,7 +74,7 @@ namespace Beer
 		// deprecated, TODO: get rid of
 		Class* findClass(string name);
 
-		INLINE Heap* getHeap() const { return mHeap; }
+		//INLINE Heap* getHeap() const { return mHeap; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
 		INLINE ClassTable* getClassTable() { return &mClassTable; }
 		INLINE InlineFunctionTable* getInlineFunctionTable() { return &mInlineFnTable; }
@@ -78,7 +82,9 @@ namespace Beer
 		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
 		INLINE ClassReflectionTable& getClasses() { return mClasses; }
 
-		void init(uint32 stackInitSize);
+		void init();
+		void run();
+		void wait();
 		void destroy();
 
 		// deprecated, TODO: get rid of these

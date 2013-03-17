@@ -17,7 +17,7 @@ using namespace Beer;
 #endif
 
 
-Method* PolymorphicInlineCache::find(Thread* thread, Class* klass, String* selector, uint16 methodsLength)
+Method* PolymorphicCache::find(Thread* thread, Class* klass, String* selector, uint16 methodsLength)
 {
 	DBG_ASSERT(klass != NULL, BEER_WIDEN("Class is NULL"));
 

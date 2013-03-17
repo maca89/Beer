@@ -34,7 +34,7 @@ namespace Beer
 		{
 			return reinterpret_cast<MonomorphicInlineCache*>(ptr);
 		}
-		INLINE static uint16 countSize()
+		INLINE static uint32 countSize()
 		{
 			return sizeof(MonomorphicInlineCache);
 		}

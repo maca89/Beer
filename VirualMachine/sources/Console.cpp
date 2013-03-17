@@ -150,7 +150,7 @@ void BEER_CALL Console::getArg(Thread* thread, StackRef<Console> receiver, Stack
 
 void ConsoleClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 18);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 18 + Object::OBJECT_METHODS_COUNT);
 }
 
 void ConsoleClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

@@ -83,7 +83,7 @@ void BEER_CALL Task::getId(Thread* thread, StackRef<Task> receiver, StackRef<Int
 
 void TaskInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 7);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 7 + Object::OBJECT_METHODS_COUNT);
 }
 
 void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

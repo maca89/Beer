@@ -78,6 +78,7 @@ namespace Beer
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret);
 
 		static void BEER_CALL findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret);
+		static void BEER_CALL findMethodIndex(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret1, StackRef<Integer> ret2);
 		static void BEER_CALL substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret);
 		
 		static void BEER_CALL getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
@@ -94,6 +95,9 @@ namespace Beer
 		static void BEER_CALL getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret);
 		static void BEER_CALL getMethodsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value);
+		
+		// shortcut
+		//static void BEER_CALL getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret);
 
 	protected:
 		static void BEER_CALL getPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);

@@ -73,7 +73,7 @@ void BEER_CALL RandomGenerator::toss(Thread* thread, StackRef<RandomGenerator> r
 
 void RandomGeneratorClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 8);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 8 + Object::OBJECT_METHODS_COUNT);
 }
 
 void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

@@ -128,6 +128,9 @@ namespace Beer
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
 
 		static void BEER_CALL init(Thread* thread, StackRef<String> receiver, StackRef<String> ret);
+
+		static void BEER_CALL operatorString(Thread* thread, StackRef<Object> receiver, StackRef<String> ret);
+
 		static void BEER_CALL getLength(Thread* thread, StackRef<String> receiver, StackRef<Integer> ret);
 		static void BEER_CALL operatorGet(Thread* thread, StackRef<String> receiver, StackRef<Integer> index, StackRef<Character> ret);
 		static void BEER_CALL operatorAddString(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<String> ret);

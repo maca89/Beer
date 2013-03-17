@@ -89,7 +89,7 @@ void BEER_CALL Float::createInstance(Thread* thread, StackRef<Class> receiver, S
 
 void FloatClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 15);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 15 + Object::OBJECT_METHODS_COUNT);
 }
 
 void FloatClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

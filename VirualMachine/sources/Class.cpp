@@ -33,7 +33,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 	frame->stackMoveTop(-1); // pop propertiesCount
 }
 
-void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret)
+void BEER_CALL Class::findMethodIndex(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret1, StackRef<Integer> ret2)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -47,7 +47,7 @@ void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, Stack
 		StackRef<Integer> methodsCount(frame, frame->stackPush());
 		Class::getMethodsCount(thread, receiver, methodsCount);
 
-		for(uint16 i = 0; i < methodsCount->getData(); i++)
+		for(Integer::IntegerData i = methodsCount->getData() - 1; i >= 0; i--)
 		{
 			thread->createInteger(index, i);
 			Class::getMethod(thread, receiver, index, pair);
@@ -58,44 +58,26 @@ void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, Stack
 			
 				if(selector->compare(*otherSelector) == 0)
 				{
-					Pair::getSecond(thread, pair, ret);
-					frame->stackMoveTop(-4); // pop otherSelector, pair, index, methodsCount
-					return; // found!
+					Pair::getSecond(thread, pair, ret1);
+					ret2 = index;
+					break; // found!
 				}
 			}
 		}
 
 		frame->stackMoveTop(-4); // pop otherSelector, pair, index, methodsCount
 	}
+}
 
-	// try parents
-	{
-		StackRef<Integer> index(frame, frame->stackPush());
-		StackRef<Class> parent(frame, frame->stackPush());
+void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
 
-		StackRef<Integer> parentsCount(frame, frame->stackPush());
-		Class::getParentsCount(thread, receiver, parentsCount);
+	StackRef<Integer> index(frame, frame->stackPush());
+	Class::findMethodIndex(thread, receiver, selector, ret, index);
 
-		for(uint16 i = 0; i < parentsCount->getData(); i++)
-		{
-			thread->createInteger(index, i);
-			Class::getParent(thread, receiver, index, parent);
-
-			if(*parent == *receiver)
-			{
-				continue;
-			}
-
-			Class::findMethod(thread, parent, selector, ret);
-
-			if(!ret.isNull())
-			{
-				break; // found!
-			}
-		}
-
-		frame->stackMoveTop(-3); // pop index, parent, parentsCount
-	}
+	frame->stackMoveTop(-1); // pop index
 }
 
 void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret)
@@ -192,6 +174,24 @@ void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackR
 	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + parentNext->getData()); // 1 for name
 	frame->stackMoveTop(-1); // pop parentNext
 
+	// copy methods
+	if(*receiver != *value){
+		StackRef<Integer> index(frame, frame->stackPush());
+		StackRef<Pair> method(frame, frame->stackPush());
+
+		StackRef<Integer> methodsCount(frame, frame->stackPush());
+		Class::getMethodsCount(thread, value, methodsCount);
+
+		for(uint16 i = 0; i < methodsCount->getData(); i++)
+		{
+			thread->createInteger(index, i);
+			Class::getMethod(thread, value, index, method);
+			Class::addMethod(thread, receiver, method);
+		}
+
+		frame->stackMoveTop(-3); // pop index, method, methodsCount
+	}
+
 	// copy properties
 	{
 		StackRef<Integer> index(frame, frame->stackPush());
@@ -228,6 +228,19 @@ void BEER_CALL Class::getMethod(Thread* thread, StackRef<Class> receiver, StackR
 
 	frame->stackMoveTop(-2); // pop parentsCount, methodsCount
 }
+
+/*void Class::getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Pair> pair(frame, frame->stackPush());
+	Class::getMethod(thread, receiver, index, pair);
+
+	Pair::getSecond(thread, pair, ret);
+
+	frame->stackMoveTop(-1); // pop pair
+}*/
 
 void BEER_CALL Class::getMethodsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
 {

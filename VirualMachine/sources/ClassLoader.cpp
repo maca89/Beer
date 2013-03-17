@@ -121,7 +121,7 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 	ret->mParentNext = ret->mMethodNext = ret->mPropertyNext = 0;
 
 	// TODO: where??
-	thread->getVM()->addClass(*ret);
+	thread->getVM()->addClass(thread, *ret);
 
 	ClassInitializer* initializer = getClassInitializer(classname->c_str());
 	if(initializer) initializer->initClass(thread, this, ret);

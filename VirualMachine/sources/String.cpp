@@ -5,6 +5,7 @@
 #include "Method.h"
 #include "VirtualMachine.h"
 #include "Array.h"
+#include "Debugger.h"
 
 using namespace Beer;
 
@@ -15,6 +16,11 @@ StringPool String::gPool = StringPool(); // TODO: get rid of
 void BEER_CALL String::init(Thread* thread, StackRef<String> receiver, StackRef<String> ret)
 {
 	ret = receiver;
+}
+
+void BEER_CALL String::operatorString(Thread* thread, StackRef<Object> receiver, StackRef<String> ret)
+{
+	ret = receiver.staticCast<String>();
 }
 
 void BEER_CALL String::getLength(Thread* thread, StackRef<String> receiver, StackRef<Integer> ret)
@@ -37,10 +43,12 @@ void BEER_CALL String::operatorAddString(Thread* thread, StackRef<String> receiv
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + arg->size());
 
-	thread->createString(length, ret);
+	thread->createString(length, ret); // does not pop length
 
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), arg->size(), arg->c_str());
+
+	frame->stackMoveTop(-1); // pop length
 }
 
 void BEER_CALL String::operatorAddInteger(Thread* thread, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
@@ -56,10 +64,12 @@ void BEER_CALL String::operatorAddInteger(Thread* thread, StackRef<String> recei
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + argStr.size());
 
-	thread->createString(length, ret);
+	thread->createString(length, ret); // does not pop length
 
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
+
+	frame->stackMoveTop(-1); // pop length
 
 }
 
@@ -76,10 +86,12 @@ void BEER_CALL String::operatorAddFloat(Thread* thread, StackRef<String> receive
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + argStr.size());
 
-	thread->createString(length, ret);
+	thread->createString(length, ret); // does not pop length
 
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
+
+	frame->stackMoveTop(-1); // pop length
 }
 
 void BEER_CALL String::operatorAddBoolean(Thread* thread, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
@@ -95,10 +107,12 @@ void BEER_CALL String::operatorAddBoolean(Thread* thread, StackRef<String> recei
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + str.size());
 
-	thread->createString(length, ret);
+	thread->createString(length, ret); // does not pop length
 
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), str.size(), str.c_str());
+
+	frame->stackMoveTop(-1); // pop length
 }
 
 void BEER_CALL String::operatorAddCharacter(Thread* thread, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
@@ -109,11 +123,13 @@ void BEER_CALL String::operatorAddCharacter(Thread* thread, StackRef<String> rec
 	StackRef<Integer> length(frame, frame->stackPush());
 	thread->createInteger(length, receiver->size() + 1);
 
-	thread->createString(length, ret);
+	thread->createString(length, ret); // does not pop length
 
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	Character::CharacterData c = arg->getData();
 	ret->copyData(receiver->size(), 1, &c);
+
+	frame->stackMoveTop(-1); // pop length
 }
 
 void BEER_CALL String::operatorAddArray(Thread* thread, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
@@ -164,7 +180,9 @@ void BEER_CALL String::createInstance(Thread* thread, StackRef<Class> receiver, 
 	Frame* frame = thread->getFrame();
 	// TODO: probably not working
 	StackRef<Integer> length = StackRef<Integer>(frame, -2);
-	thread->createString(length, ret);
+	thread->createString(length, ret); // does not pop length
+
+	frame->stackMoveTop(-1); // pop length
 }
 
 void StringClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
@@ -183,8 +201,9 @@ void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stac
 		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
-
+	
 	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("String::String()"), &String::init, 1, 0);
+	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &String::operatorString, 1, 0);
 
 	loader->addMethod(thread, klass, BEER_WIDEN("<"), BEER_WIDEN("String::<(String)"), &String::operatorSmaller, 1, 1);
 	loader->addMethod(thread, klass, BEER_WIDEN("<="), BEER_WIDEN("String::<=(String)"), &String::operatorSmallerEqual, 1, 1);

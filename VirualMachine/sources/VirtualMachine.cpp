@@ -2,6 +2,7 @@
 #include "VirtualMachine.h"
 #include "Debugger.h"
 #include "GenerationalGC.h"
+#include "ClassFileLoader.h"
 #include "ClassLoader.h"
 
 #include "Class.h"
@@ -34,16 +35,17 @@ using namespace Beer;
 #	define VM_DEBUG(msg)
 #endif
 
-void VirtualMachine::addClass(Class* klass)
+
+void VirtualMachine::addClass(Thread* thread, Class* klass)
 {
-	Frame* frame = getFrame();
+	Frame* frame = thread->getFrame();
 	String* name = NULL;
 
 	// get name, TODO
 	{
 		StackRef<String> nameOnStack(frame, frame->stackPush());
 		StackRef<Class> klass(frame, frame->stackPush(klass));
-		Class::getName(this, klass, nameOnStack);
+		Class::getName(thread, klass, nameOnStack);
 		name = *nameOnStack;
 		frame->stackMoveTop(-2); // pop class & name
 	}
@@ -84,9 +86,26 @@ Class* VirtualMachine::findClass(StackRef<String> name)
 	throw ClassNotFoundException(name->c_str()); // TODO
 }
 
-void VirtualMachine::init(uint32 stackInitSize)
+void VirtualMachine::loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile)
+{
+	this->Thread::loadClassFile(loader, classFile);
+}
+
+void VirtualMachine::run()
+{
+	this->Thread::run();
+}
+
+void VirtualMachine::wait()
+{
+	this->Thread::wait();
+}
+
+void VirtualMachine::init()
 {
 	this->Thread::init();
+	//mGC = new GenerationalGC(27, 32768);
+	//mGC->init();
 
 	mDebugger = new Debugger(this, mGC);
 	mDebugger->init();
@@ -117,15 +136,15 @@ void VirtualMachine::init(uint32 stackInitSize)
 		metaClassName->copyData(BEER_WIDEN("MetaClass"));
 
 		StackRef<MetaClass> metaClass(frame, frame->stackPush(
-			mMetaClass = mHeap->alloc<MetaClass>(
-				Class::CLASS_CHILDREN_COUNT + 3 // 1 parent, 2 methods
+			mMetaClass = getPermanentHeap()->alloc<MetaClass>(
+				Class::CLASS_CHILDREN_COUNT + 1 + 2 + Object::OBJECT_METHODS_COUNT // 1 parent, 2 methods
 		)));
 
 		mMetaClass = *metaClass; // ugly, TODO
 		metaClass->mFlags = 0; // deprecated
 		metaClass->mParentsCount = 1;
 		metaClass->mPropertiesCount = 0;
-		metaClass->mMethodsCount = 2;
+		metaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
 		metaClass->mParentNext = metaClass->mMethodNext = metaClass->mPropertyNext = 0;
 
 		Object::setChild(static_cast<Thread*>(this), metaClass, metaClassName, childIdClassName); // set name
@@ -156,7 +175,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 
 		// create Object class
 		{
-			mClassLoader->createClass<Class>(this, objectClassName, objectClass, 1, 0, 6); // extends Object, has 6 methods
+			mClassLoader->createClass<Class>(this, objectClassName, objectClass, 1, 0, Object::OBJECT_METHODS_COUNT); // extends Object, has 6 methods
 
 			// fix references
 			Class::addParent(this, metaClass.staticCast<Class>(), objectClass);
@@ -176,7 +195,7 @@ void VirtualMachine::init(uint32 stackInitSize)
 			stringClassName->copyData(BEER_WIDEN("String"));
 
 			StackRef<Class> stringClass(frame, frame->stackPush());
-			mClassLoader->createClass<Class>(this, stringClassName, stringClass, 1, 0, 16);
+			mClassLoader->createClass<Class>(this, stringClassName, stringClass, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
 
 			mStringClass = *stringClass; // ugly, TODO
 
@@ -320,7 +339,7 @@ void VirtualMachine::work()
 
 			// call constuctor
 #ifdef BEER_FOLDING_BLOCK
-			if(false){
+			if(true){
 				StackRef<String> selector(frame, frame->stackPush());
 
 				StackRef<String> tmpString1(frame, frame->stackPush());
@@ -347,14 +366,15 @@ void VirtualMachine::work()
 					TrampolineThread* thread = new TrampolineThread(this, mGC);
 					getThreads().insert(thread);
 
-					thread->openFrame()->stackMoveTop(1); // for return
+					thread->getFrame()->stackMoveTop(1); // for return
 					thread->getFrame()->stackPush(*instance); // push receiver
 					thread->getFrame()->stackPush(*method); // push method
+					thread->openFrame();
 
 					thread->run();
 					thread->wait();
 
-					instance = thread->getFrame()->stackTop(); // fix main // TODO
+					//instance = thread->getFrame()->stackTop(); // fix main // TODO
 				}
 
 				frame->stackMoveTop(-2); // pop method & selector

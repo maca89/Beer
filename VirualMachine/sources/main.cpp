@@ -171,8 +171,10 @@ int __cdecl main(int argc, const char** argv)
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
-	ClassFileLoader* classFileLoader = new MyClassFileLoader();
 	GenerationalGC* gc = new GenerationalGC(27, 32768);
+	gc->init();
+
+	ClassFileLoader* classFileLoader = new MyClassFileLoader();
 	VirtualMachine* vm = new VirtualMachine(gc);
 	ClassFileDescriptor* classFile = NULL;
 
@@ -180,8 +182,7 @@ int __cdecl main(int argc, const char** argv)
 
 	try
 	{
-		gc->init();
-		vm->init(settings.stackSize);
+		vm->init();
 		vm->getDebugger()->setEnabled(settings.debuggerEnabled);
 		vm->getDebugger()->setSteppingMode(settings.debuggerStepping);
 
@@ -196,7 +197,11 @@ int __cdecl main(int argc, const char** argv)
 		classFile = classFileLoader->loadClassFile(data, dataLength);
 		
 		if(settings.printClassFile) classFileLoader->printClassFile(classFile);
-		if(settings.loadClassFile) classFileLoader->loadClasses(vm, classFile);
+		if(settings.loadClassFile)
+		{
+			vm->loadClassFile(classFileLoader, classFile);
+		}
+		
 		if(settings.run)
 		{
 			vm->run();

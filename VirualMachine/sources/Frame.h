@@ -24,7 +24,7 @@ namespace Beer
 	protected:
 		uint32 argsCount;
 		uint32 frameOffset;
-		uint32 vPC;
+		uint16 vPC;
 		WorkStack stack;
 
 		// stack, TODO
@@ -38,17 +38,17 @@ namespace Beer
 			size = stackSize;
 		}
 
-		INLINE uint32 getProgramCounter()
+		INLINE uint16 getProgramCounter()
 		{
 			return vPC;
 		}
 		
-		INLINE void setProgramCounter(uint32 value)
+		INLINE void setProgramCounter(uint16 value)
 		{
 			vPC = value;
 		}
 
-		INLINE uint32 incrProgramCounter()
+		INLINE uint16 incrProgramCounter()
 		{
 			return vPC++;
 		}

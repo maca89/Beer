@@ -14,6 +14,8 @@ namespace Beer
 	class GenerationalGC;
 	class Heap;
 	class Pair;
+	class ClassFileLoader;
+	class ClassFileDescriptor;
 
 	typedef GenerationalGC GC;
 
@@ -33,7 +35,7 @@ namespace Beer
 		{
 			CREATE_INSTANCE_CACHE_SIZE = 10
 		};
-		byte createInstanceMethodCacheBytes[sizeof(PolymorphicInlineCache::CachedMethod) * CREATE_INSTANCE_CACHE_SIZE];
+		byte createInstanceMethodCacheBytes[sizeof(PolymorphicCache::CachedMethod) * CREATE_INSTANCE_CACHE_SIZE];
 
 	public:
 		Thread(VirtualMachine* vm, GC * gc);
@@ -45,9 +47,7 @@ namespace Beer
 		//INLINE WorkStack* getStack() { return &mStack; }
 
 		INLINE VirtualMachine* getVM() { return mVM; }
-
 		INLINE GC* getGC() { return mGC; } // does every thread need GC?
-		
 		INLINE Heap* getHeap() { return mHeap; }
 		INLINE Heap* getPermanentHeap() { return mGC->getPermanentHeap(); }
 
@@ -59,6 +59,9 @@ namespace Beer
 		Frame* getPreviousFrame();
 
 		INLINE Frame* getFrames() { return mRootFrame; }
+
+		
+		void loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile);
 
 		void getObjectClass(StackRef<Class> ret);
 		void _getIntegerClass(StackRef<Class> ret); // deprecated

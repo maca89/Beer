@@ -95,7 +95,7 @@ void BEER_CALL Integer::createInstance(Thread* thread, StackRef<Class> receiver,
 
 void IntegerClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 17);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
 }
 
 void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)

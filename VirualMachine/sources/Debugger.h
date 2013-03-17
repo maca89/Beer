@@ -40,7 +40,7 @@ namespace Beer
 
 		virtual void printLastOutput();
 		virtual void printNativeInstruction();
-		virtual void printInstruction(const Bytecode::Instruction* instr, uint16 programCounter);
+		virtual void printInstruction(Bytecode* bc, const Bytecode::Instruction* instr, uint16 programCounter);
 		virtual void printObject(StackRef<Object> object);
 		virtual void printCallStack(Thread* thread, Frame* frame);
 		virtual void printFrame(Thread* thread, Frame* frame);

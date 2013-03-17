@@ -7,6 +7,7 @@
 #include "GenerationalGC.h"
 #include "Heap.h"
 #include "Debugger.h"
+#include "ClassFileLoader.h"
 
 using namespace Beer;
 
@@ -27,7 +28,7 @@ void Thread::init()
 	mRootFrame->stackPush(frame);
 	fetchTopFrame();
 
-	PolymorphicInlineCache* methodCache = PolymorphicInlineCache::from(createInstanceMethodCacheBytes);
+	PolymorphicCache* methodCache = PolymorphicCache::from(createInstanceMethodCacheBytes);
 	methodCache->clear(CREATE_INSTANCE_CACHE_SIZE);
 }
 
@@ -123,6 +124,11 @@ void Thread::closeFrame()
 
 	mRootFrame->stackPop();
 	mTopFrame = previousFrame;
+}
+
+void Thread::loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile)
+{
+	loader->loadClasses(this, classFile);
 }
 
 void Thread::getObjectClass(StackRef<Class> ret)
@@ -290,7 +296,7 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 	{
 		static Reference<String> selectorRef = String::gTranslate(this, BEER_WIDEN("$Class::createInstance()")); // TODO;
 		StackRef<String> selector(frame, frame->stackPush(selectorRef.get()));
-		PolymorphicInlineCache* methodCache = PolymorphicInlineCache::from(createInstanceMethodCacheBytes);
+		PolymorphicCache* methodCache = PolymorphicCache::from(createInstanceMethodCacheBytes);
 
 		method = methodCache->find(this, *klass, *selector, CREATE_INSTANCE_CACHE_SIZE);
 		frame->stackMoveTop(-1); // pop selector

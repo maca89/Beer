@@ -45,7 +45,7 @@ void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, S
 
 void TimerClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 4);
+	return loader->createClass<Class>(thread, name, ret, 1, 0, 4 + Object::OBJECT_METHODS_COUNT);
 }
 
 void TimerClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
