@@ -19,6 +19,7 @@ namespace Beer
 	class Class;
 	class Pair;
 
+	class BytecodeBuilder;
 	class ClassFileLoader;
 	class ClassLoader;
 	class Thread;
@@ -38,7 +39,8 @@ namespace Beer
 		ClassTable mClassTable;
 		InlineFunctionTable mInlineFnTable;
 		ThreadSet mThreads;
-		
+		BytecodeBuilder* mBytecodeBuilder;
+
 		// TODO: get rid of these
 		Class* mMetaClass;
 		Class* mObjectClass;
@@ -53,8 +55,8 @@ namespace Beer
 		INLINE VirtualMachine(GenerationalGC* gc)
 			: Thread(this, gc),
 			mClassLoader(NULL), mDebugger(NULL),
-			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL)
-			//mGC(NULL)
+			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL),
+			mBytecodeBuilder(NULL)//, mGC(NULL)
 		{
 		}
 
@@ -81,6 +83,7 @@ namespace Beer
 		INLINE ThreadSet& getThreads() { return mThreads; }
 		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
 		INLINE ClassReflectionTable& getClasses() { return mClasses; }
+		INLINE BytecodeBuilder* getBytecodeBuilder() { return mBytecodeBuilder; }
 
 		void init();
 		void run();

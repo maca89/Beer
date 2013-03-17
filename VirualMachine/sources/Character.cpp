@@ -36,7 +36,7 @@ void BEER_CALL Character::operatorEqual(Thread* thread, StackRef<Character> rece
 
 void BEER_CALL Character::operatorNotEqual(Thread* thread, StackRef<Character> receiver, StackRef<Character> arg, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(receiver->getData() == arg->getData());
+	ret = Boolean::makeInlineValue(receiver->getData() != arg->getData());
 }
 
 void BEER_CALL Character::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Character> ret)

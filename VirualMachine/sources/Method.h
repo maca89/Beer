@@ -93,6 +93,8 @@ namespace Beer
 			markAsBytecode();
 			mBytecode = value;
 		}
+		
+		INLINE Bytecode* getBytecode() { return mBytecode; }
 
 		// calls
 

@@ -201,6 +201,8 @@ void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stac
 		Class::addParent(thread, klass, objectClass);
 		frame->stackMoveTop(-1); //  pop objectClass
 	}
+
+	//klass->markAsValueType();
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("String::String()"), &String::init, 1, 0);
 	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &String::operatorString, 1, 0);

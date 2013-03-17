@@ -28,7 +28,7 @@ namespace Beer
 		{
 			if(!gMemory)
 			{
-				gMemory = gMemoryAllocator.malloc(dictLength * sizeof(uint16), 1024*1024); // 1MB
+				gMemory = gMemoryAllocator.malloc(dictLength * sizeof(uint16), 5*1024*1024); // 1MB
 			}
 
 			// allocate dictionary

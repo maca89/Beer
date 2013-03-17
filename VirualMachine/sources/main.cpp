@@ -19,6 +19,7 @@ struct Settings
 	bool run;
 	bool loadClassFile;
 	bool printClassFile;
+	bool printBytecode;
 	bool debuggerEnabled;
 	bool debuggerStepping;
 	string classFileName;
@@ -32,6 +33,7 @@ struct Settings
 		run(true), 
 		debuggerEnabled(false), 
 		debuggerStepping(false),
+		printBytecode(false),
 		stackSize(1*1024),
 		heapSize(10*1024*1024)
 	{}
@@ -94,6 +96,7 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 		{
 			cout << "--help" << std::endl;
 			cout << "--run[:false]" << std::endl;
+			cout << "--printbytecode[:false]" << std::endl;
 			cout << "--printclassfile[:false]" << std::endl;
 			cout << "--debugger[:false]" << std::endl;
 			cout << "--stepping[:false]" << std::endl;
@@ -115,6 +118,10 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 		else if(name.compare(BEER_WIDEN("--printclassfile")) == 0)
 		{
 			settings.printClassFile = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
+		}
+		else if(name.compare(BEER_WIDEN("--printbytecode")) == 0)
+		{
+			settings.printBytecode = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
 		}
 		else if(name.compare(BEER_WIDEN("--loadclassfile")) == 0)
 		{
@@ -159,6 +166,16 @@ bool sortMethodByTime(Method* m1, Method* m2)
 	return m1->getTimeSpent() > m2->getTimeSpent();
 }
 
+void printBytecodes(VirtualMachine *vm)
+{
+	ClassReflectionTable& klasses = vm->getClasses();
+	for(ClassReflectionTable::iterator it = klasses.begin(); it != klasses.end(); it++)
+	{
+		Class* klass = it->second;
+		vm->getDebugger()->printBytecodeMethods(klass);
+	}
+}
+
 
 int __cdecl main(int argc, const char** argv)
 {
@@ -200,6 +217,10 @@ int __cdecl main(int argc, const char** argv)
 		if(settings.loadClassFile)
 		{
 			vm->loadClassFile(classFileLoader, classFile);
+		}
+		if(settings.printBytecode)
+		{
+			printBytecodes(vm);
 		}
 		
 		if(settings.run)

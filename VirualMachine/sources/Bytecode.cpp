@@ -8,15 +8,14 @@
 #include "Float.h"
 #include "Console.h"
 #include "Method.h"
-#include "ClassFileDescriptor.h"
-#include "StringDescriptor.h"
 #include "BytecodeInputStream.h"
 #include "BytecodeOutputStream.h"
-#include "MonomorphicInlineCache.h"
 #include "PolymorphicInlineCache.h"
 #include "Debugger.h"
 #include "Array.h"
 #include "GenerationalGC.h"
+#include "StringDescriptor.h"
+#include "ClassFileDescriptor.h"
 
 using namespace Beer;
 
@@ -24,12 +23,6 @@ using namespace Beer;
 #define BEER_BC_DISPATCH_DIRECT 1
 
 #define BEER_BC_DISPATCH	BEER_BC_DISPATCH_SWITCH
-
-#if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
-#define BEER_BC_SAVE_OPCODE(opcode) ostream.write<uint8>(opcode)
-#elif BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
-#define BEER_BC_SAVE_OPCODE(opcode) ostream.write((void*)LabelTable[opcode])
-#endif // BEER_BC_DISPATCH
 
 
 void Bytecode::checkPool(Thread* thread)
@@ -65,7 +58,6 @@ void Bytecode::createPool(Thread* thread, uint16 length)
 
 	Pool* p = thread->getPermanentHeap()->alloc<Pool>(Pool::POOL_CHILDREN_COUNT + length);
 	p->setSize(length);
-	p->setNext(0);
 	p->clear();
 
 	if(mPool)
@@ -323,8 +315,12 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 
 	case BEER_INSTR_VIRTUAL_INVOKE:
 		{
-			Reference<String> selector(thread->getGC(), instr->getData<uint32>());
+			StackRef<String> selector(frame, frame->stackPush());
+			loadFromPool(thread, instr->getData<uint16>(), selector);
+
 			cout << "VIRTUAL_INVOKE \"" << selector->c_str() << "\"";
+
+			frame->stackMoveTop(-1); // pop selector
 		}
 		break;
 	
@@ -337,8 +333,12 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 	
 	case BEER_INSTR_SPECIAL_INVOKE:
 		{
-			Reference<String> selector(thread->getGC(), instr->getData<uint32>());
+			StackRef<String> selector(frame, frame->stackPush());
+			loadFromPool(thread, instr->getData<uint16>(), selector);
+
 			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
+			
+			frame->stackMoveTop(-1); // pop selector
 		}
 		break;
 
@@ -428,17 +428,16 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 	}
 }
 
-void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classFile)
+void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, Bytecode* bc)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
+	method->setBytecode(bc);
 
-	BytecodeInputStream istream(mData, mDataSize);
-	BytecodeOutputStream ostream(mDictSize);
-
+	// TODO
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
+	BytecodeInputStream istream(data, dataLength);
+	BytecodeOutputStream ostream(instrCount);
+
 	ostream.setAlignMemory(true);
-#endif // BEER_BC_DISPATCH
 
 	while(!istream.end())
 	{
@@ -455,14 +454,14 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 			case BEER_INSTR_POP:
 			case BEER_INSTR_CLONE:
 			case BEER_FILL_OPCODE_TABLE:
-				BEER_BC_SAVE_OPCODE(opcode);
+				ostream.write((void*)LabelTable[opcode]);
 				break;
 
 			// 1 byte = 8bit
 
 			case BEER_INSTR_PUSH_BOOL:
 			case BEER_INSTR_PUSH_CHAR:// TODO: 16bit
-				BEER_BC_SAVE_OPCODE(opcode);
+				ostream.write((void*)LabelTable[opcode]);
 				ostream.write(istream.read<uint8>());
 				break;
 
@@ -471,7 +470,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 			case BEER_INSTR_TOP:
 			case BEER_INSTR_STORE:
 				{
-					BEER_BC_SAVE_OPCODE(opcode);
+					ostream.write((void*)LabelTable[opcode]);
 					int16 value = istream.read<int16>();
 					if(value > 0) ostream.write<int16>(value - 1); // -1 because local vars start at 0 (not at 1)
 					else ostream.write<int16>(value - 2); // -2 because arguments start at -1 (not at 0) and there is method added ad -1 arg
@@ -480,9 +479,9 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 
 			case BEER_INSTR_RETURN:
 				{
-					BEER_BC_SAVE_OPCODE(opcode);
+					ostream.write((void*)LabelTable[opcode]);
 					uint16 value = istream.read<uint16>();
-					ostream.write(static_cast<uint16>(value - method->getParamsCount() - 1));
+					ostream.write<uint16>(0);//static_cast<uint16>(value - method->getParamsCount() - 1));
 				}
 				break;
 
@@ -493,7 +492,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 			case BEER_INSTR_LOAD_THIS:
 			case BEER_INSTR_LOAD:
 			case BEER_INSTR_ASSIGN:
-				BEER_BC_SAVE_OPCODE(opcode);
+				BEER_BC_SAVE_OPCODE(opcode); todo: ostream.write((void*)LabelTable[opcode]);
 				ostream.write(istream.read<uint16>());
 				break;
 
@@ -510,7 +509,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 						*str
 					));
 
-					ostream.write<uint16>(storeToPool(thread, value));
+					ostream.write<uint16>(bc->storeToPool(thread, value));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
@@ -536,7 +535,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 
 						thread->findClass(name, klass);
 
-						ostream.write<uint16>(storeToPool(thread, klass.staticCast<Object>()));
+						ostream.write<uint16>(bc->storeToPool(thread, klass.staticCast<Object>()));
 
 						frame->stackMoveTop(-2); // pop name, klass
 					}
@@ -563,12 +562,8 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 							*refselector
 						));
 						
-						ostream.write<uint16>(storeToPool(thread, selector));
-						//ostream.write<uint16>(createPoolSlot(thread)); // for method
-
+						ostream.write<uint16>(bc->storeToPool(thread, selector));
 						frame->stackMoveTop(-1); // pop selector
-
-						//BEER_BC_SAVE_OPCODE(BEER_INSTR_STACK_INVOKE);
 					}
 				}
 				break;
@@ -582,8 +577,8 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 					Reference<String> selector = String::gTranslate(thread, cselector);
 					ostream.write((int32)selector.getId());
 					
-					PolymorphicCache* cache = PolymorphicCache::from(ostream.alloc(PolymorphicCache::countSize(mMethodCachesLength)));
-					cache->clear(mMethodCachesLength);
+					PolymorphicCache* cache = PolymorphicCache::from(ostream.alloc(PolymorphicCache::countSize(3))); // TODO
+					cache->clear(3);
 
 					//BEER_BC_SAVE_OPCODE(BEER_INSTR_STACK_INVOKE);
 				}
@@ -602,7 +597,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 					StackRef<Integer> value(frame, frame->stackPush());
 					thread->createInteger(value, istream.read<int8>()); // TODO: on permanent heap
 
-					ostream.write<uint16>(storeToPool(thread, value.staticCast<Object>()));
+					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
@@ -614,7 +609,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 					StackRef<Integer> value(frame, frame->stackPush());
 					thread->createInteger(value, istream.read<int32>()); // TODO: on permanent heap
 
-					ostream.write<uint16>(storeToPool(thread, value.staticCast<Object>()));
+					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
@@ -625,7 +620,7 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 					StackRef<Integer> value(frame, frame->stackPush());
 					thread->createInteger(value, istream.read<int64>()); // TODO: on permanent heap
 
-					ostream.write<uint16>(storeToPool(thread, value.staticCast<Object>()));
+					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
@@ -645,19 +640,13 @@ void Bytecode::build(Thread* thread, Method* method, ClassFileDescriptor* classF
 		//ostream.write<uint32>(0);
 	}
 
-	ostream.finish(&mData, mDataSize, &mDict, mDictSize);
+	bc->update(&ostream);
+#endif // BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
+}
 
-	if(false){
-		cout << "-------------------\n";
-
-		for(uint16 i = 0; i < mDictSize; i++)
-		{
-			const Instruction* instr = reinterpret_cast<const Instruction*>(&mData[mDict[i]]);
-			cout << "\t";
-			printTranslatedInstruction(thread, instr);
-			cout << "\n";
-		}
-	}
+void Bytecode::update(BytecodeOutputStream* ostream)
+{
+	ostream->finish(&mData, mDataSize, &mDict, mDictSize);
 }
 
 void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};

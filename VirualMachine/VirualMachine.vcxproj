@@ -21,11 +21,13 @@
   <ItemGroup>
     <ClCompile Include="sources\AlignedHeap.cpp" />
     <ClCompile Include="sources\AllocationBlock.cpp" />
+    <ClCompile Include="sources\BytecodeBuilder.cpp" />
+    <ClCompile Include="sources\DefaultBytecodeLinker.cpp" />
     <ClCompile Include="sources\DynamicHeap.cpp" />
     <ClCompile Include="sources\FixedHeap.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
-    <ClCompile Include="sources\MonomorphicInlineCache.cpp" />
+    <ClCompile Include="sources\MultipassBytecodeOptimiser.cpp" />
     <ClCompile Include="sources\NurseryGC.cpp" />
     <ClCompile Include="sources\Param.cpp" />
     <ClCompile Include="sources\Array.cpp" />
@@ -80,8 +82,10 @@
   <ItemGroup>
     <ClInclude Include="sources\AllocationBlock.h" />
     <ClInclude Include="sources\Boolean.h" />
+    <ClInclude Include="sources\BytecodeBuilder.h" />
     <ClInclude Include="sources\BytecodeInputStream.h" />
     <ClInclude Include="sources\BytecodePass.h" />
+    <ClInclude Include="sources\DefaultBytecodeLinker.h" />
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />
@@ -94,7 +98,6 @@
     <ClInclude Include="sources\DebugMemoryAllocator.h" />
     <ClInclude Include="sources\GrowableMemoryAllocator.h" />
     <ClInclude Include="sources\Integer.h" />
-    <ClInclude Include="sources\MonomorphicInlineCache.h" />
     <ClInclude Include="sources\ClassTable.h" />
     <ClInclude Include="sources\Array.h" />
     <ClInclude Include="sources\BytecodeOutputStream.h" />
@@ -105,6 +108,7 @@
     <ClInclude Include="sources\FileReader.h" />
     <ClInclude Include="sources\FileWriter.h" />
     <ClInclude Include="sources\AlignedHeap.h" />
+    <ClInclude Include="sources\MultipassBytecodeOptimiser.h" />
     <ClInclude Include="sources\NurseryGC.h" />
     <ClInclude Include="sources\Pair.h" />
     <ClInclude Include="sources\PolymorphicInlineCache.h" />

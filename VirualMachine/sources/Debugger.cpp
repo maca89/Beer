@@ -509,3 +509,108 @@ bool Debugger::catchException(Thread* thread, Frame* frame, const Exception& ex)
 
 	return false; // TODO
 }
+
+void Debugger::printBytecodeMethods(Class* c)
+{
+	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Class> klass(frame, frame->stackPush(c));
+
+	string klassName;
+
+	// get classname
+	{
+		StackRef<String> name(frame, frame->stackPush());
+		Class::getName(this, klass, name);
+		klassName = name->c_str();
+		klassName += BEER_WIDEN("::");
+		frame->stackMoveTop(-1); // pop name
+	}
+
+	StackRef<Integer> methodsCount(frame, frame->stackPush());
+	Class::getMethodsCount(this, klass, methodsCount);
+
+	StackRef<Integer> index(frame, frame->stackPush());
+	StackRef<Pair> pair(frame, frame->stackPush());
+
+	for(Integer::IntegerData i = 0; i < methodsCount->getData(); i++)
+	{
+		createInteger(index, i);
+		Class::getMethod(this, klass, index, pair);
+
+		if(!pair.isNull())
+		{
+			StackRef<Method> method(frame, frame->stackPush());
+			Pair::getSecond(this, pair, method);
+
+			if(method->isBytecode())
+			{
+				bool parentOrOverriding = false;
+
+				// is overriding?
+				{
+					StackRef<String> selector(frame, frame->stackPush());
+					Pair::getFirst(this, pair, selector);
+
+					string cselector = selector->c_str();
+					size_t pos = cselector.find(klassName);
+					parentOrOverriding = pos != 0;//klassName.size(); // ugly, TODO
+
+					frame->stackMoveTop(-1); // pop selector
+				}
+
+				if(!parentOrOverriding)
+				{
+					printBytecodeMethod(klass, method);
+				}
+			}
+			
+			frame->stackMoveTop(-1); // method
+		}
+	}
+
+	frame->stackMoveTop(-4); // pop klass, methodsCount, index, pair
+}
+
+void Debugger::printBytecodeMethod(StackRef<Class> klass, StackRef<Method> method)
+{
+	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
+
+	// print class name
+	{
+		StackRef<String> name(frame, frame->stackPush());
+		Class::getName(this, klass, name);
+		cout << name->c_str() << "::";
+		frame->stackMoveTop(-1); // pop name
+	}
+
+	// print method name
+	{
+		StackRef<String> name(frame, frame->stackPush());
+		Method::getName(this, method, name);
+		cout << name->c_str();
+		frame->stackMoveTop(-1); // pop name
+	}
+
+	cout << "\n{";
+
+	// print bytecode
+	{
+		printBytecode(method->getBytecode());
+	}
+
+	cout << "}\n";
+}
+
+void Debugger::printBytecode(Bytecode* bc)
+{
+	for(uint16 i = 0; i < bc->getInstructionCount(); i++)
+	{
+		const Bytecode::Instruction* instr = bc->getInstruction(i);
+		cout << "\t";
+		bc->printTranslatedInstruction(this, instr);
+		cout << "\n";
+	}
+}

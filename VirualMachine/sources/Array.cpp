@@ -25,7 +25,7 @@ void BEER_CALL Array::init(Thread* thread, StackRef<Array> receiver, StackRef<In
 	{
 		Object::setChild(thread, receiver, zero, OBJECT_CHILDREN_COUNT + i);
 	}
-	frame->stackMoveTop(-1); // pop zero & index
+	frame->stackMoveTop(-1); // pop zero
 	/////////////////////////////////////////////////////////
 
 	ret = receiver;

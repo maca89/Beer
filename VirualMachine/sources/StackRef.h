@@ -2,6 +2,7 @@
 #include "prereq.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
+#include "Frame.h"
 
 
 namespace Beer

@@ -2,16 +2,24 @@
 #include "prereq.h"
 #include "Frame.h"
 #include "Pool.h"
+#include "BytecodePass.h"
 
 
 namespace Beer
 {
+	class BytecodeOutputStream;
 	class VirtualMachine;
 	class Frame;
 	class ClassFileDescriptor;
 	class Method;
 	class Thread;
 	class Pool;
+
+	class DefaultBytecodeCompiler : public BytecodeCompiler
+	{
+	public:
+		virtual void compile(Thread* thread, StackRef<Method> method, Bytecode* bc);
+	};
 
 	class Bytecode //: public Object
 	{
@@ -145,6 +153,11 @@ namespace Beer
 		
 
 	public:
+		INLINE Bytecode()
+			: mDict(NULL), mDictSize(0), mMethodCachesLength(3), mPool(NULL)
+		{
+		}
+
 		INLINE Bytecode(byte data[], uint32 size, uint16 instrCount)
 			: mDict(NULL), mDictSize(0), mMethodCachesLength(3), mPool(NULL)
 		{
@@ -158,8 +171,12 @@ namespace Beer
 			// *NO* deleting of mData or mDict !!!
 		}
 
+		INLINE const void* getData() const { return mData; }
+		INLINE uint32 getDataLength() const { return mDataSize; }
+
+		void update(BytecodeOutputStream* ostream);
 		void call(Thread* thread);
-		void build(Thread* thread, Method* method, ClassFileDescriptor* classFile);
+		void build(Thread* thread, ClassFileDescriptor* classFile);
 
 		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }
 		INLINE Instruction* getInstruction(uint16 instri) { return reinterpret_cast<Instruction*>(&mData[mDict[instri]]); }
@@ -170,7 +187,7 @@ namespace Beer
 
 		static void init(Thread* thread); // important!!!
 
-	protected:
+	//protected:
 		void checkPool(Thread* thread);
 		uint16 createPoolSlot(Thread* thread);
 

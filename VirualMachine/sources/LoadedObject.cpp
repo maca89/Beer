@@ -10,6 +10,7 @@
 #include "ParamDescriptor.h"
 //#include "StringDescriptor.h"
 #include "BytecodeDescriptor.h"
+#include "BytecodeBuilder.h"
 
 #include "Property.h"
 #include "Param.h"
@@ -31,34 +32,36 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 
 	/////////////////////////////////////////////////////////
 	// fix missing value types
-	StackRef<Integer> index(frame, frame->stackPush());
-	StackRef<Property> prop(frame, frame->stackPush());
-	StackRef<Class> klass(frame, frame->stackPush());
+	if(false) {
+		StackRef<Integer> index(frame, frame->stackPush());
+		StackRef<Property> prop(frame, frame->stackPush());
+		StackRef<Class> klass(frame, frame->stackPush());
 
-	StackRef<Integer> propertiesCount(frame, frame->stackPush());
-	Class::getPropertiesCount(thread, receiver, propertiesCount);
+		StackRef<Integer> propertiesCount(frame, frame->stackPush());
+		Class::getPropertiesCount(thread, receiver, propertiesCount);
 
-	for(uint32 i = 0; i < propertiesCount->getData(); i++)
-	{
-		thread->createInteger(index, i);
-		Class::getProperty(thread, receiver, index, prop);
-		
-		if(!prop.isNull())
+		for(uint32 i = 0; i < propertiesCount->getData(); i++)
 		{
-			Property::getPropertyType(thread, prop, klass);
-
-			if(klass->isValueType())
+			thread->createInteger(index, i);
+			Class::getProperty(thread, receiver, index, prop);
+		
+			if(!prop.isNull())
 			{
-				StackRef<Object> child(frame, frame->stackPush()); // push child
-				thread->createInstance(klass, child);
+				Property::getPropertyType(thread, prop, klass);
 
-				Object::setChild(thread, ret, child, Object::OBJECT_CHILDREN_COUNT + i);
-				frame->stackPop(); // pop child
+				if(klass->isValueType())
+				{
+					StackRef<Object> child(frame, frame->stackPush()); // push child
+					thread->createInstance(klass, child);
+
+					Object::setChild(thread, ret, child, Object::OBJECT_CHILDREN_COUNT + i);
+					frame->stackMoveTop(-1); // pop child
+				}
 			}
 		}
-	}
 
-	frame->stackMoveTop(-4); // pop index, prop, class, propertiesCount
+		frame->stackMoveTop(-4); // pop index, prop, class, propertiesCount
+	}
 	/////////////////////////////////////////////////////////
 }
 
@@ -341,9 +344,7 @@ void LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Method> ret, C
 	{
 		// bytecode
 		BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
-		Bytecode* bytecode = new Bytecode(bcDescr->getData(), bcDescr->getSize(), bcDescr->getInstrCount());
-		bytecode->build(thread, *ret, mClassFile);
-		ret->setBytecode(bytecode);
+		thread->getVM()->getBytecodeBuilder()->build(thread, ret, mClassFile, bcDescr);
 	}
 }
 

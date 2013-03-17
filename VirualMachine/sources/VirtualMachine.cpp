@@ -4,6 +4,7 @@
 #include "GenerationalGC.h"
 #include "ClassFileLoader.h"
 #include "ClassLoader.h"
+#include "BytecodeBuilder.h"
 
 #include "Class.h"
 #include "MetaClass.h"
@@ -112,6 +113,7 @@ void VirtualMachine::init()
 
 	mClassLoader = new ClassLoader(); 
 
+	mBytecodeBuilder = new BytecodeBuilder();
 	Bytecode::init(this);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,14 +270,8 @@ void VirtualMachine::work()
 		StackRef<Class> klass(frame, frame->stackPush(it->second)); // TODO
 		bool substituable = false;
 
-		// fetch substituable
-		{
-			StackRef<Boolean> tmp(frame, frame->stackPush());
-			Class::substituable(this, klass, entryPointClass, tmp);
-			substituable = tmp->getData();
-			frame->stackMoveTop(-1); // pop tmp
-		}
-
+		// print classname
+#ifdef BEER_FOLDING_BLOCK
 		if(false){
 			StackRef<String> klassName(frame, frame->stackPush());
 			Class::getName(this, klass, klassName);
@@ -283,19 +279,19 @@ void VirtualMachine::work()
 
 			if(string(klassName->c_str()).compare(BEER_WIDEN("Main")) == 0)
 			{
-				StackRef<Class> parent(frame, frame->stackPush());
-				StackRef<Integer> index(frame, frame->stackPush());
-				((Thread*)this)->createInteger(index, 0);
-
-				Class::getParent(this, klass, index, parent);
-				frame->stackMoveTop(-1); // pop index
-
-				Class::getName(this, parent, klassName);
-				cout << klassName->c_str() << "\n";
-				frame->stackMoveTop(-1); // pop parent
+				int a = 0;
 			}
 
 			frame->stackMoveTop(-1); // pop klassName
+		}
+#endif // BEER_FOLDING_BLOCK
+
+		// fetch substituable
+		{
+			StackRef<Boolean> tmp(frame, frame->stackPush());
+			Class::substituable(this, klass, entryPointClass, tmp);
+			substituable = tmp->getData();
+			frame->stackMoveTop(-1); // pop tmp
 		}
 
 		if(klass.get() != entryPointClass.get() && substituable)  // TODO

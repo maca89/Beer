@@ -148,13 +148,19 @@
     <ClCompile Include="sources\PolymorphicInlineCache.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
-    <ClCompile Include="sources\MonomorphicInlineCache.cpp">
-      <Filter>Sources\Bytecode</Filter>
-    </ClCompile>
     <ClCompile Include="sources\RandomGenerator.cpp">
       <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
     <ClCompile Include="sources\BytecodeOutputStream.cpp">
+      <Filter>Sources\Bytecode</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BytecodeBuilder.cpp">
+      <Filter>Sources\Bytecode</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MultipassBytecodeOptimiser.cpp">
+      <Filter>Sources\Bytecode</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\DefaultBytecodeLinker.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
   </ItemGroup>
@@ -279,9 +285,6 @@
     <ClInclude Include="sources\MemoryAllocator.h">
       <Filter>Headers\MemoryAllocator</Filter>
     </ClInclude>
-    <ClInclude Include="sources\MonomorphicInlineCache.h">
-      <Filter>Headers\Bytecode</Filter>
-    </ClInclude>
     <ClInclude Include="sources\PolymorphicInlineCache.h">
       <Filter>Headers\Bytecode</Filter>
     </ClInclude>
@@ -369,6 +372,15 @@
     </ClInclude>
     <ClInclude Include="sources\Pool.h">
       <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BytecodeBuilder.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MultipassBytecodeOptimiser.h">
+      <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DefaultBytecodeLinker.h">
+      <Filter>Headers\Bytecode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

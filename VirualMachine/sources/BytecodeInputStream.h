@@ -7,40 +7,40 @@ namespace Beer
 	class BytecodeInputStream
 	{
 	protected:
-		byte* mData;
+		const byte* mData;
 		uint32 mDataLength;
 		uint32 mCounter;
 
 	public:
-		BytecodeInputStream(byte* data, uint32 dataLength)
-			: mData(data), mDataLength(dataLength), mCounter(0)
+		BytecodeInputStream(const void* data, uint32 dataLength)
+			: mData(reinterpret_cast<const byte*>(data)), mDataLength(dataLength), mCounter(0)
 		{
 		}
 
 		template <typename T>
-		T read()
+		const T read()
 		{
 			return read<T>(sizeof(T));
 		}
 
 		template <typename T>
-		T read(uint32 length)
+		const T read(uint32 length)
 		{
-			T t = *reinterpret_cast<T*>(&mData[mCounter]);
+			const T t = *reinterpret_cast<const T*>(&mData[mCounter]);
 			move(length);
 			return t;
 		}
 
 		template <typename T>
-		T* readPtr()
+		const T* readPtr()
 		{
 			return readPtr<T>(sizeof(T*));
 		}
 
 		template <typename T>
-		T* readPtr(uint32 length)
+		const T* readPtr(uint32 length)
 		{
-			T* t = reinterpret_cast<T*>(&mData[mCounter]);
+			const T* t = reinterpret_cast<const T*>(&mData[mCounter]);
 			move(length);
 			return t;
 		}

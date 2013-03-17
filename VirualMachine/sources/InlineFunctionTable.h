@@ -71,6 +71,11 @@ namespace Beer
 			//add(BEER_WIDEN("Array::get(Integer)"), BEER_INLINE_ARRAY_GET_ITEM);
 		}
 
+		INLINE Bytecode::OpCode find(StackRef<String> name)
+		{
+			return find(*name);
+		}
+
 		INLINE Bytecode::OpCode find(String* name)
 		{
 			return find(name->c_str());
