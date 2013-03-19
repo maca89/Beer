@@ -10,7 +10,7 @@ namespace Beer
 	protected:
 
 	public:
-		INLINE TrampolineThread(VirtualMachine* vm, GC * gc) : Thread(vm, gc)
+		INLINE TrampolineThread(VirtualMachine* vm, GenerationalGC * gc) : Thread(vm, gc)
 		{
 			init();
 		}

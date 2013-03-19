@@ -71,21 +71,22 @@ namespace Beer
 			//add(BEER_WIDEN("Array::get(Integer)"), BEER_INLINE_ARRAY_GET_ITEM);
 		}
 
-		INLINE Bytecode::OpCode find(StackRef<String> name)
-		{
-			return find(*name);
-		}
-
-		INLINE Bytecode::OpCode find(String* name)
+		/*INLINE Bytecode::OpCode find(StackRef<String> name)
 		{
 			return find(name->c_str());
 		}
 
-		INLINE Bytecode::OpCode find(const char_t* name)
+		INLINE Bytecode::OpCode find(String* name)
+		{
+			DBG_ASSERT(name != NULL, BEER_WIDEN("Object is NULL"));
+			return find(name->c_str());
+		}*/
+
+		INLINE Bytecode::OpCode find(StackRef<String> name)
 		{
 			for(OpCodeMap::iterator it = mOpCodes.begin(); it != mOpCodes.end(); it++)
 			{
-				if(strcmp(it->name, name) == 0)
+				if(strcmp(it->name, name->c_str()) == 0)
 				{
 					return it->opcode;
 				}

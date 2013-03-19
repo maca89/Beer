@@ -6,11 +6,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/test4-ctor.class</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/benchmark_1.class</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EXE – Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>source/test0.class</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>source/test5-interface.class</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

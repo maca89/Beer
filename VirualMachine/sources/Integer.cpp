@@ -88,6 +88,19 @@ void BEER_CALL Integer::operatorGreaterEqual(Thread* thread, StackRef<Integer> r
 	ret = Boolean::makeInlineValue(receiver->getData() >= arg->getData());
 }
 
+void BEER_CALL Integer::abs(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> ret)
+{
+	Integer::IntegerData value = receiver->getData();
+	if(value < 0)
+	{
+		thread->createInteger(ret, -value);
+	}
+	else
+	{
+		ret = receiver;
+	}
+}
+
 void BEER_CALL Integer::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
 {
 	ret = Integer::makeInlineValue(0);
@@ -130,6 +143,9 @@ void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 	loader->addMethod(thread, klass, BEER_WIDEN("<="), BEER_WIDEN("Integer::<=(Integer)"), &Integer::operatorSmallerEqual, 1, 1);
 	loader->addMethod(thread, klass, BEER_WIDEN(">"), BEER_WIDEN("Integer::>(Integer)"), &Integer::operatorGreater, 1, 1);
 	loader->addMethod(thread, klass, BEER_WIDEN(">="), BEER_WIDEN("Integer::>=(Integer)"), &Integer::operatorGreaterEqual, 1, 1);
+
+	loader->addMethod(thread, klass, BEER_WIDEN("abs"), BEER_WIDEN("Integer::abs()"), &Integer::abs, 1, 0);
+
 	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Integer::createInstance, 1, 0);
 }
 

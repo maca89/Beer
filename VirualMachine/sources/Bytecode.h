@@ -188,22 +188,12 @@ namespace Beer
 		static void init(Thread* thread); // important!!!
 
 	//protected:
-		void checkPool(Thread* thread);
-		uint16 createPoolSlot(Thread* thread);
-
-		INLINE void loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret)
-		{
-			Pool::getItem(thread, mPool, index, ret);
-		}
-		
+		// pool
+		void loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret);
 		uint16 storeToPool(Thread* thread, StackRef<Object> object);
-		
-		INLINE void updateAtPool(Thread* thread, uint16 index, StackRef<Object> object)
-		{
-			Pool::setItem(thread, mPool, index, object);
-		}
-
+		INLINE void updateAtPool(Thread* thread, uint16 index, StackRef<Object> object);
 		void createPool(Thread* thread, uint16 length);
+
 		//PolymorphicCache* createPolymorphicCache(Thread* thread, uint16 length);
 	};
 };

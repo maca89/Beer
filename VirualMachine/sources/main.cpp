@@ -188,7 +188,7 @@ int __cdecl main(int argc, const char** argv)
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
-	GenerationalGC* gc = new GenerationalGC(27, 32768);
+	GenerationalGC* gc = new GenerationalGC(28, 8192);
 	gc->init();
 
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();

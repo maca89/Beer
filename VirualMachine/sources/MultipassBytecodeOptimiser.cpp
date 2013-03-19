@@ -112,31 +112,21 @@ Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, Bytecode* bc)
 			case BEER_INSTR_INTERFACE_INVOKE:
 				{
 					ostream.write<uint8>(opcode);
-					ostream.write<int32>(istream.read<int32>()); // selector
-
-					uint16 polycacheLength = PolymorphicCache::countSize(3);
-					void* opolycache = ostream.alloc(polycacheLength);
-					const void* ipolycache = istream.readPtr<void>(polycacheLength);
-
-					memcpy(opolycache, ipolycache, polycacheLength);
+					ostream.write<uint16>(istream.read<uint16>()); // selector
+					ostream.write<uint16>(istream.read<uint16>()); // cache
 				}
 				break;
 
 			case BEER_INSTR_STACK_INVOKE:
 				ostream.write<uint8>(opcode);
 				break;
-
+				
+			case BEER_INSTR_PUSH_FLOAT:
 			case BEER_INSTR_PUSH_INT64:
 				{
 					ostream.write<uint8>(opcode);
 					ostream.write<uint16>(istream.read<uint16>());
-
 				}
-				break;
-
-			case BEER_INSTR_PUSH_FLOAT:
-				ostream.write<uint8>(opcode);
-				ostream.write(istream.read<uint64>());
 				break;
 
 			default:

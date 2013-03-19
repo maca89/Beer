@@ -9,7 +9,7 @@
 using namespace Beer;
 
 
-Debugger::Debugger(VirtualMachine* vm, GC* gc)
+Debugger::Debugger(VirtualMachine* vm, GenerationalGC* gc)
 	: mEnabled(false), mStepping(false), Thread(vm, gc)
 {
 }

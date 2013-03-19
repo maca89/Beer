@@ -7,7 +7,7 @@
 #include "StringDescriptor.h"
 #include "BytecodeInputStream.h"
 #include "BytecodeOutputStream.h"
-#include "PolymorphicInlineCache.h"
+#include "PolymorphicCache.h"
 
 using namespace Beer;
 
@@ -108,14 +108,13 @@ Bytecode* DefaultBytecodeLinker::link(Thread* thread, ClassFileDescriptor* class
 			case BEER_INSTR_VIRTUAL_INVOKE:
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
-					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
-					Reference<String> refselector = String::gTranslate(thread, cselector);
 					ostream.write<uint8>(opcode);
-						
+
+					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
 					StackRef<String> selector(frame, frame->stackPush(
-						*refselector
+						*String::gTranslate(thread, cselector)
 					));
-						
+					
 					ostream.write<uint16>(bc->storeToPool(thread, selector));
 					frame->stackMoveTop(-1); // pop selector
 				}
@@ -126,13 +125,19 @@ Bytecode* DefaultBytecodeLinker::link(Thread* thread, ClassFileDescriptor* class
 					ostream.write<uint8>(opcode);
 
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
-					Reference<String> selector = String::gTranslate(thread, cselector);
-					ostream.write((int32)selector.getId());
+					StackRef<String> selector(frame, frame->stackPush(
+						*String::gTranslate(thread, cselector)
+					));
+						
+					ostream.write<uint16>(bc->storeToPool(thread, selector));
 					
-					PolymorphicCache* cache = PolymorphicCache::from(ostream.alloc(PolymorphicCache::countSize(3))); // TODO
-					cache->clear(3);
+					StackRef<PolymorphicCache> cache(frame, frame->stackPush());
+					thread->createPolycache(cache, 3);
+					//PolymorphicCache* cache = PolymorphicCache::from(ostream.alloc(PolymorphicCache::countSize(3))); // TODO
 
-					//BEER_BC_SAVE_OPCODE(BEER_INSTR_STACK_INVOKE);
+					ostream.write<uint16>(bc->storeToPool(thread, cache));
+
+					frame->stackMoveTop(-2); // pop selector, cache
 				}
 				break;
 
@@ -147,7 +152,7 @@ Bytecode* DefaultBytecodeLinker::link(Thread* thread, ClassFileDescriptor* class
 					StackRef<Integer> value(frame, frame->stackPush());
 					thread->createInteger(value, istream.read<int8>()); // TODO: on permanent heap
 
-					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
+					ostream.write<uint16>(bc->storeToPool(thread, value));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
@@ -159,7 +164,7 @@ Bytecode* DefaultBytecodeLinker::link(Thread* thread, ClassFileDescriptor* class
 					StackRef<Integer> value(frame, frame->stackPush());
 					thread->createInteger(value, istream.read<int32>()); // TODO: on permanent heap
 
-					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
+					ostream.write<uint16>(bc->storeToPool(thread, value));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
@@ -170,14 +175,23 @@ Bytecode* DefaultBytecodeLinker::link(Thread* thread, ClassFileDescriptor* class
 					StackRef<Integer> value(frame, frame->stackPush());
 					thread->createInteger(value, istream.read<int64>()); // TODO: on permanent heap
 
-					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
+					ostream.write<uint16>(bc->storeToPool(thread, value));
 					frame->stackMoveTop(-1); // pop value
 				}
 				break;
 
 			case BEER_INSTR_PUSH_FLOAT:
-				ostream.write<uint8>(opcode);
-				ostream.write(istream.read<uint64>());
+				{
+					ostream.write<uint8>(opcode);
+					
+					StackRef<Float> value(frame, frame->stackPush());
+					thread->createFloat(value, istream.read<float64>()); // TODO: on permanent heap
+
+					ostream.write<uint16>(bc->storeToPool(thread, value));
+					frame->stackMoveTop(-1); // pop value
+
+					//ostream.write(istream.read<uint64>());
+				}
 				break;
 
 			default:

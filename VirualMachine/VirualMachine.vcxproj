@@ -41,7 +41,7 @@
     <ClCompile Include="sources\Float.cpp" />
     <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
     <ClCompile Include="sources\Pair.cpp" />
-    <ClCompile Include="sources\PolymorphicInlineCache.cpp" />
+    <ClCompile Include="sources\PolymorphicCache.cpp" />
     <ClCompile Include="sources\Method.cpp" />
     <ClCompile Include="sources\AttributeDescriptor.cpp" />
     <ClCompile Include="sources\Boolean.cpp" />
@@ -60,6 +60,7 @@
     <ClCompile Include="sources\MyClassFileLoader.cpp" />
     <ClCompile Include="sources\Object.cpp" />
     <ClCompile Include="sources\ParamDescriptor.cpp" />
+    <ClCompile Include="sources\Pool.cpp" />
     <ClCompile Include="sources\prereq.cpp" />
     <ClCompile Include="sources\Property.cpp" />
     <ClCompile Include="sources\RandomGenerator.cpp" />
@@ -111,7 +112,7 @@
     <ClInclude Include="sources\MultipassBytecodeOptimiser.h" />
     <ClInclude Include="sources\NurseryGC.h" />
     <ClInclude Include="sources\Pair.h" />
-    <ClInclude Include="sources\PolymorphicInlineCache.h" />
+    <ClInclude Include="sources\PolymorphicCache.h" />
     <ClInclude Include="sources\InlineFunctionTable.h" />
     <ClInclude Include="sources\Param.h" />
     <ClInclude Include="sources\AttributeDescriptor.h" />

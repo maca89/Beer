@@ -147,10 +147,11 @@ namespace Beer
 			return static_cast<int64>(index) - frameOffset - argsCount;
 		}
 
-		/*static void push(Thread* thread, StackRef<Frame> receiver, StackRef<Object> object);
-		static void push(Thread* thread, StackRef<Frame> receiver, Object* object);
-		static void top(Thread* thread, StackRef<Frame> receiver, StackRef<Object> ret);
+		/*static void push(Thread* thread, Frame* receiver, Object* object);
+		static Object* top(Thread* thread, Frame* receiver);
 		static void pop(Thread* thread, StackRef<Frame> receiver);*/
+
+
 	};
 
 	/*class FrameProxy

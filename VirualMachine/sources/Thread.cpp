@@ -3,17 +3,17 @@
 #include "VirtualMachine.h"
 #include "Method.h"
 #include "Array.h"
-//#include "PolymorphicInlineCache.h"
-#include "GenerationalGC.h"
 #include "Heap.h"
 #include "Debugger.h"
 #include "ClassFileLoader.h"
+#include "Pool.h"
+#include "PolymorphicCache.h"
 
 using namespace Beer;
 
 
-Thread::Thread(VirtualMachine* vm, GC * gc)
-	: mVM(vm), mGC(gc), mTopFrame(NULL), mRootFrame(NULL)
+Thread::Thread(VirtualMachine* vm, GenerationalGC * gc)
+	: mVM(vm), mGC(gc), mTopFrame(NULL), mRootFrame(NULL), mPolycache(NULL)
 {
 }
 
@@ -28,14 +28,16 @@ void Thread::init()
 	mRootFrame->stackPush(frame);
 	fetchTopFrame();
 
-	PolymorphicCache* methodCache = PolymorphicCache::from(createInstanceMethodCacheBytes);
-	methodCache->clear(CREATE_INSTANCE_CACHE_SIZE);
+	StackRef<PolymorphicCache> pcache(frame, frame->stackPush());
+	createPolycache(pcache, CREATE_INSTANCE_CACHE_SIZE);
+	mPolycache = *pcache;
+	frame->stackMoveTop(-1); // pop pcache
 }
 
 Frame* Thread::allocFrame(uint32 stackSize, uint32 argsCout)
 {
 	Frame* frame = NULL;
-	frame = getHeap()->alloc<Frame>(Frame::FRAME_CHILDREN_COUNT);// + stackSize);
+	frame = getHeap()->alloc<Frame>(Frame::FRAME_CHILDREN_COUNT + stackSize);
 	//frame = new Frame(frameArgsCount, maxStack); // +2: receiver, method
 
 	new(frame) Frame(argsCout, stackSize);
@@ -294,12 +296,17 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 
 	// find method
 	{
-		static Reference<String> selectorRef = String::gTranslate(this, BEER_WIDEN("$Class::createInstance()")); // TODO;
-		StackRef<String> selector(frame, frame->stackPush(selectorRef.get()));
-		PolymorphicCache* methodCache = PolymorphicCache::from(createInstanceMethodCacheBytes);
+		StackRef<PolymorphicCache> cache(frame, frame->stackPush(
+			mPolycache
+		));
 
-		method = methodCache->find(this, *klass, *selector, CREATE_INSTANCE_CACHE_SIZE);
-		frame->stackMoveTop(-1); // pop selector
+		static Reference<String> selectorRef = String::gTranslate(this, BEER_WIDEN("$Class::createInstance()")); // TODO;
+		StackRef<String> selector(frame, frame->stackPush(
+			*selectorRef
+		));
+
+		PolymorphicCache::find(this, cache, klass, selector, method);
+		frame->stackMoveTop(-2); // pop cache, selector
 	
 		if(method.isNull())
 		{
@@ -351,4 +358,12 @@ Class* Thread::getType(StackRef<Object> object)
 void Thread::getType(StackRef<Object> object, StackRef<Class> ret)
 {
 	mVM->getClassTable()->translate(this, object, ret);
+}
+
+void Thread::createPolycache(StackRef<PolymorphicCache> ret, uint16 length)
+{
+	ret = getHeap()->alloc<PolymorphicCache>(PolymorphicCache::POLYCACHE_CHILDREN_COUNT + length);
+
+	PolymorphicCache::setLength(this, ret.staticCast<Pool>(), length);
+	PolymorphicCache::clear(this, ret);
 }

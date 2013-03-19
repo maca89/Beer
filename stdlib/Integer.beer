@@ -22,6 +22,10 @@ native class Integer
     
     Boolean ==(Integer value);
     Boolean !=(Integer value);
+    
+    Integer abs;
+    //Integer min(Integer other);
+    //Integer max(Integer other);
   }
   
   interface Object

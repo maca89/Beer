@@ -4,7 +4,7 @@
 #include "Frame.h"
 #include "Integer.h"
 #include "Float.h"
-#include "PolymorphicInlineCache.h"
+#include "GenerationalGC.h"
 
 
 namespace Beer
@@ -16,8 +16,8 @@ namespace Beer
 	class Pair;
 	class ClassFileLoader;
 	class ClassFileDescriptor;
-
-	typedef GenerationalGC GC;
+	class PolymorphicCache;
+	class Pool;
 
 	class Thread : public NativeThread
 	{
@@ -26,28 +26,26 @@ namespace Beer
 
 	protected:
 		VirtualMachine* mVM;
-		GC* mGC;  // is it needed?
+		GenerationalGC* mGC;  // is it needed?
 		Frame* mRootFrame;
 		Frame* mTopFrame;
 		Heap* mHeap;
+		PolymorphicCache* mPolycache; // TODO: in Thread's pool
 
 		enum
 		{
-			CREATE_INSTANCE_CACHE_SIZE = 10
+			CREATE_INSTANCE_CACHE_SIZE = 3 // TODO: bigger
 		};
-		byte createInstanceMethodCacheBytes[sizeof(PolymorphicCache::CachedMethod) * CREATE_INSTANCE_CACHE_SIZE];
 
 	public:
-		Thread(VirtualMachine* vm, GC * gc);
+		Thread(VirtualMachine* vm, GenerationalGC * gc);
 
 		virtual ~Thread()
 		{
 		}
 
-		//INLINE WorkStack* getStack() { return &mStack; }
-
 		INLINE VirtualMachine* getVM() { return mVM; }
-		INLINE GC* getGC() { return mGC; } // does every thread need GC?
+		INLINE GenerationalGC* getGC() { return mGC; } // does every thread need GC?
 		INLINE Heap* getHeap() { return mHeap; }
 		INLINE Heap* getPermanentHeap() { return mGC->getPermanentHeap(); }
 
@@ -80,6 +78,7 @@ namespace Beer
 		void createArray(StackRef<Integer> length, StackRef<Array> ret);
 		void createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret);
 		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
+		void createPolycache(StackRef<PolymorphicCache> ret, uint16 length);
 		
 		
 		Class* getType(StackRef<Object> object); // deprecated

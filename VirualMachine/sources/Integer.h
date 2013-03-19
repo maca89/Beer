@@ -84,6 +84,8 @@ namespace Beer
 		static void BEER_CALL operatorGreater(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Boolean> ret);
 		static void BEER_CALL operatorGreaterEqual(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Boolean> ret);
 
+		static void BEER_CALL abs(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> ret);
+
 	};
 	
 	class IntegerClassInitializer : public ClassInitializer

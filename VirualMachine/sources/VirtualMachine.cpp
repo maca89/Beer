@@ -121,6 +121,7 @@ void VirtualMachine::init()
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	{
 		Frame* frame = getFrame();
+		BEER_STACK_CHECK();
 
 		StackRef<Integer> childIdClass(frame, frame->stackPush());
 		createInteger(childIdClass, Object::CHILD_ID_CLASS);
@@ -223,7 +224,7 @@ void VirtualMachine::init()
 
 
 		frame->stackMoveTop(-6); // clean
-		DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
+		//DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
 		//closeFrame();
 	}
 

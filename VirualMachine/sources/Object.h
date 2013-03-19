@@ -58,7 +58,7 @@ namespace Beer
 		// deprecated
 		INLINE TypeFlag getTypeFlag() const { return static_cast<TypeFlag>(mTypeFlag); }
 		INLINE void setTypeFlag(TypeFlag value) { mTypeFlag = value; }
-
+		
 		// inline value
 		INLINE static bool isInlineValue(const Object* object)
 		{

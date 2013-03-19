@@ -23,7 +23,7 @@ namespace Beer
 		ObjectList mPrintedObjects;
 
 	public:
-		Debugger(VirtualMachine* vm, GC* gc);
+		Debugger(VirtualMachine* vm, GenerationalGC* gc);
 		virtual ~Debugger();
 
 		void setEnabled(bool value) { mEnabled = value; }
