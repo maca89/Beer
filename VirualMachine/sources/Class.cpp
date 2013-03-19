@@ -28,7 +28,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 		throw NotEnoughMemoryException(BEER_WIDEN("Unable to create new instance - Not enough memory"));
 	}
 	
-	Object::setClass(thread, ret, receiver);
+	Object::setType(thread, ret, receiver);
 
 	frame->stackMoveTop(-1); // pop propertiesCount
 }

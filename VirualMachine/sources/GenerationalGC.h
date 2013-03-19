@@ -124,9 +124,9 @@ namespace Beer
 			
 			receiver->mChildren[index] = *child;
 
-			AlignedHeap* heap = mNurseryGC->getAllocHeap();
+			/*AlignedHeap* heap = mNurseryGC->getAllocHeap();
 
-			/*if (!heap->contains(obj))
+			if (!heap->contains(obj))
 			{
 				mRS.add(child);
 			}*/

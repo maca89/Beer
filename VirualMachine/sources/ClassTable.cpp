@@ -35,7 +35,7 @@ Class* ClassTable::fetchClass(Thread* thread, StackRef<Object> object)
 	BEER_STACK_CHECK();
 
 	StackRef<Class> klass(frame, frame->stackPush());
-	Object::getClass(thread, object, klass);
+	Object::getType(thread, object, klass);
 
 	Class* result = *klass;
 	frame->stackMoveTop(-1); // pop klass

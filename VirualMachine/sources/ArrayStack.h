@@ -5,7 +5,7 @@
 namespace Beer
 {
 	template <typename T>
-	class FixedStack
+	class ArrayStack
 	{
 	protected:
 		uint32 mSize;
@@ -13,15 +13,14 @@ namespace Beer
 		uint32 mNext;
 
 	public:
-		INLINE FixedStack(uint32 size) : mSize(size), mItems(NULL), mNext(0)
+		INLINE ArrayStack(T* memory, uint32 size)
+			: mSize(size), mItems(memory), mNext(0)
 		{
-			mItems = new T[mSize];
 			clear();
 		}
 
-		INLINE ~FixedStack()
+		INLINE ~ArrayStack()
 		{
-			SMART_DELETE_ARR(mItems);
 		}
 
 		INLINE uint32 absoluteIndex(int32 index)

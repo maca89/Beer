@@ -221,6 +221,7 @@ void VirtualMachine::init()
 		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
 		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
 		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
+		// TODO: getType
 
 
 		frame->stackMoveTop(-6); // clean

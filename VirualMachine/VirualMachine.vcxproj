@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AllocationBlock.h" />
+    <ClInclude Include="sources\ArrayStack.h" />
     <ClInclude Include="sources\Boolean.h" />
     <ClInclude Include="sources\BytecodeBuilder.h" />
     <ClInclude Include="sources\BytecodeInputStream.h" />

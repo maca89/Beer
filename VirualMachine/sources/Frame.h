@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "FixedStack.h"
 #include "DynamicStack.h"
+#include "ArrayStack.h"
 
 
 namespace Beer
@@ -10,7 +11,8 @@ namespace Beer
 	//class Object;
 	class Method;
 
-	typedef FixedStack<Object*> WorkStack;
+	typedef ArrayStack<Object*> WorkStack;
+	//typedef FixedStack<Object*> WorkStack;
 	//typedef DynamicStack<Object*> WorkStack;
 
 	class Frame : public Object
@@ -32,7 +34,8 @@ namespace Beer
 		uint32 size;
 
 	public:
-		INLINE Frame(uint32 argsCount, uint32 stackSize) : stack(stackSize), vPC(0), frameOffset(0), argsCount(argsCount)
+		INLINE Frame(uint32 argsCount, uint32 stackSize)
+			: stack(&mChildren[FRAME_CHILDREN_COUNT], stackSize), vPC(0), frameOffset(0), argsCount(argsCount)
 		{
 			next = 0;
 			size = stackSize;
@@ -147,11 +150,10 @@ namespace Beer
 			return static_cast<int64>(index) - frameOffset - argsCount;
 		}
 
+		// mChildren version
 		/*static void push(Thread* thread, Frame* receiver, Object* object);
 		static Object* top(Thread* thread, Frame* receiver);
 		static void pop(Thread* thread, StackRef<Frame> receiver);*/
-
-
 	};
 
 	/*class FrameProxy

@@ -19,7 +19,7 @@ void BEER_CALL RandomGenerator::createInstance(Thread* thread, StackRef<Class> r
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
 	);
 
-	Class::setClass(thread, ret, receiver);
+	Object::setType(thread, ret, receiver);
 
 	frame->stackMoveTop(-1); // pop propertiesCount
 }

@@ -36,7 +36,7 @@ namespace Beer
 		INLINE void translate(Thread* thread, StackRef<Object> object, StackRef<Class> ret) const
 		{
 			ret = translateInline(*object);
-			if(ret.isNull()) Object::getClass(thread, object, ret);
+			if(ret.isNull()) Object::getType(thread, object, ret);
 		}
 
 		INLINE Class* operator[] (uint32 index) const

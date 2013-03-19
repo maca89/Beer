@@ -40,7 +40,7 @@ void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, S
 
 	frame->stackMoveTop(-1); // pop propertiesCount
 
-	Class::setClass(thread, ret, receiver);
+	Object::setType(thread, ret, receiver);
 }
 
 void TimerClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)

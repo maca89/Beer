@@ -111,7 +111,7 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 			thread->getVM()->getMetaClass()
 		));
 
-		Class::setClass(thread, ret, metaClass);
+		Object::setType(thread, ret, metaClass);
 		frame->stackMoveTop(-1); // pop metaClass
 	}
 

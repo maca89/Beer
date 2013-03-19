@@ -385,6 +385,9 @@
     <ClInclude Include="sources\PolymorphicCache.h">
       <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
+    <ClInclude Include="sources\ArrayStack.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">

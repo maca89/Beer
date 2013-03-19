@@ -26,13 +26,13 @@ void BEER_CALL Object::operatorString(Thread* thread, StackRef<Object> receiver,
 	frame->stackMoveTop(-1); // pop klass
 }
 
-void BEER_CALL Object::setClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> param)
+void BEER_CALL Object::setType(Thread* thread, StackRef<Object> receiver, StackRef<Class> param)
 {
 	NULL_ASSERT(*receiver);
 	thread->getGC()->setChild(receiver, param, CHILD_ID_CLASS);
 }
 
-void BEER_CALL Object::getClass(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret)
+void BEER_CALL Object::getType(Thread* thread, StackRef<Object> receiver, StackRef<Class> ret)
 {
 	NULL_ASSERT(*receiver);
 	thread->getGC()->getChild(receiver, ret, CHILD_ID_CLASS);

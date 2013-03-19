@@ -208,7 +208,7 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 	staticCreateObject(floatClass, ret, sizeof(Float));
 	frame->stackMoveTop(-1); // pop floatClass
 
-	Class::setClass(this, ret, floatClass);
+	Object::setType(this, ret, floatClass);
 	ret->setData(value);
 
 	frame->stackMoveTop(-1); // pop class
@@ -244,7 +244,7 @@ void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
 	);
 	ret->size(length->getData());
-	Class::setClass(this, ret, stringClass);
+	Object::setType(this, ret, stringClass);
 
 	frame->stackMoveTop(-2); // pop class, propertiesCount
 }
@@ -345,7 +345,7 @@ void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData() + additionalChildrenCount)
 	);
 
-	Class::setClass(this, ret, klass);
+	Object::setType(this, ret, klass);
 
 	getFrame()->stackMoveTop(-1); // pop propertiesCount
 }
