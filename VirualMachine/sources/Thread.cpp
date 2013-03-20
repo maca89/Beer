@@ -34,21 +34,50 @@ void Thread::init()
 	frame->stackMoveTop(-1); // pop pcache
 }
 
-Frame* Thread::allocFrame(uint32 stackSize, uint32 argsCout)
+Frame* Thread::allocFrame(uint32 stackSize, uint32 argsCount)
 {
 	Frame* frame = NULL;
-	frame = getHeap()->alloc<Frame>(Frame::FRAME_CHILDREN_COUNT + stackSize);
-	//frame = new Frame(frameArgsCount, maxStack); // +2: receiver, method
 
-	new(frame) Frame(argsCout, stackSize);
-	//frame->setArgumentsCount(argsCout);
+	if(!mTopFrame || (frame = mTopFrame->pushFrame(argsCount, stackSize)) == NULL)
+	{
+		frame = getHeap()->alloc<Frame>(sizeof(Frame) + (stackSize * sizeof(Object*)) + DEFAULT_FRAME_SPACE, Frame::FRAME_CHILDREN_COUNT);
+		if(frame == NULL)
+		{
+			throw NotEnoughMemoryException(BEER_WIDEN("Not enough memory to allocate Frame"));
+		}
+
+		new(frame) Frame(argsCount, stackSize, DEFAULT_FRAME_SPACE);
+		//cout << "frame " << frame << " allocated on heap\n";
+	}
+	else
+	{
+		//cout << "frame " << frame << " allocated on previous frame stack\n";
+	}
 
 	return frame;
 }
 
+void Thread::discardFrame(Frame* previousFrame, Frame* currentFrame)
+{
+	if(previousFrame == NULL)
+	{
+		//cout << "frame " << currentFrame << " not discarded, previous frame is NULL\n";
+		return; // TODO???
+	}
+
+	if(previousFrame->popFrame(currentFrame))
+	{
+		//cout << "frame " << currentFrame << " discarded\n";
+	}
+	else
+	{
+		//cout << "frame " << currentFrame << " will be collected by GC\n";
+	}
+}
+
 Frame* Thread::getPreviousFrame()
 {
-	if(mRootFrame->stackSize() >= 2)
+	if(mRootFrame->stackSize() > 1)
 	{
 		return mRootFrame->stackTop<Frame>(mRootFrame->stackTopIndex() - 1);
 	}
@@ -88,6 +117,11 @@ Frame* Thread::openFrame()
 	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - 1)); // copy receiver
 	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
 	
+	/*if(newFrame->getStaticSize() > 10000)
+	{
+		int a = 0;
+	}*/
+
 	mRootFrame->stackPush(newFrame);
 	fetchTopFrame();
 	return getFrame();
@@ -111,6 +145,11 @@ void Thread::closeFrame()
 
 	if(previousFrame)
 	{
+		/*if(previousFrame->getStaticSize() > 10000)
+		{
+			int a = 0;
+		}*/
+
 		// clean previous frame
 		previousFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
 	
@@ -124,6 +163,7 @@ void Thread::closeFrame()
 	// clean current frame
 	currentFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
 
+	discardFrame(previousFrame, currentFrame);
 	mRootFrame->stackPop();
 	mTopFrame = previousFrame;
 }
@@ -138,14 +178,14 @@ void Thread::getObjectClass(StackRef<Class> ret)
 	ret = mVM->getObjectClass();
 }
 
-void Thread::_getIntegerClass(StackRef<Class> ret)
+void Thread::getIntegerClass(StackRef<Class> ret)
 {
-	ret = mVM->_getIntegerClass();
+	ret = mVM->getIntegerClass();
 }
 
-void Thread::_getFloatClass(StackRef<Class> ret)
+void Thread::getFloatClass(StackRef<Class> ret)
 {
-	ret = mVM->_getFloatClass();
+	ret = mVM->getFloatClass();
 }
 
 void Thread::getStringClass(StackRef<Class> ret)
@@ -186,7 +226,7 @@ void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
 	else
 	{
 		StackRef<Class> integerClass(frame, frame->stackPush(NULL));
-		_getIntegerClass(integerClass);
+		getIntegerClass(integerClass);
 
 		staticCreateObject(integerClass, ret, sizeof(Integer));
 		frame->stackMoveTop(-1); // pop integerClass
@@ -201,7 +241,7 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 	BEER_STACK_CHECK();
 
 	StackRef<Class> floatClass(frame, frame->stackPush());
-	_getFloatClass(floatClass);
+	getFloatClass(floatClass);
 
 	floatClass.push(frame);
 

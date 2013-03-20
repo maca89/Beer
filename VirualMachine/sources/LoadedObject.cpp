@@ -54,7 +54,7 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 					StackRef<Object> child(frame, frame->stackPush()); // push child
 					thread->createInstance(klass, child);
 
-					Object::setChild(thread, ret, child, Object::OBJECT_CHILDREN_COUNT + i);
+					Object::setChild(thread, ret, Object::OBJECT_CHILDREN_COUNT + i, child);
 					frame->stackMoveTop(-1); // pop child
 				}
 			}
@@ -234,7 +234,7 @@ void LoadedObjectInitializer::makeProperty(Thread* thread, StackRef<Property> re
 		StackRef<String> name(frame, frame->stackPush());
 		getString(thread, name, attrDescr->getName(mClassFile));
 
-		Property::setName(thread, ret, name);
+		Property::setPropertyName(thread, ret, name);
 		frame->stackMoveTop(-1); // pop name
 	}
 

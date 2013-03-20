@@ -70,10 +70,7 @@ namespace Beer
 		//void removeClass(ClassReflection* reflection);
 		//bool hasClass(string name) const;
 
-		// deprecated, TODO: get rid of
 		Class* findClass(StackRef<String> name);
-
-		// deprecated, TODO: get rid of
 		Class* findClass(string name);
 
 		//INLINE Heap* getHeap() const { return mHeap; }
@@ -96,8 +93,8 @@ namespace Beer
 		
 		INLINE Class* getMetaClass() { return mMetaClass; }
 		INLINE Class* getObjectClass() { return mObjectClass; }
-		INLINE Class* _getFloatClass() { return mFloatClass; }
-		INLINE Class* _getIntegerClass() { return mIntegerClass; }
+		INLINE Class* getFloatClass() { return mFloatClass; }
+		INLINE Class* getIntegerClass() { return mIntegerClass; }
 		INLINE Class* getBooleanClass() { return mBooleanClass; }
 		INLINE Class* getStringClass() { return mStringClass; }
 		INLINE Class* getArrayClass() { return mArrayClass; }

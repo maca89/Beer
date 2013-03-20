@@ -915,12 +915,9 @@ BEER_BC_LABEL(INSTR_ASSIGN):
 
 		StackRef<Object> child(frame, frame->stackTopIndex() - 1);
 
-		StackRef<Integer> index(frame, frame->stackPush());
-		thread->createInteger(index, 2 + BEER_BC_DATA(int16)); // TODO: find start of properties
-
-		Object::setChild(thread, object, child, index);
+		Object::setChild(thread, object, 2 + BEER_BC_DATA(int16), child); // TODO: find start of properties
 			
-		frame->stackMoveTop(-3); // + for index
+		frame->stackMoveTop(-2);
 	}
 	BEER_BC_NEXT(sizeof(int16));
 
@@ -930,7 +927,7 @@ BEER_BC_LABEL(INSTR_LOAD):
 		NULL_ASSERT(object.get());
 
 		// pops object and push a child
-		Object::getChild(thread, object, object, 2 + BEER_BC_DATA(int16)); // TODO: find start of properties
+		Object::getChild(thread, object, 2 + BEER_BC_DATA(int16), object); // TODO: find start of properties
 	}
 	BEER_BC_NEXT(sizeof(uint16));
 
@@ -940,7 +937,7 @@ BEER_BC_LABEL(INSTR_LOAD_THIS):
 		NULL_ASSERT(object.get());
 
 		StackRef<Object> child(frame, frame->stackPush());
-		Object::getChild(thread, object, child, 2 + BEER_BC_DATA(int16)); // TODO: find start of properties
+		Object::getChild(thread, object, 2 + BEER_BC_DATA(int16), child); // TODO: find start of properties
 
 		// *NO* pop of this !!!
 	}

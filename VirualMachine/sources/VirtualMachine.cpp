@@ -123,11 +123,8 @@ void VirtualMachine::init()
 		Frame* frame = getFrame();
 		BEER_STACK_CHECK();
 
-		StackRef<Integer> childIdClass(frame, frame->stackPush());
-		createInteger(childIdClass, Object::CHILD_ID_CLASS);
-
-		StackRef<Integer> childIdClassName(frame, frame->stackPush());
-		createInteger(childIdClassName, Class::CHILD_ID_CLASS_NAME);
+		//StackRef<Integer> childIdClass(frame, frame->stackPush());
+		//createInteger(childIdClass, Object::CHILD_ID_CLASS);
 
 		StackRef<String> metaClassName(frame, frame->stackPush(
 			mHeap->alloc<String>(
@@ -150,7 +147,7 @@ void VirtualMachine::init()
 		metaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
 		metaClass->mParentNext = metaClass->mMethodNext = metaClass->mPropertyNext = 0;
 
-		Object::setChild(static_cast<Thread*>(this), metaClass, metaClassName, childIdClassName); // set name
+		Object::setChild(static_cast<Thread*>(this), metaClass, Class::CHILD_ID_CLASS_NAME, metaClassName); // set name
 
 		mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
 		mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
@@ -207,8 +204,8 @@ void VirtualMachine::init()
 			delete stringInit;
 
 			// fix references
-			Object::setChild(static_cast<Thread*>(this), objectClassName, stringClass, childIdClass); // set class
-			Object::setChild(static_cast<Thread*>(this), stringClassName, stringClass, childIdClass); // set class
+			Object::setType(this, objectClassName, stringClass); // set class
+			Object::setType(this, stringClassName, stringClass); // set class
 
 			frame->stackMoveTop(-2); // pop stringClassName & stringClass
 		}
@@ -224,8 +221,7 @@ void VirtualMachine::init()
 		// TODO: getType
 
 
-		frame->stackMoveTop(-6); // clean
-		//DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
+		frame->stackMoveTop(-4); // clean
 		//closeFrame();
 	}
 

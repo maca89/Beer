@@ -28,9 +28,9 @@ namespace Beer
 		{
 			// children order (not including those of Object parent class):
 			// #1 name
-			// #2 parents[] // TODO: size
-			// #3 methods[] // TODO: size
-			// #4 properties[] // TODO: size
+			// #2 parents[]
+			// #3 methods[]
+			// #4 properties[]
 			CLASS_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1,
 
 			CHILD_ID_CLASS_NAME = OBJECT_CHILDREN_COUNT,
@@ -41,12 +41,10 @@ namespace Beer
 		////////////////////////////////////////////////////////////
 		uint8 mFlags;
 
-		// TODO: garbaged
 		uint32 mParentsCount;
 		uint32 mPropertiesCount;
 		uint32 mMethodsCount;
 		
-		// TODO: garbaged
 		uint32 mParentNext;
 		uint32 mPropertyNext;
 		uint32 mMethodNext;
@@ -87,7 +85,7 @@ namespace Beer
 		static void BEER_CALL getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret);
 		static void BEER_CALL getParentsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value);
-		
+
 		static void BEER_CALL getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret);
 		static void BEER_CALL getPropertiesCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value);
@@ -98,6 +96,7 @@ namespace Beer
 		
 		// shortcut
 		//static void BEER_CALL getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret);
+		static void getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, StackRef<Property> ret);
 
 	protected:
 		static void BEER_CALL getPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);

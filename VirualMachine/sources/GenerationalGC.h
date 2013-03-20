@@ -104,25 +104,46 @@ namespace Beer
 		{
 		}*/
 
+		INLINE Object* getIdentity(Object* object)
+		{
+			DBG_ASSERT(object != NULL, BEER_WIDEN("Object is NULL"));
+
+			if (object->getTypeFlag() == Object::TYPE_FWD_PTR)
+			{
+				return static_cast<ForwardPointer*>(object)->getObject();
+			}
+
+			return object;
+		}
+
+		INLINE Object* getIdentity(StackRef<Object> object)
+		{
+			DBG_ASSERT(*object != NULL, BEER_WIDEN("Object is NULL"));
+
+			return getIdentity(*object);
+		}
+
 		INLINE void getChild(StackRef<Object> receiver, StackRef<Object> ret, int64 index)
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
-			if (receiver->getTypeFlag() == Object::TYPE_FWD_PTR)
+			Object* realReceiver = getIdentity(receiver);
+
+			if (realReceiver->getTypeFlag() == Object::TYPE_FWD_PTR)
 			{
-				ret = static_cast<ForwardPointer*>(*receiver)->getObject()->mChildren[index];
+				ret = static_cast<ForwardPointer*>(realReceiver)->getObject()->getChildren()[index];
 			}
 			else
 			{
-				ret = receiver->mChildren[index];
+				ret = realReceiver->getChildren()[index];
 			}
 		}
 
 		INLINE void setChild(StackRef<Object> receiver, StackRef<Object> child, int64 index)
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
-			
-			receiver->mChildren[index] = *child;
+
+			receiver->getChildren()[index] = *child;
 
 			/*AlignedHeap* heap = mNurseryGC->getAllocHeap();
 

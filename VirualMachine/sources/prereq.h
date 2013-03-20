@@ -4,7 +4,7 @@
 namespace Beer
 {
 #ifdef _DEBUG
-	#define INLINE
+	#define INLINE inline
 	#define NOINLINE
 	#define BEER_DEBUG_MODE
 #else

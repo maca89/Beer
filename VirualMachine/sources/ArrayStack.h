@@ -13,6 +13,11 @@ namespace Beer
 		uint32 mNext;
 
 	public:
+		INLINE ArrayStack()
+			: mSize(0), mItems(NULL), mNext(0)
+		{
+		}
+
 		INLINE ArrayStack(T* memory, uint32 size)
 			: mSize(size), mItems(memory), mNext(0)
 		{
@@ -114,6 +119,11 @@ namespace Beer
 		INLINE uint32 size()
 		{
 			return mNext;
+		}
+
+		INLINE uint32 realSize()
+		{
+			return mSize;
 		}
 
 		INLINE void move(int32 count) // must be signed !!!

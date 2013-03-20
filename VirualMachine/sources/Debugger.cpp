@@ -281,22 +281,18 @@ void Debugger::printObject(StackRef<Object> object)
 
 			if(propertiesCount->getData() > 0)
 			{
-				StackRef<Integer> index(frame, frame->stackPush());
-
 				cout << " {";
 				for(uint32 i = 0; i < propertiesCount->getData(); i++)
 				{
-					createInteger(index, i);
-
 					StackRef<Property> prop(frame, frame->stackPush());
-					Class::getProperty(this, klass, index, prop);
+					Class::getProperty(this, klass, i, prop);
 
 					if(!prop.isNull())
 					{
 						// print name
 						{
 							StackRef<String> name(frame, frame->stackPush());
-							Property::getName(this, prop, name);
+							Property::getPropertyName(this, prop, name);
 
 							cout << name->c_str() << ": ";
 							frame->stackMoveTop(-1); // pop name
@@ -304,10 +300,8 @@ void Debugger::printObject(StackRef<Object> object)
 
 						// print child
 						{
-							createInteger(index, Object::OBJECT_CHILDREN_COUNT + i);
-
 							StackRef<Object> child(frame, frame->stackPush());
-							Object::getChild(this, object, index, child);
+							Object::getChild(this, object, Object::OBJECT_CHILDREN_COUNT + i, child);
 
 							printObject(child);
 							frame->stackMoveTop(-1); // pop child
@@ -319,8 +313,6 @@ void Debugger::printObject(StackRef<Object> object)
 					frame->stackMoveTop(-1); // pop prop
 				}
 				cout << "}";
-
-				frame->stackMoveTop(-1); // pop index
 			}
 
 			frame->stackMoveTop(-1); // pop propertiesCount
@@ -371,7 +363,7 @@ void Debugger::printFrameStack(Frame* frame)
 		{
 			StackRef<Object> object(frame, frame->translate(i));
 
-			int64 index = int64(i) - frame->getFrameOffset() + 1;
+			int64 index = int64(i) /*- frame->getFrameOffset()*/ + 1;
 			cout << "    " << (index >= 0 ? "+" : "") << index << " ";
 			printObject(object);
 			cout << std::endl;
@@ -414,7 +406,7 @@ void Debugger::printFrameStack(Frame* frame)
 		{
 			StackRef<Method> object(frame, frame->translate(i));
 
-			int64 index = int64(i) - frame->getFrameOffset() + 1;
+			int64 index = int64(i) /*- frame->getFrameOffset()*/ + 1;
 			cout << "    var" << vari << ": ";
 			printObject(object);
 			cout << std::endl;

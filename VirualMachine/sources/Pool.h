@@ -2,6 +2,7 @@
 #include "prereq.h"
 #include "Object.h"
 #include "StackRef.h"
+#include "Thread.h"
 
 
 namespace Beer
@@ -35,4 +36,34 @@ namespace Beer
 		static void BEER_CALL clear(Thread* thread, StackRef<Pool> receiver);
 		static void BEER_CALL copyFrom(Thread* thread, StackRef<Pool> receiver, StackRef<Pool> other);
 	};
+
+	INLINE void Pool::getLength(Thread* thread, StackRef<Pool> pool, uint16& length)
+	{
+		length = pool->mSize;
+	}
+
+	INLINE void Pool::setLength(Thread* thread, StackRef<Pool> pool, uint16 length)
+	{
+		pool->mSize = length;
+	}
+
+	INLINE void Pool::getItem(Thread* thread, StackRef<Pool> receiver, uint16 index, StackRef<Object> ret)
+	{
+		Object::getChild(thread, receiver, CHILD_ID_POOL_START + index, ret);
+	}
+
+	INLINE void Pool::setItem(Thread* thread, StackRef<Pool> receiver, uint16 index, StackRef<Object> item)
+	{
+		Object::setChild(thread, receiver, CHILD_ID_POOL_START + index, item);
+	}
+
+	INLINE void Pool::createSlot(Thread* thread, StackRef<Pool> receiver, uint16& ret)
+	{
+		ret = receiver->mNext++;
+	}
+
+	INLINE void Pool::hasFreeSlot(Thread* thread, StackRef<Pool> receiver, bool& ret)
+	{
+		ret = receiver->mNext < receiver->mSize;
+	}
 };

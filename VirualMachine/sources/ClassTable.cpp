@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "ClassTable.h"
-#include "Thread.h"
 #include "Frame.h"
 
 using namespace Beer;
@@ -26,18 +25,4 @@ uint32 ClassTable::add(Class* klass)
 		mNext += 4;
 		return mNext - 4;
 	}
-}
-
-
-Class* ClassTable::fetchClass(Thread* thread, StackRef<Object> object)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Class> klass(frame, frame->stackPush());
-	Object::getType(thread, object, klass);
-
-	Class* result = *klass;
-	frame->stackMoveTop(-1); // pop klass
-	return result;
 }

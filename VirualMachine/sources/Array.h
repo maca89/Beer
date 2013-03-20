@@ -16,15 +16,13 @@ namespace Beer
 		typedef Integer::IntegerData LengthData;
 
 	protected:
-		// TODO: garbaged
 		LengthData mSize;
 		Class* mItemClass;
 	
 	public:
 		INLINE LengthData getSize() const
 		{
-			DBG_ASSERT(mSize >= 0, BEER_WIDEN("Array size is smaller than zero"));
-			return mSize;//mHeader.childrenCount - CHILDREN_COUNT;
+			return mSize;
 		}
 
 		INLINE void setSize(LengthData value)

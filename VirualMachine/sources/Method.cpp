@@ -117,40 +117,40 @@ void Method::runFunction(Thread* thread)
 
 void BEER_CALL Method::getName(Thread* thread, StackRef<Method> receiver, StackRef<String> ret)
 {
-	Object::getChild(thread, receiver, ret, CHILD_ID_METHOD_NAME);
+	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME, ret);
 }
 
 void BEER_CALL Method::setName(Thread* thread, StackRef<Method> receiver, StackRef<String> value)
 {
-	Object::setChild(thread, receiver, value, CHILD_ID_METHOD_NAME);
+	Object::setChild(thread, receiver, CHILD_ID_METHOD_NAME, value);
 }
 
 void BEER_CALL Method::getReturn(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret)
 {
 	DBG_ASSERT(index->getData() < receiver->getReturnsCount(), BEER_WIDEN("Unknown return"));
-	Object::getChild(thread, receiver, ret, CHILD_ID_METHOD_NAME + 1 + index->getData()); // +1 for name
+	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + index->getData(), ret); // +1 for name
 }
 
 void BEER_CALL Method::setReturn(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value)
 {
 	DBG_ASSERT(index->getData() < receiver->getReturnsCount(), BEER_WIDEN("Unable to add more returns"));
-	Object::setChild(thread, receiver, value, CHILD_ID_METHOD_NAME + 1 + index->getData()); // +1 for name
+	Object::setChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + index->getData(), value); // +1 for name
 }
 
 void BEER_CALL Method::getParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret)
 {
 	DBG_ASSERT(index->getData() < receiver->getParamsCount(), BEER_WIDEN("Unknown argument"));
-	Object::getChild(thread, receiver, ret, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData()); // +1 for name
+	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData(), ret); // +1 for name
 }
 
 void BEER_CALL Method::setParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value)
 {
 	DBG_ASSERT(index->getData() < receiver->getParamsCount(), BEER_WIDEN("Unable to add more arguments"));
-	Object::setChild(thread, receiver, value, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData()); // +1 for name
+	Object::setChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData(), value); // +1 for name
 }
 
 void BEER_CALL Method::getParam(Thread* thread, StackRef<Method> receiver, StackRef<Param> ret, Integer::IntegerData index)
 {
 	DBG_ASSERT(index < receiver->getParamsCount(), BEER_WIDEN("Unknown argument"));
-	Object::getChild(thread, receiver, ret, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index); // +1 for name
+	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index, ret); // +1 for name
 }

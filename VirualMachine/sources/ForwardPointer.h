@@ -9,7 +9,9 @@ namespace Beer
 
 		INLINE Object* getObject()
 		{
-			return mChildren[1];
+			return NULL; // TODO
+			//return mIdentity;
+			//return mChildren[1];
 		}
 	};
 }

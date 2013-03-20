@@ -8,37 +8,6 @@
 
 using namespace Beer;
 
-void BEER_CALL Pair::init(Thread* thread, StackRef<Pair> receiver, StackRef<Pair> ret)
-{
-	ret = receiver;
-}
-
-void BEER_CALL Pair::init_ObjectObject(Thread* thread, StackRef<Pair> receiver, StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret)
-{
-	Pair::setFirst(thread, receiver, first);
-	Pair::setSecond(thread, receiver, second);
-	ret = receiver;
-}
-
-void BEER_CALL Pair::getFirst(Thread* thread, StackRef<Pair> receiver, StackRef<Object> ret)
-{
-	Object::getChild(thread, receiver, ret, CHILD_ID_PAIR_FIRST);
-}
-
-void BEER_CALL Pair::setFirst(Thread* thread, StackRef<Pair> receiver, StackRef<Object> value)
-{
-	Object::setChild(thread, receiver, value, CHILD_ID_PAIR_FIRST);
-}
-
-void BEER_CALL Pair::getSecond(Thread* thread, StackRef<Pair> receiver, StackRef<Object> ret)
-{
-	Object::getChild(thread, receiver, ret, CHILD_ID_PAIR_SECOND);
-}
-
-void BEER_CALL Pair::setSecond(Thread* thread, StackRef<Pair> receiver, StackRef<Object> value)
-{
-	Object::setChild(thread, receiver, value, CHILD_ID_PAIR_SECOND);
-}
 
 void PairClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {

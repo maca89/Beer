@@ -1,38 +1,8 @@
 #include "stdafx.h"
 #include "Pool.h"
-#include "Thread.h"
 
 using namespace Beer;
 
-void Pool::getLength(Thread* thread, StackRef<Pool> pool, uint16& length)
-{
-	length = pool->mSize;
-}
-
-void Pool::setLength(Thread* thread, StackRef<Pool> pool, uint16 length)
-{
-	pool->mSize = length;
-}
-
-void Pool::getItem(Thread* thread, StackRef<Pool> receiver, uint16 index, StackRef<Object> ret)
-{
-	ret = receiver->mChildren[CHILD_ID_POOL_START + index]; // TODO
-}
-
-void Pool::setItem(Thread* thread, StackRef<Pool> receiver, uint16 index, StackRef<Object> item)
-{
-	receiver->mChildren[CHILD_ID_POOL_START + index] = *item; // TODO
-}
-
-void Pool::createSlot(Thread* thread, StackRef<Pool> receiver, uint16& ret)
-{
-	ret = receiver->mNext++;
-}
-
-void Pool::hasFreeSlot(Thread* thread, StackRef<Pool> receiver, bool& ret)
-{
-	ret = receiver->mNext < receiver->mSize;
-}
 
 void Pool::find(Thread* thread, StackRef<Pool> receiver, StackRef<Object> item, bool& ret1, uint16& ret2)
 {

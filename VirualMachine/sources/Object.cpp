@@ -29,16 +29,16 @@ void BEER_CALL Object::operatorString(Thread* thread, StackRef<Object> receiver,
 void BEER_CALL Object::setType(Thread* thread, StackRef<Object> receiver, StackRef<Class> param)
 {
 	NULL_ASSERT(*receiver);
-	thread->getGC()->setChild(receiver, param, CHILD_ID_CLASS);
+	thread->getGC()->getIdentity(receiver)->mType = *param;
 }
 
 void BEER_CALL Object::getType(Thread* thread, StackRef<Object> receiver, StackRef<Class> ret)
 {
 	NULL_ASSERT(*receiver);
-	thread->getGC()->getChild(receiver, ret, CHILD_ID_CLASS);
+	ret = thread->getGC()->getIdentity(receiver)->mType;
 }
 
-void BEER_CALL Object::getChild(Thread* thread, StackRef<Object> receiver, StackRef<Integer> index, StackRef<Object> ret)
+/*void BEER_CALL Object::getChild(Thread* thread, StackRef<Object> receiver, StackRef<Integer> index, StackRef<Object> ret)
 {
 	Object::getChild(thread, receiver, ret, index->getData());
 }
@@ -47,15 +47,15 @@ void BEER_CALL Object::setChild(Thread* thread, StackRef<Object> receiver, Stack
 {
 	NULL_ASSERT(*receiver);
 	thread->getGC()->setChild(receiver, child, index->getData());
-}
+}*/
 
-void Object::getChild(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret, int64 index)
+void Object::getChild(Thread* thread, StackRef<Object> receiver, int64 index, StackRef<Object> ret)
 {
 	NULL_ASSERT(*receiver);
 	thread->getGC()->getChild(receiver, ret, index);
 }
 
-void Object::setChild(Thread* thread, StackRef<Object> receiver, StackRef<Object> child, int64 index)
+void Object::setChild(Thread* thread, StackRef<Object> receiver, int64 index, StackRef<Object> child)
 {
 	NULL_ASSERT(*receiver);
 	thread->getGC()->setChild(receiver, child, index);

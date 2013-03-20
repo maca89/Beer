@@ -23,7 +23,7 @@ void BEER_CALL Array::init(Thread* thread, StackRef<Array> receiver, StackRef<In
 
 	for(Array::LengthData i = 0; i < realLength; i++)
 	{
-		Object::setChild(thread, receiver, zero, OBJECT_CHILDREN_COUNT + i);
+		Object::setChild(thread, receiver, OBJECT_CHILDREN_COUNT + i, zero);
 	}
 	frame->stackMoveTop(-1); // pop zero
 	/////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ void BEER_CALL Array::operatorGet(Thread* thread, StackRef<Array> receiver, Stac
 	Integer::IntegerData itemIndex = index->getData();
 	BOUNDS_ASSERT(itemIndex, receiver->getSize());
 
-	Object::getChild(thread, receiver, ret, OBJECT_CHILDREN_COUNT + itemIndex);
+	Object::getChild(thread, receiver, OBJECT_CHILDREN_COUNT + itemIndex, ret);
 }
 
 void BEER_CALL Array::operatorSet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object)
@@ -55,7 +55,7 @@ void BEER_CALL Array::operatorSet(Thread* thread, StackRef<Array> receiver, Stac
 	Integer::IntegerData itemIndex = index->getData();
 	BOUNDS_ASSERT(itemIndex, receiver->getSize());
 
-	Object::setChild(thread, receiver, object, OBJECT_CHILDREN_COUNT + itemIndex);
+	Object::setChild(thread, receiver, OBJECT_CHILDREN_COUNT + itemIndex, object);
 }
 
 void BEER_CALL Array::operatorString(Thread* thread, StackRef<Array> receiver, StackRef<String> ret)

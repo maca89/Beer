@@ -34,7 +34,9 @@ namespace Beer
 
 		enum
 		{
-			CREATE_INSTANCE_CACHE_SIZE = 3 // TODO: bigger
+			CREATE_INSTANCE_CACHE_SIZE = 3, // TODO: bigger
+
+			DEFAULT_FRAME_SPACE = 4*1024, // 4KB
 		};
 
 	public:
@@ -62,8 +64,8 @@ namespace Beer
 		void loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile);
 
 		void getObjectClass(StackRef<Class> ret);
-		void _getIntegerClass(StackRef<Class> ret); // deprecated
-		void _getFloatClass(StackRef<Class> ret); // deprecated
+		void getIntegerClass(StackRef<Class> ret);
+		void getFloatClass(StackRef<Class> ret);
 		void getStringClass(StackRef<Class> ret);
 		void getArrayClass(StackRef<Class> ret);
 		void getPairClass(StackRef<Class> ret);
@@ -96,5 +98,6 @@ namespace Beer
 		}
 
 		Frame* allocFrame(uint32 stackSize, uint32 argsCout);
+		void discardFrame(Frame* previousFrame, Frame* currentFrame);
 	};
 };

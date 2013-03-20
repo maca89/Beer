@@ -2,6 +2,7 @@
 #include "prereq.h"
 #include "Class.h"
 #include "Frame.h"
+#include "Thread.h"
 
 
 namespace Beer
@@ -51,6 +52,9 @@ namespace Beer
 		}
 
 	protected:
-		static Class* fetchClass(Thread* thread, StackRef<Object> object); // deprecated
+		static Class* fetchClass(Thread* thread, StackRef<Object> object)
+		{
+			return thread->getGC()->getIdentity(object)->getType();
+		}
 	};
 };

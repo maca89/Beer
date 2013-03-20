@@ -26,9 +26,8 @@ namespace Beer
 
 		enum TypeFlag
 		{
-			TYPE_REF = 0,
-			TYPE_VALUE = 1,
-			TYPE_FWD_PTR = 2,
+			TYPE_DIRECT_PTR = 0,
+			TYPE_FWD_PTR = 1,
 		};
 
 		typedef uint8 InlineValueId;
@@ -38,17 +37,22 @@ namespace Beer
 			// children order:
 			// #1 children count
 			// #2 class
-			OBJECT_CHILDREN_COUNT = 2,
+			OBJECT_CHILDREN_COUNT = 0,
 			OBJECT_METHODS_COUNT = 6,
 
-			CHILD_ID_CLASS = 1,
+			//CHILD_ID_CLASS = 1,
 		};
 
 
 	protected:
+		Class* mType;
+		uint32 mStaticSize; // temporary workaround, TODO
+
+		// GC Header, TODO: move before Object
 		uint8 mGCFlag;
 		uint8 mTypeFlag;
-		Object** mChildren;
+		//Object* mIdentity; // fwd_ptr, direct_ptr
+		//Object** mChildren;
 
 	public:
 		// deprecated
@@ -65,28 +69,62 @@ namespace Beer
 			return (reinterpret_cast<InlineValueId>(object) & 1);
 		}
 
-		// deprecated
-		INLINE Object** getChildren() { return mChildren; } // deprecated
-		INLINE void setChildren(Object** value) { mChildren = value; } // deprecated
+		INLINE void setStaticSize(uint32 value) { mStaticSize = value; }
+		INLINE uint32 getStaticSize() { return mStaticSize; }
+
+		void setType(Class* value);
+		Class* getType();
+		
+		void* getDynamicDataStart();
+		void* getDynamicDataStart(uint32 staticSize);
+
+		Object** getChildren();
+		Object** getChildren(uint32 staticSize);
 
 		// shortcuts
-		static void getChild(Thread* thread, StackRef<Object> object, StackRef<Object> ret, int64 index);
-		static void setChild(Thread* thread, StackRef<Object> object, StackRef<Object> child, int64 index);
+		static void getChild(Thread* thread, StackRef<Object> object, int64 index, StackRef<Object> ret);
+		static void setChild(Thread* thread, StackRef<Object> object, int64 index, StackRef<Object> child);
 
 		// methods
 
 		static void BEER_CALL init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret);
 		static void BEER_CALL operatorString(Thread* thread, StackRef<Object> receiver, StackRef<String> ret);
 
-		// TODO: rename to getType, now it is confused with other methods
 		static void BEER_CALL setType(Thread* thread, StackRef<Object> receiver, StackRef<Class> param);
 		static void BEER_CALL getType(Thread* thread, StackRef<Object> receiver, StackRef<Class> ret);
-
-		static void BEER_CALL getChild(Thread* thread, StackRef<Object> receiver, StackRef<Integer> index, StackRef<Object> ret);
-		static void BEER_CALL setChild(Thread* thread, StackRef<Object> receiver, StackRef<Object> child, StackRef<Integer> index);
-		
-		// deprecated
-		friend class GenerationalGC;
 	};
 	#pragma pack(pop)
+
+
+	// inlined methods
+
+	INLINE void Object::setType(Class* value)
+	{
+		mType = value;
+	}
+	
+	INLINE Class* Object::getType()
+	{
+		return mType;
+	}
+
+	INLINE void* Object::getDynamicDataStart()
+	{
+		return getDynamicDataStart(mStaticSize);
+	}
+
+	INLINE void* Object::getDynamicDataStart(uint32 staticSize)
+	{
+		return reinterpret_cast<byte*>(this) + staticSize;
+	}
+
+	INLINE Object** Object::getChildren()
+	{
+		return reinterpret_cast<Object**>(getDynamicDataStart());
+	}
+
+	INLINE Object** Object::getChildren(uint32 staticSize)
+	{
+		return reinterpret_cast<Object**>(getDynamicDataStart(staticSize));
+	}
 };

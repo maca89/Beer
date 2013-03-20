@@ -23,14 +23,16 @@ Object* FixedHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffse
 	if (!canAlloc(size)) return NULL;
 
 	Object* obj = reinterpret_cast<Object*>(reinterpret_cast<byte*>(mMemory) + mFilled + preOffset);
+	memset(obj, 0, size);
 
 	obj->setGCFlag(Object::GC_WHITE);
-	obj->setTypeFlag(Object::TYPE_REF);
-	//obj->setClass(NULL);
+	obj->setTypeFlag(Object::TYPE_DIRECT_PTR);
+	obj->setType(NULL);
+	obj->setStaticSize(staticSize);
 		
 	// children array is at the end of object
 	//if(childrenCount > 0)
-	{
+	/*{
 		if(!Integer::canBeInlineValue(childrenCount)) // TODO
 		{
 			throw GCException(BEER_WIDEN("Not yet implemented"));
@@ -40,7 +42,7 @@ Object* FixedHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffse
 		memset(children, 0, childrenCount * sizeof(void*));
 		children[0] = Integer::makeInlineValue(childrenCount); // TODO: if cannot be inlined, create full object!!!
 		obj->setChildren(children);
-	}
+	}*/
 
 	mFilled += size;
 

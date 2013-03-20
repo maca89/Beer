@@ -132,12 +132,12 @@ void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, Sta
 
 void BEER_CALL Class::getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret)
 {
-	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME);
+	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME, ret);
 }
 
 void BEER_CALL Class::setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value)
 {
-	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME);
+	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME, value);
 }
 
 void BEER_CALL Class::getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret)
@@ -150,7 +150,7 @@ void BEER_CALL Class::getParent(Thread* thread, StackRef<Class> receiver, StackR
 
 	BOUNDS_ASSERT(index->getData(), parentsCount->getData());
 
-	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME + 1 + index->getData()); // 1 for name 
+	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + index->getData(), ret); // 1 for name 
 
 	frame->stackMoveTop(-1); // pop parentsCount
 }
@@ -171,7 +171,7 @@ void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackR
 	Class::incrParentNext(thread, receiver, parentNext);
 
 	// set child
-	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + parentNext->getData()); // 1 for name
+	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentNext->getData(), value); // 1 for name
 	frame->stackMoveTop(-1); // pop parentNext
 
 	// copy methods
@@ -224,7 +224,7 @@ void BEER_CALL Class::getMethod(Thread* thread, StackRef<Class> receiver, StackR
 
 	BOUNDS_ASSERT(index->getData(), methodsCount->getData());
 
-	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + index->getData()); // 1 for name
+	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + index->getData(), ret); // 1 for name
 
 	frame->stackMoveTop(-2); // pop parentsCount, methodsCount
 }
@@ -260,9 +260,22 @@ void BEER_CALL Class::addMethod(Thread* thread, StackRef<Class> receiver, StackR
 	StackRef<Integer> methodNext(frame, frame->stackPush());
 	Class::incrMethodNext(thread, receiver, methodNext);
 
-	Object::setChild(thread, receiver, value, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodNext->getData()); // 1 for name
+	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodNext->getData(), value); // 1 for name
 
 	frame->stackMoveTop(-2); // pop parentsCount, methodNext
+}
+
+void Class::getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, StackRef<Property> ret)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Integer> i(frame, frame->stackPush());
+	thread->createInteger(i, index);
+
+	Class::getProperty(thread, receiver, i, ret);
+
+	frame->stackMoveTop(-1); // pop i
 }
 
 void BEER_CALL Class::getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret)
@@ -281,7 +294,7 @@ void BEER_CALL Class::getProperty(Thread* thread, StackRef<Class> receiver, Stac
 
 	BOUNDS_ASSERT(index->getData(), propertiesCount->getData());
 
-	Object::getChild(thread, receiver, ret, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodsCount->getData() + index->getData()); // 1 for name 
+	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodsCount->getData() + index->getData(), ret); // 1 for name 
 
 	frame->stackMoveTop(-3); // pop methodsCount, parentsCount, propertiesCount
 }
@@ -307,8 +320,11 @@ void BEER_CALL Class::addProperty(Thread* thread, StackRef<Class> receiver, Stac
 	StackRef<Integer> propertyNext(frame, frame->stackPush());
 	Class::incrPropertyNext(thread, receiver, propertyNext);
 
-	Object::setChild(thread, receiver, value, 
-		CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodsCount->getData() + propertyNext->getData()
+	Object::setChild(
+		thread,
+		receiver, 
+		CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodsCount->getData() + propertyNext->getData(),
+		value
 	); // 1 for name
 
 	frame->stackMoveTop(-3); // pop methodsCount, parentsCount, propertyNext
