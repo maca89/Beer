@@ -1,9 +1,10 @@
 #pragma once
 #include "prereq.h"
 #include "Object.h"
-#include "FixedStack.h"
-#include "DynamicStack.h"
-#include "ArrayStack.h"
+//#include "FixedStack.h"
+//#include "DynamicStack.h"
+//#include "ArrayStack.h"
+#include "DownwardStack.h"
 
 
 namespace Beer
@@ -11,7 +12,8 @@ namespace Beer
 	//class Object;
 	class Method;
 
-	typedef ArrayStack<Object*> WorkStack;
+	typedef DownwardStack<Object*> WorkStack;
+	//typedef ArrayStack<Object*> WorkStack;
 	//typedef FixedStack<Object*> WorkStack;
 	//typedef DynamicStack<Object*> WorkStack;
 
@@ -24,26 +26,47 @@ namespace Beer
 			//FRAME_HEADER = OBJECT_HEADER + 
 		};
 
+		enum
+		{
+			FRAME_STATE_CHANGED = 0,
+			FRAME_STATE_VISITED = 1,
+
+			FRAME_HEAP_ALLOCATED = 2,
+			FRAME_STACK_ALLOCATED = 4,
+		};
+
 	protected:
 		// TODO: flag type
 		
-		//uint32 frameOffset;
-		uint32 mArgsCount;
+		uint8 mFrameFlags;
+		int16 mFrameOffset;
+		//uint32 mArgsCount;
 		uint16 mVPC;
 		WorkStack mStack;
-
-		uint32 mAfterNext;
-		uint32 mAfterSpace;
+		uint32 mBonusSpace;
 
 	public:
-		INLINE Frame(uint32 argsCount, uint32 stackSize, uint32 afterSpace)
-			: mStack(getChildren(sizeof(Frame)), stackSize), mVPC(0)/*, frameOffset(0)*/, mArgsCount(argsCount), mAfterSpace(afterSpace), mAfterNext(0)
+		INLINE Frame(void* bp, int16 frameOffset, int32 stackSize, uint32 bonusSpace)
+			: mStack(bp, stackSize), mVPC(0), mFrameOffset(frameOffset), mBonusSpace(bonusSpace), mFrameFlags(0)
 		{
-			/*if(mStaticSize > 5*1024)
-			{
-				int a = 0;
-			}*/
 		}
+
+		INLINE uint8 getFrameFlags() const { return mFrameFlags; }
+
+		INLINE bool hasFrameFlag(uint8 n) const { return (mFrameFlags & n) == n; }
+		INLINE void markFrameFlag(uint8 n) { mFrameFlags |= n; }
+		
+		INLINE void markStackAllocated() { markFrameFlag(FRAME_STACK_ALLOCATED); }
+		INLINE bool isStackAllocated() const { return hasFrameFlag(FRAME_STACK_ALLOCATED); }
+		
+		INLINE void markHeapAllocated() { markFrameFlag(FRAME_HEAP_ALLOCATED); }
+		INLINE bool isHeapAllocated() const { return hasFrameFlag(FRAME_HEAP_ALLOCATED); }
+		
+		INLINE void markChanged() { markFrameFlag(FRAME_STATE_CHANGED); }
+		INLINE bool isChanged() const { return hasFrameFlag(FRAME_STATE_CHANGED); }
+		
+		INLINE void markVisited() { markFrameFlag(FRAME_STATE_VISITED); }
+		INLINE bool isVisited() const { return hasFrameFlag(FRAME_STATE_VISITED); }
 
 		INLINE uint16 getProgramCounter()
 		{
@@ -60,34 +83,29 @@ namespace Beer
 			return mVPC++;
 		}
 
-		/*INLINE uint32 getFrameOffset()
+		INLINE int16 getFrameOffset()
 		{
-			return frameOffset;
-		}*/
-
-		INLINE uint32 getArgumentsCount()
-		{
-			return mArgsCount;
+			return mFrameOffset;
 		}
 
-		INLINE void setArgumentsCount(uint32 value)
+		INLINE void setFrameOffset(int16 value)
 		{
-			mArgsCount = value;
+			mFrameOffset = value;
 		}
 
 		INLINE int32 stackPush()
 		{
-			return translate(mStack.push());
+			return translateAbsolute(mStack.push());
 		}
 
 		INLINE int32 stackPush(Object* obj)
 		{
-			return translate(mStack.push(obj));
+			return translateAbsolute(mStack.push(obj));
 		}
 
 		INLINE void stackPop()
 		{
-			return mStack.pop();
+			mStack.pop();
 		}
 
 		INLINE Object* stackTop()
@@ -97,17 +115,17 @@ namespace Beer
 
 		INLINE int32 stackTopIndex()
 		{
-			return translate(mStack.topIndex());
+			return translateAbsolute(mStack.topIndex());
 		}
 
 		INLINE Object* stackTop(int32 index)
 		{
-			return mStack.top(translate(index));
+			return mStack.top(translateRelative(index));
 		}
 
 		INLINE Object** stackTopPtr(int32 index)
 		{
-			return mStack.topPtr(translate(index));
+			return mStack.topPtr(translateRelative(index));
 		}
 		
 		template <typename T>
@@ -119,27 +137,22 @@ namespace Beer
 		template <typename T>
 		INLINE T* stackTop(int32 index)
 		{
-			return mStack.top<T*>(translate(index));
+			return mStack.top<T*>(translateRelative(index));
 		}
 
-		INLINE void stackMoveTop(int16 count)
+		INLINE void stackMoveTop(int32 count)
 		{
 			mStack.move(count);
 		}
 
-		INLINE void stackStore(int16 index, Object* value)
+		INLINE void stackStore(int32 index, Object* value)
 		{
-			mStack.set(value, translate(index));
+			mStack.set(value, translateRelative(index));
 		}
 
-		INLINE uint32 stackSize() 
+		INLINE uint32 stackLength() 
 		{
-			return mStack.size();// - frameOffset;
-		}
-
-		INLINE uint32 stackRealSize() 
-		{
-			return mStack.realSize();
+			return mStack.length();// - frameOffset;
 		}
 
 		INLINE void stackCheck(int32 count) // must be signed !!!
@@ -147,47 +160,45 @@ namespace Beer
 			mStack.check(count);
 		}
 
-		INLINE uint32 translate(int32 index)
+		INLINE void* bp()
 		{
-			DBG_ASSERT(/*static_cast<int64>(frameOffset) +*/ mArgsCount + index >= 0, BEER_WIDEN("Stack index out of bounds"));
-			return /*static_cast<int64>(frameOffset) +*/ mArgsCount + index;
+			return mStack.bp();
 		}
 
-	//protected:
-		INLINE int32 translate(uint32 index)
+		INLINE void* sp()
 		{
-			return static_cast<int64>(index) /*- frameOffset*/ - mArgsCount;
+			return mStack.sp();
 		}
 
-		INLINE Frame* pushFrame(uint32 argsCount, uint32 stackSize)
+		INLINE Frame* pushFrame(uint32 argsCount, int32 stackSize)
 		{
-			uint32 newFrameLength = countFrameLength(stackSize);
-			if(!canAlloc(newFrameLength))
+			uint32 newFrameSize = sizeof(Frame);
+			if(mBonusSpace < newFrameSize)
 			{
 				return NULL;
 			}
 
-			Frame* newFrame = reinterpret_cast<Frame*>(alloc(newFrameLength));
-			memset(newFrame, 0, newFrameLength);
+			Frame* newFrame = reinterpret_cast<Frame*>(getNewFrameStart());
+			memset(newFrame, 0, newFrameSize); // really??
 
 			newFrame->setStaticSize(sizeof(Frame));
 			newFrame->setType(NULL); // TODO
 
-			new(newFrame) Frame(argsCount, stackSize, countFreeSpace());
-			/*if(newFrame->mAfterSpace > 2048)
-			{
-				int a = 0;
-			}*/
+			void* newBp = reinterpret_cast<byte*>(mStack.sp());
+			new(newFrame) Frame(newBp, 0/*argsCount*/, stackSize, mBonusSpace - newFrameSize - (stackSize * sizeof(Object*)));
+			newFrame->markStackAllocated();
+
 			return newFrame;
 		}
 
 		INLINE bool popFrame(Frame* frame)
 		{
-			uint32 frameLength = countFrameLength(frame->stackRealSize());
+			uint32 newFrameSize = sizeof(Frame);
 
-			if(isTopFrame(frame, frameLength))
+			if(isTopFrame(frame))
 			{
-				free(frameLength);
+				//free(frameLength);
+
 				//cout << "Frame " << frame << " popped, length:" << frameLength << "\n";
 				return true;
 			}
@@ -204,60 +215,35 @@ namespace Beer
 			if(mAfterNext == 0) return NULL;
 		}*/
 
-		uint32 getAfterSpace() { return mAfterSpace; } // dbg
+		INLINE bool isContinuous()
+		{
+			return isStackAllocated();
+		}
+		INLINE int32 translateRelative(int32 index)
+		{
+			//DBG_ASSERT(mFrameOffset + index >= 0, BEER_WIDEN("Stack index out of bounds"));
+			return index - mFrameOffset;
+		}
+
+		INLINE int32 translateAbsolute(int32 index)
+		{
+			return index + mFrameOffset;
+		}
 
 	protected:
-		INLINE uint32 countFrameLength(uint32 stackSize)
+		static INLINE uint32 countFrameLength(uint32 stackSize)
 		{
-			return sizeof(Frame) + (stackSize * sizeof(Object*));
+			return sizeof(Frame);
 		}
 
-		INLINE uint32 countFreeSpace() const
+		INLINE bool isTopFrame(Frame* frame)
 		{
-			return mAfterSpace - mAfterNext;
+			return getNewFrameStart() == frame;
 		}
 
-		INLINE bool canAlloc(uint32 length)
+		INLINE void* getNewFrameStart()
 		{
-			return countFreeSpace() >= length;
-		}
-
-		INLINE void* alloc(uint32 length)
-		{
-			DBG_ASSERT(canAlloc(length), BEER_WIDEN("Cannot allocate on frame stak"));
-			void* ptr = getAfterDataStart();
-			mAfterNext += length;
-			return ptr;
-		}
-
-		INLINE void free(uint32 length)
-		{
-			DBG_ASSERT(mAfterNext >= length, BEER_WIDEN("Cannot free from frame stack"));
-			mAfterNext -= length;
-		}
-
-		INLINE bool isTopFrame(Frame* frame, uint32 frameLength)
-		{
-			if(mAfterNext < frameLength)
-			{
-				//cout << "Not a top frame: " << frame << ", length:" << frameLength << "\n";
-				return false;
-			}
-
-			void* start = getAfterDataStart();
-			Frame* top = reinterpret_cast<Frame*>(reinterpret_cast<byte*>(start) - frameLength);
-
-			if(top != frame)
-			{
-				//cout << "Not a top frame: " << frame << ", length:" << frameLength << "\n";
-			}
-
-			return top == frame;
-		}
-
-		INLINE void* getAfterDataStart()
-		{
-			return reinterpret_cast<byte*>(getDynamicDataStart(sizeof(Frame))) + (mStack.realSize() * sizeof(Object*)) + mAfterNext;
+			return getDynamicDataStart(sizeof(Frame));
 		}
 
 		// mChildren version
@@ -265,119 +251,4 @@ namespace Beer
 		static Object* top(Thread* thread, Frame* receiver);
 		static void pop(Thread* thread, StackRef<Frame> receiver);*/
 	};
-
-	/*class FrameProxy
-	{
-	protected:
-		Thread* mThread;
-		StackRef<Frame> mFrame;
-
-		INLINE uint32 getProgramCounter()
-		{
-			return vPC;
-		}
-		
-		INLINE void setProgramCounter(uint32 value)
-		{
-			vPC = value;
-		}
-
-		INLINE uint32 incrProgramCounter()
-		{
-			return vPC++;
-		}
-
-		INLINE uint32 getFrameOffset()
-		{
-			return frameOffset;
-		}
-
-		INLINE uint32 getArgumentsCount()
-		{
-			return argsCount;
-		}
-
-		INLINE void setArgumentsCount(uint32 value)
-		{
-			argsCount = value;
-		}
-
-		INLINE int32 stackPush()
-		{
-			return translate(stack.push());
-		}
-
-		INLINE int32 stackPush(Object* obj)
-		{
-			return translate(stack.push(obj));
-		}
-
-		INLINE void stackPop()
-		{
-			return stack.pop();
-		}
-
-		INLINE Object* stackTop()
-		{
-			return stack.top();
-		}
-
-		INLINE int32 stackTopIndex()
-		{
-			return translate(stack.topIndex());
-		}
-
-		INLINE Object* stackTop(int32 index)
-		{
-			return stack.top(translate(index));
-		}
-
-		INLINE Object** stackTopPtr(int32 index)
-		{
-			return stack.topPtr(translate(index));
-		}
-		
-		template <typename T>
-		INLINE T* stackTop()
-		{
-			return stack.top<T*>();
-		}
-
-		template <typename T>
-		INLINE T* stackTop(int32 index)
-		{
-			return stack.top<T*>(translate(index));
-		}
-
-		INLINE void stackMoveTop(int16 count)
-		{
-			stack.move(count);
-		}
-
-		INLINE void stackStore(int16 index, Object* value)
-		{
-			stack.set(value, translate(index));
-		}
-
-		INLINE uint32 stackSize() 
-		{
-			return stack.size() - frameOffset;
-		}
-
-		INLINE void stackCheck(int32 count) // must be signed !!!
-		{
-			stack.check(count);
-		}
-
-		INLINE uint32 translate(int32 index)
-		{
-			DBG_ASSERT(static_cast<int64>(frameOffset) + argsCount + index >= 0, BEER_WIDEN("Stack index out of bounds"));
-			return static_cast<int64>(frameOffset) + argsCount + index;
-		}
-
-		INLINE int32 translate(uint32 index)
-		{
-			return static_cast<int64>(index) - frameOffset - argsCount;
-		}
-	};*/
 };

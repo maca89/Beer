@@ -53,7 +53,7 @@ namespace Beer
 
 		// TODO: move all Frames to Task
 		INLINE Frame* getFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
-		INLINE bool hasFrame() { return mRootFrame->stackSize() != 0; }
+		INLINE bool hasFrame() { return mRootFrame->stackLength() != 0; }
 		Frame* openFrame();
 		void closeFrame();
 		Frame* getPreviousFrame();
@@ -71,7 +71,7 @@ namespace Beer
 		void getPairClass(StackRef<Class> ret);
 
 		void findClass(StackRef<String> name, StackRef<Class> ret);
-		void findClass(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
+		void findMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
 
 		void createInteger(StackRef<Integer> ret, Integer::IntegerData value);
 		void createFloat(StackRef<Float> ret, Float::FloatData value);

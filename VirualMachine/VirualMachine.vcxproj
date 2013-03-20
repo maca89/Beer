@@ -88,6 +88,7 @@
     <ClInclude Include="sources\BytecodeInputStream.h" />
     <ClInclude Include="sources\BytecodePass.h" />
     <ClInclude Include="sources\DefaultBytecodeLinker.h" />
+    <ClInclude Include="sources\DownwardStack.h" />
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />

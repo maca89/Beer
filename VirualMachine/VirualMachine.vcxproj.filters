@@ -388,6 +388,9 @@
     <ClInclude Include="sources\ArrayStack.h">
       <Filter>Headers\Stack</Filter>
     </ClInclude>
+    <ClInclude Include="sources\DownwardStack.h">
+      <Filter>Headers\Stack</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">

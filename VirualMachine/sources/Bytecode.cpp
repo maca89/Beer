@@ -806,7 +806,7 @@ void Bytecode::call(Thread* thread)
 #endif // BEER_DEBUG_MODE
 		
 	//DBG_ASSERT(frame->programCounter < mDictSize, BEER_WIDEN("Program counter out of range"));
-	DBG_ASSERT(frame->translate(frame->stackTopIndex()) == (frame->stackSize() - 1), BEER_WIDEN("Broken stack"));
+	//DBG_ASSERT(frame->translate(frame->stackTopIndex()) == (frame->stackSize() - 1), BEER_WIDEN("Broken stack"));
 
 	BEER_BC_START
 

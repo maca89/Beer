@@ -126,7 +126,7 @@ void Debugger::printCallStack(Thread* thread, Frame* frame)
 	FrameVector myframes(framesMax);
 
 	Frame* frames = thread->getFrames();
-	for(framei; framei < frames->stackSize(); framei++)
+	for(framei; framei < frames->stackLength(); framei++)
 	{
 		Frame* otherFrame = frames->stackTop<Frame>(framei);
 		if(otherFrame == frame)
@@ -359,9 +359,9 @@ void Debugger::printFrameStack(Frame* frame)
 	StackRef<Method> method(frame, -1);
 	if(method.isNull())
 	{
-		for(uint32 i = 0; i < frame->stackSize(); i++)
+		for(uint32 i = 0; i < frame->stackLength(); i++)
 		{
-			StackRef<Object> object(frame, frame->translate(i));
+			StackRef<Object> object(frame, frame->translateAbsolute(i));
 
 			int64 index = int64(i) /*- frame->getFrameOffset()*/ + 1;
 			cout << "    " << (index >= 0 ? "+" : "") << index << " ";
@@ -402,9 +402,9 @@ void Debugger::printFrameStack(Frame* frame)
 		cout << std::endl;
 
 		uint32 vari = 0;
-		for(uint32 i = returnsCount + argsCount + 2; i < frame->stackSize(); i++)
+		for(uint32 i = returnsCount + argsCount + 2; i < frame->stackLength(); i++)
 		{
-			StackRef<Method> object(frame, frame->translate(i));
+			StackRef<Method> object(frame, frame->translateAbsolute(i));
 
 			int64 index = int64(i) /*- frame->getFrameOffset()*/ + 1;
 			cout << "    var" << vari << ": ";

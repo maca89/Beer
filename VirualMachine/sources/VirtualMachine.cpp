@@ -421,7 +421,7 @@ void VirtualMachine::work()
 		}
 	}
 	
-	DBG_ASSERT(frame->stackSize() == 2, BEER_WIDEN("Stack was not properly cleaned"));
+	DBG_ASSERT(frame->stackLength() == 2, BEER_WIDEN("Stack was not properly cleaned"));
 }
 
 String* VirtualMachine::createString(const string& s)

@@ -21,7 +21,7 @@ void TrampolineThread::trampoline()
 	while(hasFrame())
 	{
 		Frame* frame = getFrame();
-		StackRef<Method> method(frame, -1);
+		StackRef<Method> method(frame, frame->translateAbsolute(-1));
 		
 		// return
 		if(method.isNull())

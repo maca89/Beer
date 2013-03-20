@@ -24,6 +24,7 @@ void Thread::init()
 	mRootFrame = allocFrame(250, 0);
 
 	Frame* frame = allocFrame(50, 2);
+	//frame->setFrameOffset(2);
 	frame->stackMoveTop(2); // simulate method & receiver
 	mRootFrame->stackPush(frame);
 	fetchTopFrame();
@@ -40,13 +41,16 @@ Frame* Thread::allocFrame(uint32 stackSize, uint32 argsCount)
 
 	if(!mTopFrame || (frame = mTopFrame->pushFrame(argsCount, stackSize)) == NULL)
 	{
-		frame = getHeap()->alloc<Frame>(sizeof(Frame) + (stackSize * sizeof(Object*)) + DEFAULT_FRAME_SPACE, Frame::FRAME_CHILDREN_COUNT);
+		uint32 frameLength = sizeof(Frame) + (stackSize * sizeof(Object*)) + DEFAULT_FRAME_SPACE;
+		frame = getHeap()->alloc<Frame>(frameLength, 0);
 		if(frame == NULL)
 		{
 			throw NotEnoughMemoryException(BEER_WIDEN("Not enough memory to allocate Frame"));
 		}
 
-		new(frame) Frame(argsCount, stackSize, DEFAULT_FRAME_SPACE);
+		void* bp = reinterpret_cast<byte*>(frame) + frameLength;
+		new(frame) Frame(bp, argsCount, stackSize, DEFAULT_FRAME_SPACE);
+		frame->markHeapAllocated();
 		//cout << "frame " << frame << " allocated on heap\n";
 	}
 	else
@@ -77,7 +81,7 @@ void Thread::discardFrame(Frame* previousFrame, Frame* currentFrame)
 
 Frame* Thread::getPreviousFrame()
 {
-	if(mRootFrame->stackSize() > 1)
+	if(mRootFrame->stackLength() > 1)
 	{
 		return mRootFrame->stackTop<Frame>(mRootFrame->stackTopIndex() - 1);
 	}
@@ -103,24 +107,26 @@ Frame* Thread::openFrame()
 
 	Frame* newFrame = allocFrame(stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
 
-	// make space for returns
-	newFrame->stackMoveTop(returnsCount);
-
-	// copy params
-	for(uint16 i = paramsCount; i >= 1; i--) // *BEWARE* index starts at this position to skip the method on stack!
+	if(!newFrame->isContinuous())
 	{
-		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - i - 1)); // -1 for receiver
+		// make space for returns
+		newFrame->stackMoveTop(returnsCount);
+
+		// copy params
+		for(uint16 i = paramsCount; i >= 1; i--) // *BEWARE* index starts at this position to skip the method on stack!
+		{
+			newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - i - 1)); // -1 for receiver
+		}
+	
+		//mVM->getDebugger()->printFrameStack(this, oldFrame);
+
+		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - 1)); // copy receiver
+		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
 	}
-	
-	//mVM->getDebugger()->printFrameStack(this, oldFrame);
-
-	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - 1)); // copy receiver
-	newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
-	
-	/*if(newFrame->getStaticSize() > 10000)
+	else
 	{
-		int a = 0;
-	}*/
+		//newFrame->setFrameOffset();
+	}
 
 	mRootFrame->stackPush(newFrame);
 	fetchTopFrame();
@@ -132,36 +138,49 @@ void Thread::closeFrame()
 	Frame* currentFrame = getFrame();
 	Frame* previousFrame = getPreviousFrame();
 
-	StackRef<Method> method(currentFrame, -1);
+	StackRef<Method> method(currentFrame, currentFrame->translateAbsolute(-1));
 
 	uint16 paramsCount = 0;
 	uint16 returnsCount = 0;
-	
+
 	if(!method.isNull())
 	{
+		DBG_ASSERT(method.get()->getType() == NULL, BEER_WIDEN("Method's type should be NULL"));
 		paramsCount = method->getParamsCount();
 		returnsCount = method->getReturnsCount();
 	}
 
-	if(previousFrame)
+	if(!currentFrame->isContinuous())
 	{
-		/*if(previousFrame->getStaticSize() > 10000)
-		{
-			int a = 0;
-		}*/
-
-		// clean previous frame
-		previousFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
 	
-		// push returns on previous frame
-		for(int32 i = returnsCount; i >= 1; i--)
+		if(!method.isNull())
 		{
-			previousFrame->stackPush(currentFrame->stackTop(-paramsCount - i - 2));
+			paramsCount = method->getParamsCount();
+			returnsCount = method->getReturnsCount();
+		}
+
+		if(previousFrame)
+		{
+			// clean previous frame
+			previousFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
+	
+			// push returns on previous frame
+			for(int32 i = returnsCount; i >= 1; i--)
+			{
+				previousFrame->stackPush(currentFrame->stackTop(-paramsCount - i - 2));
+			}
 		}
 	}
+	else if(previousFrame)
+	{
+		// clean previous frame
+		previousFrame->stackMoveTop(-(paramsCount + 2)); // returns will stay
+	}
 
+#ifdef BEER_STACK_DEBUGGING
 	// clean current frame
 	currentFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
+#endif // BEER_STACK_DEBUGGING
 
 	discardFrame(previousFrame, currentFrame);
 	mRootFrame->stackPop();
@@ -208,7 +227,7 @@ void Thread::findClass(StackRef<String> name, StackRef<Class> ret)
 	ret = mVM->findClass(name);
 }
 
-void Thread::findClass(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
+void Thread::findMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
 {
 	// TODO: global polymorphic cache
 	Class::findMethod(this, klass, selector, ret);
