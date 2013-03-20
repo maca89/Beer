@@ -861,7 +861,23 @@ BEER_BC_LABEL(INSTR_STORE):
 	BEER_BC_NEXT(sizeof(int16));
 
 BEER_BC_LABEL(INSTR_MOVE_TOP):
-	frame->stackMoveTop(BEER_BC_DATA(int16));
+	{
+		// if/else is an optimization
+		int16 move = BEER_BC_DATA(int16);
+		if(move == 1)
+		{
+			frame->stackPush();
+		}
+		else if(move == 2)
+		{
+			frame->stackPush();
+			frame->stackPush();
+		}
+		else
+		{
+			frame->stackMoveTop(move);
+		}
+	}
 	BEER_BC_NEXT(sizeof(int16));
 
 BEER_BC_LABEL(INSTR_PUSH_INT64):

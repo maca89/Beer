@@ -43,10 +43,10 @@ namespace Beer
 		//uint32 mArgsCount;
 		uint16 mVPC;
 		WorkStack mStack;
-		uint32 mBonusSpace;
+		int32 mBonusSpace;
 
 	public:
-		INLINE Frame(void* bp, int16 frameOffset, int32 stackSize, uint32 bonusSpace)
+		INLINE Frame(void* bp, int16 frameOffset, int32 stackSize, int32 bonusSpace)
 			: mStack(bp, stackSize), mVPC(0), mFrameOffset(frameOffset), mBonusSpace(bonusSpace), mFrameFlags(0)
 		{
 		}
@@ -172,7 +172,7 @@ namespace Beer
 
 		INLINE Frame* pushFrame(uint32 argsCount, int32 stackSize)
 		{
-			uint32 newFrameSize = sizeof(Frame);
+			int32 newFrameSize = sizeof(Frame);
 			if(mBonusSpace < newFrameSize)
 			{
 				return NULL;
@@ -219,18 +219,19 @@ namespace Beer
 		{
 			return isStackAllocated();
 		}
-		INLINE int32 translateRelative(int32 index)
-		{
-			//DBG_ASSERT(mFrameOffset + index >= 0, BEER_WIDEN("Stack index out of bounds"));
-			return index - mFrameOffset;
-		}
 
 		INLINE int32 translateAbsolute(int32 index)
 		{
-			return index + mFrameOffset;
+			return index - mFrameOffset;
 		}
 
 	protected:
+		INLINE int32 translateRelative(int32 index)
+		{
+			//DBG_ASSERT(mFrameOffset + index >= 0, BEER_WIDEN("Stack index out of bounds"));
+			return index + mFrameOffset;
+		}
+
 		static INLINE uint32 countFrameLength(uint32 stackSize)
 		{
 			return sizeof(Frame);

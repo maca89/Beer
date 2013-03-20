@@ -109,8 +109,9 @@ Frame* Thread::openFrame()
 
 	if(!newFrame->isContinuous())
 	{
-		// make space for returns
-		newFrame->stackMoveTop(returnsCount);
+		// make space for returns, if/else is an optimization
+		if(returnsCount == 1) newFrame->stackPush();
+		else newFrame->stackMoveTop(returnsCount);
 
 		// copy params
 		for(uint16 i = paramsCount; i >= 1; i--) // *BEWARE* index starts at this position to skip the method on stack!
@@ -123,10 +124,6 @@ Frame* Thread::openFrame()
 		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - 1)); // copy receiver
 		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
 	}
-	else
-	{
-		//newFrame->setFrameOffset();
-	}
 
 	mRootFrame->stackPush(newFrame);
 	fetchTopFrame();
@@ -138,7 +135,7 @@ void Thread::closeFrame()
 	Frame* currentFrame = getFrame();
 	Frame* previousFrame = getPreviousFrame();
 
-	StackRef<Method> method(currentFrame, currentFrame->translateAbsolute(-1));
+	StackRef<Method> method(currentFrame, -1);
 
 	uint16 paramsCount = 0;
 	uint16 returnsCount = 0;

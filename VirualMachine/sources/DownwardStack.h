@@ -103,7 +103,7 @@ namespace Beer
 			return (bp() - mNext);
 		}
 
-		INLINE void move(int32 count) // must be signed !!!
+		NOINLINE void move(int32 count) // must be signed !!!
 		{
 			//cout << "stack_move " << count << "\n";
 			check(count);
