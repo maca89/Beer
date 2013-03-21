@@ -166,6 +166,12 @@
     <ClCompile Include="sources\PolymorphicCache.cpp">
       <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
+    <ClCompile Include="sources\FrameInspector.cpp">
+      <Filter>Sources\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ObjectInpector.cpp">
+      <Filter>Sources\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -390,6 +396,15 @@
     </ClInclude>
     <ClInclude Include="sources\DownwardStack.h">
       <Filter>Headers\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\TraverseObjectReceiver.h">
+      <Filter>Headers\ClassModel</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FrameInspector.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ObjectInspector.h">
+      <Filter>Headers\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

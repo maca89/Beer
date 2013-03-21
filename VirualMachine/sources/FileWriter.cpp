@@ -58,7 +58,7 @@ void BEER_CALL FileWriter::writeArray(Thread* thread, StackRef<FileWriter> recei
 
 	FileWriter::writeString(thread, receiver, serialisedArray);
 
-	frame->stackMoveTop(-1); // pop serialisedArray
+	frame->stackPop(); // pop serialisedArray
 }
 
 void BEER_CALL FileWriter::writeLn(Thread* thread, StackRef<FileWriter> receiver)
@@ -86,7 +86,7 @@ void FileWriterClassInitializer::initClass(Thread* thread, ClassLoader* loader, 
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 
 	loader->addMethod(thread, klass, BEER_WIDEN("FileWriter"), BEER_WIDEN("FileWriter::FileWriter()"), &FileWriter::init, 1, 0);

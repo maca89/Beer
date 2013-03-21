@@ -23,7 +23,7 @@ void BEER_CALL PolymorphicCache::clear(Thread* thread, StackRef<PolymorphicCache
 		Pool::setItem(thread, receiver.staticCast<Pool>(), i, null);
 	}
 	
-	frame->stackMoveTop(-1); // null
+	frame->stackPop(); // null
 }
 
 
@@ -84,6 +84,6 @@ void PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver,
 		thread->createPair(klass, ret, pair);
 		Pool::setItem(thread, receiver.staticCast<Pool>(), 0, pair);
 
-		frame->stackMoveTop(-1); // pop pair
+		frame->stackPop(); // pop pair
 	}
 }

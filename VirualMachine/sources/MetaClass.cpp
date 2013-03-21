@@ -14,3 +14,14 @@ void BEER_CALL MetaClass::init(Thread* thread, StackRef<MetaClass> receiver, Sta
 {
 	// TODO
 }*/
+
+void MetaClass::DefaultClassTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* inst)
+{
+	Class* instance = static_cast<Class*>(inst);
+	uint32 childrenCount = Class::CLASS_CHILDREN_COUNT + instance->getParentsCount() + instance->getMethodsCount() + instance->getPropertiesCount();
+
+	for(uint32 i = 0; i < childrenCount; i++)
+	{
+		//receiver->traverseObjectPtr(&instance->getChildren()[i]);
+	}
+}

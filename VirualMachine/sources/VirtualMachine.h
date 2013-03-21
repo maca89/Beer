@@ -43,19 +43,21 @@ namespace Beer
 
 		// TODO: get rid of these
 		Class* mMetaClass;
+		Class* mMethodClass;
 		Class* mObjectClass;
 		Class* mStringClass;
 		Class* mFloatClass;
 		Class* mIntegerClass;
 		Class* mBooleanClass;
 		Class* mArrayClass;
+		Class* mPoolClass;
 
 
 	public:
 		INLINE VirtualMachine(GenerationalGC* gc)
 			: Thread(this, gc),
 			mClassLoader(NULL), mDebugger(NULL),
-			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL),
+			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL), mPoolClass(NULL), mMethodClass(NULL),
 			mBytecodeBuilder(NULL)//, mGC(NULL)
 		{
 		}
@@ -92,12 +94,14 @@ namespace Beer
 		Pair* createPair(Object* first, Object* second);
 		
 		INLINE Class* getMetaClass() { return mMetaClass; }
+		INLINE Class* getMethodClass() { return mMethodClass; }
 		INLINE Class* getObjectClass() { return mObjectClass; }
 		INLINE Class* getFloatClass() { return mFloatClass; }
 		INLINE Class* getIntegerClass() { return mIntegerClass; }
 		INLINE Class* getBooleanClass() { return mBooleanClass; }
 		INLINE Class* getStringClass() { return mStringClass; }
 		INLINE Class* getArrayClass() { return mArrayClass; }
+		INLINE Class* getPoolClass() { return mPoolClass; }
 		INLINE Class* getPairClass() { return findClass(BEER_WIDEN("Pair")); }
 
 	protected:

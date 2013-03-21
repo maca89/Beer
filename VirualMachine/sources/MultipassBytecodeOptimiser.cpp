@@ -5,6 +5,7 @@
 #include "VirtualMachine.h"
 #include "BytecodeOutputStream.h"
 #include "BytecodeInputStream.h"
+#include "Method.h"
 
 using namespace Beer;
 
@@ -17,7 +18,7 @@ MultipassBytecodeOptimiser::~MultipassBytecodeOptimiser()
 {
 }
 
-Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, Bytecode* bc)
+Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> method, Bytecode* bc)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -67,7 +68,7 @@ Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, Bytecode* bc)
 					uint16 klassId = istream.read<uint16>();
 
 					StackRef<Class> klass(frame, frame->stackPush());
-					bc->loadFromPool(thread, klassId, klass);
+					method->loadFromPool(thread, klassId, klass);
 
 					StackRef<Class> arrayClass(frame, frame->stackPush());
 					thread->getArrayClass(arrayClass);
@@ -92,7 +93,7 @@ Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, Bytecode* bc)
 					uint16 selectorId = istream.read<uint16>();
 
 					StackRef<String> selector(frame, frame->stackPush());
-					bc->loadFromPool(thread, selectorId, selector);
+					method->loadFromPool(thread, selectorId, selector);
 
 					Bytecode::OpCode newOpcode = thread->getVM()->getInlineFunctionTable()->find(selector);
 					if(newOpcode != BEER_INSTR_NOP)
@@ -105,7 +106,7 @@ Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, Bytecode* bc)
 						ostream.write<uint16>(selectorId);
 					}
 
-					frame->stackMoveTop(-1); // pop selector
+					frame->stackPop(); // pop selector
 				}
 				break;
 				

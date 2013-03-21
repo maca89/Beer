@@ -25,7 +25,7 @@ void BEER_CALL Array::init(Thread* thread, StackRef<Array> receiver, StackRef<In
 	{
 		Object::setChild(thread, receiver, OBJECT_CHILDREN_COUNT + i, zero);
 	}
-	frame->stackMoveTop(-1); // pop zero
+	frame->stackPop(); // pop zero
 	/////////////////////////////////////////////////////////
 
 	ret = receiver;
@@ -106,6 +106,21 @@ void BEER_CALL Array::createInstance(Thread* thread, StackRef<Class> receiver, S
 	frame->stackPop(); // pop object (is stored in ret)
 }
 
+void Array::ArrayInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* inst)
+{
+	Class::DefaultInstanceTraverser(receiver, klass, inst);
+
+	Array* instance = static_cast<Array*>(inst);
+
+	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mItemType));
+
+	Array::LengthData length = instance->getSize();
+	for(Array::LengthData i = 0; i < length; i++)
+	{
+		receiver->traverseObjectPtr(&instance->getChildren()[OBJECT_CHILDREN_COUNT + i]);
+	}
+}
+
 void ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
 	loader->createClass<Class>(thread, name, ret, 1, 0, 6 + Object::OBJECT_METHODS_COUNT);
@@ -113,6 +128,8 @@ void ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, Sta
 
 void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
 {
+	klass->setTraverser(&Array::ArrayInstanceTraverser);
+
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
@@ -120,7 +137,7 @@ void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stack
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);

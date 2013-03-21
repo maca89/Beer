@@ -15,6 +15,6 @@ namespace Beer
 		~MultipassBytecodeOptimiser();
 
 		// BytecodeOptimiser
-		virtual Bytecode* optimise(Thread* thread, Bytecode* bc);
+		virtual Bytecode* optimise(Thread* thread, StackRef<Method> method, Bytecode* bc);
 	};
 };

@@ -38,7 +38,7 @@ void BEER_CALL Timer::createInstance(Thread* thread, StackRef<Class> receiver, S
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
 	);
 
-	frame->stackMoveTop(-1); // pop propertiesCount
+	frame->stackPop(); // pop propertiesCount
 
 	Object::setType(thread, ret, receiver);
 }
@@ -57,7 +57,7 @@ void TimerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stack
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 
 	loader->addMethod(thread, klass, BEER_WIDEN("Timer"), BEER_WIDEN("Timer::Timer()"), &Timer::init, 1, 0);

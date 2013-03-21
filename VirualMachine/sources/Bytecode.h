@@ -145,21 +145,17 @@ namespace Beer
 		uint32 mDataSize;
 		byte* mData;
 
-		uint8 mMethodCachesLength;
-
-		Pool* mPool;
-
 		static void* LabelTable[BEER_MAX_OPCODE * sizeof(void*)];
 		
 
 	public:
 		INLINE Bytecode()
-			: mDict(NULL), mDictSize(0), mMethodCachesLength(3), mPool(NULL)
+			: mDict(NULL), mDictSize(0)
 		{
 		}
 
 		INLINE Bytecode(byte data[], uint32 size, uint16 instrCount)
-			: mDict(NULL), mDictSize(0), mMethodCachesLength(3), mPool(NULL)
+			: mDict(NULL), mDictSize(0)
 		{
 			mDataSize = size;
 			mData = data;
@@ -183,17 +179,8 @@ namespace Beer
 
 		INLINE uint16 getInstructionCount() const { return mDictSize; }
 
-		void printTranslatedInstruction(Thread* thread, const Instruction* instr);
+		void printTranslatedInstruction(Thread* thread, StackRef<Method> method, const Instruction* instr);
 
 		static void init(Thread* thread); // important!!!
-
-	//protected:
-		// pool
-		void loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret);
-		uint16 storeToPool(Thread* thread, StackRef<Object> object);
-		INLINE void updateAtPool(Thread* thread, uint16 index, StackRef<Object> object);
-		void createPool(Thread* thread, uint16 length);
-
-		//PolymorphicCache* createPolymorphicCache(Thread* thread, uint16 length);
 	};
 };

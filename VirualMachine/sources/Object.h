@@ -43,6 +43,8 @@ namespace Beer
 			//CHILD_ID_CLASS = 1,
 		};
 
+		friend class Class;
+
 
 	protected:
 		Class* mType;

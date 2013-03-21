@@ -25,10 +25,12 @@
     <ClCompile Include="sources\DefaultBytecodeLinker.cpp" />
     <ClCompile Include="sources\DynamicHeap.cpp" />
     <ClCompile Include="sources\FixedHeap.cpp" />
+    <ClCompile Include="sources\FrameInspector.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
     <ClCompile Include="sources\MultipassBytecodeOptimiser.cpp" />
     <ClCompile Include="sources\NurseryGC.cpp" />
+    <ClCompile Include="sources\ObjectInpector.cpp" />
     <ClCompile Include="sources\Param.cpp" />
     <ClCompile Include="sources\Array.cpp" />
     <ClCompile Include="sources\BytecodeOutputStream.cpp" />
@@ -93,6 +95,7 @@
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />
     <ClInclude Include="sources\ForwardPointer.h" />
+    <ClInclude Include="sources\FrameInspector.h" />
     <ClInclude Include="sources\GenerationalGC.h" />
     <ClInclude Include="sources\Heap.h" />
     <ClInclude Include="sources\MemoryAllocator.h" />
@@ -113,6 +116,8 @@
     <ClInclude Include="sources\AlignedHeap.h" />
     <ClInclude Include="sources\MultipassBytecodeOptimiser.h" />
     <ClInclude Include="sources\NurseryGC.h" />
+    <ClInclude Include="sources\ObjectInspector.h" />
+    <ClInclude Include="sources\TraverseObjectReceiver.h" />
     <ClInclude Include="sources\Pair.h" />
     <ClInclude Include="sources\PolymorphicCache.h" />
     <ClInclude Include="sources\InlineFunctionTable.h" />

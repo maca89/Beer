@@ -73,7 +73,7 @@ void FileReaderClassInitializer::initClass(Thread* thread, ClassLoader* loader, 
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 
 	loader->addMethod(thread, klass, BEER_WIDEN("FileReader"), BEER_WIDEN("FileReader::FileReader()"), &FileReader::init, 1, 0);

@@ -28,8 +28,6 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 
 	Class::createInstance(thread, receiver, ret); // call super method
 
-	//return;
-
 	/////////////////////////////////////////////////////////
 	// fix missing value types
 	if(false) {
@@ -55,7 +53,7 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 					thread->createInstance(klass, child);
 
 					Object::setChild(thread, ret, Object::OBJECT_CHILDREN_COUNT + i, child);
-					frame->stackMoveTop(-1); // pop child
+					frame->stackPop(); // pop child
 				}
 			}
 		}
@@ -146,7 +144,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); // pop objectClass
+		frame->stackPop(); // pop objectClass
 	}
 
 	// parents
@@ -174,7 +172,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 			Class::addProperty(thread, klass, prop);
 		}
 
-		frame->stackMoveTop(-1); // pop property
+		frame->stackPop(); // pop property
 	}
 
 	// methods
@@ -185,8 +183,8 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 
 		StackRef<String> str(frame, frame->stackPush());
 		Method::getName(thread, method, str);
-
 		string selector = string() + BEER_WIDEN("::") + str->c_str();
+
 		selector += BEER_WIDEN("(");
 		for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
 		{
@@ -204,7 +202,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 			loader->addMethod(thread, klass, method, (interf + selector).c_str());
 		}
 
-		frame->stackMoveTop(-1); // pop str
+		frame->stackPop(); // pop str
 	}
 
 	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &LoadedObject::createInstance, 1, 0);
@@ -235,7 +233,7 @@ void LoadedObjectInitializer::makeProperty(Thread* thread, StackRef<Property> re
 		getString(thread, name, attrDescr->getName(mClassFile));
 
 		Property::setPropertyName(thread, ret, name);
-		frame->stackMoveTop(-1); // pop name
+		frame->stackPop(); // pop name
 	}
 
 	// set class
@@ -248,11 +246,11 @@ void LoadedObjectInitializer::makeProperty(Thread* thread, StackRef<Property> re
 			getString(thread, klassName, mClassFile->getClassName(attrDescr->getTypeId()));
 
 			thread->findClass(klassName, klass);
-			frame->stackMoveTop(-1); // pop klassName
+			frame->stackPop(); // pop klassName
 		}
 
 		Property::setPropertyType(thread, ret, klass);
-		frame->stackMoveTop(-1); // pop klass
+		frame->stackPop(); // pop klass
 	}
 }
 
@@ -269,7 +267,7 @@ void LoadedObjectInitializer::makeParam(Thread* thread, StackRef<Param> ret, Cla
 		getString(thread, name, paramDescr->getName(mClassFile));
 
 		Param::setName(thread, ret, name);
-		frame->stackMoveTop(-1); // pop name
+		frame->stackPop(); // pop name
 	}
 	
 	// set class
@@ -299,7 +297,7 @@ void LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Method> ret, C
 		));
 
 		Method::setName(thread, ret, name);
-		frame->stackMoveTop(-1); // pop name
+		frame->stackPop(); // pop name
 	}
 	
 	ret->setMaxStack(20); // TODO: methodDescr->getMaxStack()
@@ -369,7 +367,7 @@ void LoadedObjectInitializer::getType(Thread* thread, StackRef<Class> ret, const
 	{
 		StackRef<Class> klassOnStack(frame, frame->stackPush(mClass)); // TODO: pass as reference
 		Class::getName(thread, klassOnStack, thisClassName);
-		frame->stackMoveTop(-1); // pop class
+		frame->stackPop(); // pop class
 	}
 	
 	StackRef<String> thatClassName(frame, frame->stackPush());

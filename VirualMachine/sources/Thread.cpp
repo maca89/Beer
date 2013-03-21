@@ -21,34 +21,36 @@ void Thread::init()
 {
 	mHeap = mGC->createHeap();
 
-	mRootFrame = allocFrame(250, 0);
+	mRootFrame = allocFrame(NULL, 250, 0);
 
-	Frame* frame = allocFrame(50, 2);
+	Frame* frame = allocFrame(NULL, 50, 2);
 	//frame->setFrameOffset(2);
-	frame->stackMoveTop(2); // simulate method & receiver
+	frame->stackPush(); // simulae receiver
+	frame->stackPush(); // simulate method
 	mRootFrame->stackPush(frame);
 	fetchTopFrame();
 
 	StackRef<PolymorphicCache> pcache(frame, frame->stackPush());
 	createPolycache(pcache, CREATE_INSTANCE_CACHE_SIZE);
 	mPolycache = *pcache;
-	frame->stackMoveTop(-1); // pop pcache
+	frame->stackPop(); // pop pcache
 }
 
-Frame* Thread::allocFrame(uint32 stackSize, uint32 argsCount)
+Frame* Thread::allocFrame(Frame* previousFrame, uint32 stackSize, uint32 argsCount)
 {
 	Frame* frame = NULL;
 
 	if(!mTopFrame || (frame = mTopFrame->pushFrame(argsCount, stackSize)) == NULL)
 	{
-		uint32 frameLength = sizeof(Frame) + (stackSize * sizeof(Object*)) + DEFAULT_FRAME_SPACE;
+		uint32 frameLength = sizeof(Frame) + (stackSize * sizeof(Object*)) + DEFAULT_FRAME_SPACE + sizeof(Frame*);
 		frame = getHeap()->alloc<Frame>(frameLength, 0);
 		if(frame == NULL)
 		{
 			throw NotEnoughMemoryException(BEER_WIDEN("Not enough memory to allocate Frame"));
 		}
 
-		void* bp = reinterpret_cast<byte*>(frame) + frameLength;
+		void* bp = reinterpret_cast<byte*>(frame) + frameLength - sizeof(Frame*);
+		*reinterpret_cast<Frame**>(bp) = previousFrame;
 		new(frame) Frame(bp, argsCount, stackSize, DEFAULT_FRAME_SPACE);
 		frame->markHeapAllocated();
 		//cout << "frame " << frame << " allocated on heap\n";
@@ -94,7 +96,7 @@ Frame* Thread::openFrame()
 	Frame* oldFrame = getFrame();
 	StackRef<Method> method(oldFrame, oldFrame->stackTopIndex());
 
-	uint16 stackSize = 50;
+	uint16 stackSize = 25;
 	uint16 paramsCount = 0;
 	uint16 returnsCount = 0;
 
@@ -102,10 +104,10 @@ Frame* Thread::openFrame()
 	{
 		paramsCount = method->getParamsCount();
 		returnsCount = method->getReturnsCount();
-		stackSize = method->getMaxStack() + 10;
+		stackSize = method->getMaxStack() + 5;
 	}
 
-	Frame* newFrame = allocFrame(stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
+	Frame* newFrame = allocFrame(oldFrame, stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
 
 	if(!newFrame->isContinuous())
 	{
@@ -142,7 +144,7 @@ void Thread::closeFrame()
 
 	if(!method.isNull())
 	{
-		DBG_ASSERT(method.get()->getType() == NULL, BEER_WIDEN("Method's type should be NULL"));
+		//DBG_ASSERT(method.get()->getType() == NULL, BEER_WIDEN("Method's type should be NULL"));
 		paramsCount = method->getParamsCount();
 		returnsCount = method->getReturnsCount();
 	}
@@ -219,6 +221,11 @@ void Thread::getPairClass(StackRef<Class> ret)
 	ret = mVM->getPairClass();
 }
 
+void Thread::getPoolClass(StackRef<Class> ret)
+{
+	ret = mVM->getPoolClass();
+}
+
 void Thread::findClass(StackRef<String> name, StackRef<Class> ret)
 {
 	ret = mVM->findClass(name);
@@ -245,7 +252,7 @@ void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
 		getIntegerClass(integerClass);
 
 		staticCreateObject(integerClass, ret, sizeof(Integer));
-		frame->stackMoveTop(-1); // pop integerClass
+		frame->stackPop(); // pop integerClass
 
 		ret->setNonInlineValue(value);
 	}
@@ -262,12 +269,12 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 	floatClass.push(frame);
 
 	staticCreateObject(floatClass, ret, sizeof(Float));
-	frame->stackMoveTop(-1); // pop floatClass
+	frame->stackPop(); // pop floatClass
 
 	Object::setType(this, ret, floatClass);
 	ret->setData(value);
 
-	frame->stackMoveTop(-1); // pop class
+	frame->stackPop(); // pop class
 }
 
 void Thread::createString(StackRef<String> ret, string value)
@@ -279,7 +286,7 @@ void Thread::createString(StackRef<String> ret, string value)
 	createInteger(length, value.size());
 
 	createString(length, ret);
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 	
 	ret->copyData(value.c_str());
 }
@@ -316,7 +323,7 @@ void Thread::createArray(StackRef<Integer> length, StackRef<Array> ret)
 		getArrayClass(arrayClass);
 
 		staticCreateObject(arrayClass, ret.staticCast<Object>(), sizeof(Array), static_cast<int32>(length->getData()));
-		frame->stackMoveTop(-1); // pop arrayClass
+		frame->stackPop(); // pop arrayClass
 	}
 
 	// init
@@ -335,12 +342,28 @@ void Thread::createPair(StackRef<Object> first, StackRef<Object> second, StackRe
 		getPairClass(klass);
 
 		staticCreateObject(klass, ret.staticCast<Object>(), sizeof(Pair));
-		frame->stackMoveTop(-1); // pop klass
+		frame->stackPop(); // pop klass
 	}
 
 	// set values
 	Pair::setFirst(this, ret, first);
 	Pair::setSecond(this, ret, second);
+}
+
+void Thread::createPool(StackRef<Pool> ret, uint16 length)
+{
+	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Class> poolClass(frame, frame->stackPush());
+	getPoolClass(poolClass);
+
+	staticCreateObject(poolClass, ret, sizeof(Pool), length);
+
+	Pool::setLength(this, ret, length);
+	Pool::clear(this, ret);
+
+	frame->stackPop(); // pop poolClass
 }
 
 void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
@@ -380,30 +403,37 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 		method->call(this); // pops copied class, copied method
 
 		ret = copiedRet;
-		frame->stackMoveTop(-1); // pop copiedRet
+		frame->stackPop(); // pop copiedRet
 
 		DBG_ASSERT(!ret.isNull(), BEER_WIDEN("No instance created"));
 	}
 
-	frame->stackMoveTop(-1); // pop method
+	frame->stackPop(); // pop method
 }
 
 void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount)
 {
 	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> propertiesCount(frame, frame->stackPush());
-	Class::getPropertiesCount(this, klass, propertiesCount);
+	BEER_STACK_CHECK();	
 
 	ret = getHeap()->alloc(
 		staticSize,
-		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData() + additionalChildrenCount)
+		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + klass->getPropertiesCount() + additionalChildrenCount)
 	);
 
 	Object::setType(this, ret, klass);
+}
 
-	getFrame()->stackMoveTop(-1); // pop propertiesCount
+Class* Thread::getType(Object* object)
+{
+	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Object> objectOnStack(frame, frame->stackPush(object));
+	Class* type = getType(objectOnStack);
+	frame->stackPop(); // pop objectOnStack
+
+	return type;
 }
 
 Class* Thread::getType(StackRef<Object> object)

@@ -46,8 +46,8 @@ void BytecodeBuilder::build(Thread* thread, StackRef<Method> method, ClassFileDe
 	mLoader->load(thread, bcDescr, &data, dataLength, instrCount);
 	//mVerifier->verify(thread, klassFile, data, dataLength, instrCount);
 
-	bc = mLinker->link(thread, klassFile, data, dataLength, instrCount); // new Bytecode(data, dataLength, instrCount);
-	bc = mOptimiser->optimise(thread, bc);
+	bc = mLinker->link(thread, method, klassFile, data, dataLength, instrCount); // new Bytecode(data, dataLength, instrCount);
+	bc = mOptimiser->optimise(thread, method, bc);
 	
 	mCompiler->compile(thread, method, bc); // TODO: return fn pointer
 }

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Pool.h"
+#include "Class.h"
 
 using namespace Beer;
 
@@ -28,7 +29,7 @@ void Pool::find(Thread* thread, StackRef<Pool> receiver, StackRef<Object> item, 
 		}
 	}
 	
-	frame->stackMoveTop(-1); // pop item
+	frame->stackPop(); // pop item
 }
 
 void BEER_CALL Pool::clear(Thread* thread, StackRef<Pool> receiver)
@@ -48,7 +49,7 @@ void BEER_CALL Pool::clear(Thread* thread, StackRef<Pool> receiver)
 
 	receiver->mNext = 0; // TODO
 
-	frame->stackMoveTop(-1); // pop null
+	frame->stackPop(); // pop null
 }
 
 void BEER_CALL Pool::copyFrom(Thread* thread, StackRef<Pool> receiver, StackRef<Pool> other)
@@ -71,6 +72,46 @@ void BEER_CALL Pool::copyFrom(Thread* thread, StackRef<Pool> receiver, StackRef<
 		Pool::setItem(thread, receiver, i, item);
 	}
 
-	frame->stackMoveTop(-1); // pop item
+	frame->stackPop(); // pop item
 	receiver->mNext = other->mNext; // TOD	
+}
+
+void Pool::createInstance(Thread* thread, StackRef<Class> receiver, uint16 length, StackRef<Pool> ret)
+{
+}
+
+void Pool::PoolInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* inst)
+{
+	Class::DefaultInstanceTraverser(receiver, klass, inst);
+
+	/*Array* instance = static_cast<Array*>(inst);
+
+	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mItemType));
+
+	Pool::LengthData length = instance->getSize();
+	for(Array::LengthData i = 0; i < length; i++)
+	{
+		receiver->traverseObjectPtr(&instance->getChildren()[OBJECT_CHILDREN_COUNT + i]);
+	}*/
+}
+
+void PoolClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+{
+	loader->createClass<Class>(thread, name, ret, 1, Pool::POOL_CHILDREN_COUNT, Object::OBJECT_METHODS_COUNT);
+}
+
+void PoolClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+{
+	klass->setTraverser(&Pool::PoolInstanceTraverser);
+
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	// extends Object
+	{
+		StackRef<Class> objectClass(frame, frame->stackPush());
+		thread->getObjectClass(objectClass);
+		Class::addParent(thread, klass, objectClass);
+		frame->stackPop(); //  pop objectClass
+	}
 }

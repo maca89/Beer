@@ -23,7 +23,7 @@ void PairClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackR
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 
 	loader->addMethod(thread, klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair()"), &Pair::init, 1, 0);

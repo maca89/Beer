@@ -23,7 +23,7 @@ void BEER_CALL Object::operatorString(Thread* thread, StackRef<Object> receiver,
 	));
 
 	Class::getName(thread, klass, ret);
-	frame->stackMoveTop(-1); // pop klass
+	frame->stackPop(); // pop klass
 }
 
 void BEER_CALL Object::setType(Thread* thread, StackRef<Object> receiver, StackRef<Class> param)

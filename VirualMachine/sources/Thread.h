@@ -69,6 +69,7 @@ namespace Beer
 		void getStringClass(StackRef<Class> ret);
 		void getArrayClass(StackRef<Class> ret);
 		void getPairClass(StackRef<Class> ret);
+		void getPoolClass(StackRef<Class> ret);
 
 		void findClass(StackRef<String> name, StackRef<Class> ret);
 		void findMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
@@ -81,9 +82,11 @@ namespace Beer
 		void createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret);
 		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
 		void createPolycache(StackRef<PolymorphicCache> ret, uint16 length);
+		void createPool(StackRef<Pool> ret, uint16 length);
 		
 		
-		Class* getType(StackRef<Object> object); // deprecated
+		Class* getType(Object* object);
+		Class* getType(StackRef<Object> object);
 		void getType(StackRef<Object> object, StackRef<Class> ret);
 
 		void init();
@@ -97,7 +100,7 @@ namespace Beer
 			else mTopFrame = NULL;
 		}
 
-		Frame* allocFrame(uint32 stackSize, uint32 argsCout);
+		Frame* allocFrame(Frame* previousFrame, uint32 stackSize, uint32 argsCout);
 		void discardFrame(Frame* previousFrame, Frame* currentFrame);
 	};
 };

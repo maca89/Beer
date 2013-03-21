@@ -48,7 +48,7 @@ void BEER_CALL String::operatorAddString(Thread* thread, StackRef<String> receiv
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), arg->size(), arg->c_str());
 
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 }
 
 void BEER_CALL String::operatorAddInteger(Thread* thread, StackRef<String> receiver, StackRef<Integer> arg, StackRef<String> ret)
@@ -69,7 +69,7 @@ void BEER_CALL String::operatorAddInteger(Thread* thread, StackRef<String> recei
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
 
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 
 }
 
@@ -91,7 +91,7 @@ void BEER_CALL String::operatorAddFloat(Thread* thread, StackRef<String> receive
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), argStr.size(), argStr.c_str());
 
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 }
 
 void BEER_CALL String::operatorAddBoolean(Thread* thread, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret)
@@ -112,7 +112,7 @@ void BEER_CALL String::operatorAddBoolean(Thread* thread, StackRef<String> recei
 	ret->copyData(0, receiver->size(), receiver->c_str());
 	ret->copyData(receiver->size(), str.size(), str.c_str());
 
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 }
 
 void BEER_CALL String::operatorAddCharacter(Thread* thread, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret)
@@ -129,7 +129,7 @@ void BEER_CALL String::operatorAddCharacter(Thread* thread, StackRef<String> rec
 	Character::CharacterData c = arg->getData();
 	ret->copyData(receiver->size(), 1, &c);
 
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 }
 
 void BEER_CALL String::operatorAddArray(Thread* thread, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret)
@@ -142,7 +142,7 @@ void BEER_CALL String::operatorAddArray(Thread* thread, StackRef<String> receive
 
 	String::operatorAddString(thread, receiver, serialisedArray, ret);
 
-	frame->stackMoveTop(-1); // pop serialisedArray
+	frame->stackPop(); // pop serialisedArray
 }
 
 void BEER_CALL String::operatorEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
@@ -182,7 +182,7 @@ void BEER_CALL String::createInstance(Thread* thread, StackRef<Class> receiver, 
 	StackRef<Integer> length = StackRef<Integer>(frame, -2);
 	thread->createString(length, ret); // does not pop length
 
-	frame->stackMoveTop(-1); // pop length
+	frame->stackPop(); // pop length
 }
 
 void StringClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
@@ -199,7 +199,7 @@ void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, Stac
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 
 	//klass->markAsValueType();
@@ -244,12 +244,12 @@ Reference<String> StringPool::translate(Thread* thread, const char16* str)
 
 		// TODO: why the cast??
 		thread->createString(lengthOnStack, strOnStack);
-		frame->stackMoveTop(-1); // pop lengthOnStack
+		frame->stackPop(); // pop lengthOnStack
 
 		strOnStack->copyData(str, length);
 
 		Reference<String> result(thread->getGC(), *strOnStack);
-		frame->stackMoveTop(-1); // pop string from stack
+		frame->stackPop(); // pop string from stack
 
 		return result;
 	}

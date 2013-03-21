@@ -57,7 +57,7 @@ void BooleanClassInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 
 	klass->markAsValueType();

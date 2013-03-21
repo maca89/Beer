@@ -13,5 +13,7 @@ namespace Beer
 	public:
 		static void BEER_CALL init(Thread* thread, StackRef<MetaClass> receiver, StackRef<MetaClass> ret);
 		//static void BEER_CALL findMethod(Thread* thread, StackRef<MetaClass> receiver, StackRef<String> selector, StackRef<Method> ret);
+
+		static void DefaultClassTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 	};
 };

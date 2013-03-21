@@ -4,13 +4,10 @@
 #include "Method.h"
 #include "VirtualMachine.h"
 #include "Debugger.h"
-
 #include "Console.h"
-
 #include "Thread.h"
-#include "InterlockedQueue.h"
-
 #include "MyClassFileLoader.h"
+
 
 using namespace Beer;
 
@@ -176,7 +173,6 @@ void printBytecodes(VirtualMachine *vm)
 	}
 }
 
-
 int __cdecl main(int argc, const char** argv)
 {
 	// set UTF-16 support
@@ -222,7 +218,7 @@ int __cdecl main(int argc, const char** argv)
 		{
 			printBytecodes(vm);
 		}
-		
+
 		if(settings.run)
 		{
 			vm->run();

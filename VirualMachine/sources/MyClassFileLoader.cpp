@@ -178,6 +178,6 @@ void MyClassFileLoader::loadClasses(Thread* thread, ClassFileDescriptor* classFi
 
 		thread->getVM()->findClass(className); // actual load, TODO
 
-		frame->stackMoveTop(-1); // pop className
+		frame->stackPop(); // pop className
 	}
 }

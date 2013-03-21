@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "ClassLoader.h"
 #include "Integer.h"
+#include "TraverseObjectReceiver.h"
 
 
 namespace Beer
@@ -17,7 +18,7 @@ namespace Beer
 
 	protected:
 		LengthData mSize;
-		Class* mItemClass;
+		Class* mItemType;
 	
 	public:
 		INLINE LengthData getSize() const
@@ -32,12 +33,12 @@ namespace Beer
 
 		INLINE Class* getItemClass()
 		{
-			return mItemClass;
+			return mItemType;
 		}
 
 		INLINE void setItemClass(Class* klass)
 		{
-			mItemClass = klass;
+			mItemType = klass;
 		}
 
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Array> ret);
@@ -48,6 +49,9 @@ namespace Beer
 		static void BEER_CALL operatorSet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object);
 
 		static void BEER_CALL operatorString(Thread* thread, StackRef<Array> receiver, StackRef<String> ret);
+
+		// traversers
+		static void ArrayInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 	};
 
 	class ArrayClassInitializer : public ClassInitializer

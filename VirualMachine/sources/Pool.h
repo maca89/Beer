@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "StackRef.h"
 #include "Thread.h"
+#include "TraverseObjectReceiver.h"
 
 
 namespace Beer
@@ -33,8 +34,21 @@ namespace Beer
 		static void hasFreeSlot(Thread* thread, StackRef<Pool> pool, bool& ret);
 		static void find(Thread* thread, StackRef<Pool> pool, StackRef<Object> item, bool& ret1, uint16& ret2);
 
+		static void createInstance(Thread* thread, StackRef<Class> receiver, uint16 length, StackRef<Pool> ret);
+
 		static void BEER_CALL clear(Thread* thread, StackRef<Pool> receiver);
 		static void BEER_CALL copyFrom(Thread* thread, StackRef<Pool> receiver, StackRef<Pool> other);
+
+		// traversers
+		static void PoolInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
+	};
+
+	class PoolClassInitializer : public ClassInitializer
+	{
+	public:
+		// ClassInitializer
+		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret);
+		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass);
 	};
 
 	INLINE void Pool::getLength(Thread* thread, StackRef<Pool> pool, uint16& length)

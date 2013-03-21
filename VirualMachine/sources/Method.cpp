@@ -4,8 +4,104 @@
 #include "GenerationalGC.h"
 #include "Thread.h"
 #include "Frame.h"
+#include "Class.h"
 
 using namespace Beer;
+
+
+
+void Method::loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Pool> pool(frame, frame->stackPush(
+		mPool
+	));
+
+	Pool::getItem(thread, pool, index, ret);
+
+	frame->stackPop(); // pop pool
+}
+
+uint16 Method::storeToPool(Thread* thread, StackRef<Object> object)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Pool> pool(frame, frame->stackPush(
+		mPool
+	));
+
+	if(pool.isNull())
+	{
+		createPool(thread, 10);
+		pool = mPool;
+	}
+	else
+	{
+		bool hasFreeSlot = false;
+		Pool::hasFreeSlot(thread, pool, hasFreeSlot);
+
+		if(!hasFreeSlot)
+		{
+			uint16 length = 0;
+			Pool::getLength(thread, pool, length);
+			createPool(thread, 2 * length);
+			pool = mPool;
+		}
+	}
+
+	uint16 index = 0;
+	Pool::createSlot(thread, pool, index);
+	Pool::setItem(thread, pool, index, object);
+	
+	frame->stackPop(); // pop pool
+	return index;
+}
+
+void Method::updateAtPool(Thread* thread, uint16 index, StackRef<Object> object)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Pool> pool(frame, frame->stackPush(
+		mPool
+	));
+
+	Pool::setItem(thread, pool, index, object);
+	frame->stackPop(); // pop pool
+}
+
+void Method::createPool(Thread* thread, uint16 length)
+{
+	// TODO: get from VM's pool of pools
+	
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Pool> newPool(frame, frame->stackPush());
+	thread->createPool(newPool, length);
+
+	if(mPool)
+	{
+		StackRef<Pool> oldPool(frame, frame->stackPush(
+			mPool
+		));
+
+		Pool::copyFrom(thread, newPool, oldPool);
+		mPool = *newPool;
+		Pool::clear(thread, oldPool);
+
+		frame->stackPop(); // pop oldPool
+	}
+	else
+	{
+		mPool = *newPool;
+	}
+
+	frame->stackPop(); // pop newPool
+}
 
 
 void Method::runFunction(Thread* thread)
@@ -14,11 +110,12 @@ void Method::runFunction(Thread* thread)
 	//BEER_STACK_CHECK();
 
 	Cb fn = mFunction;
-	if(fn == NULL)
+	DBG_ASSERT(fn != NULL, BEER_WIDEN("Abstract method"));
+	/*if(fn == NULL)
 	{
 		// TODO
 		throw AbstractMethodException(this);
-	}
+	}*/
 
 	//NULL_ASSERT(fn);
 
@@ -94,9 +191,6 @@ void Method::runFunction(Thread* thread)
 #endif // BEER_STACK_DEBUGGING
 	__asm
 	{
-		// push Frame*
-		//push frame;
-
 		// push Thread*
 		push thread;
 
@@ -117,40 +211,56 @@ void Method::runFunction(Thread* thread)
 
 void BEER_CALL Method::getName(Thread* thread, StackRef<Method> receiver, StackRef<String> ret)
 {
-	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME, ret);
+	ret = receiver->getName();
 }
 
 void BEER_CALL Method::setName(Thread* thread, StackRef<Method> receiver, StackRef<String> value)
 {
-	Object::setChild(thread, receiver, CHILD_ID_METHOD_NAME, value);
+	receiver->setName(*value);
 }
 
 void BEER_CALL Method::getReturn(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret)
 {
 	DBG_ASSERT(index->getData() < receiver->getReturnsCount(), BEER_WIDEN("Unknown return"));
-	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + index->getData(), ret); // +1 for name
+	Object::getChild(thread, receiver, METHOD_CHILDREN_COUNT + index->getData(), ret);
 }
 
 void BEER_CALL Method::setReturn(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value)
 {
 	DBG_ASSERT(index->getData() < receiver->getReturnsCount(), BEER_WIDEN("Unable to add more returns"));
-	Object::setChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + index->getData(), value); // +1 for name
+	Object::setChild(thread, receiver, METHOD_CHILDREN_COUNT + index->getData(), value);
 }
 
 void BEER_CALL Method::getParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> ret)
 {
 	DBG_ASSERT(index->getData() < receiver->getParamsCount(), BEER_WIDEN("Unknown argument"));
-	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData(), ret); // +1 for name
+	Object::getChild(thread, receiver, METHOD_CHILDREN_COUNT + receiver->getReturnsCount() + index->getData(), ret);
 }
 
 void BEER_CALL Method::setParam(Thread* thread, StackRef<Method> receiver, StackRef<Integer> index, StackRef<Param> value)
 {
 	DBG_ASSERT(index->getData() < receiver->getParamsCount(), BEER_WIDEN("Unable to add more arguments"));
-	Object::setChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index->getData(), value); // +1 for name
+	Object::setChild(thread, receiver, METHOD_CHILDREN_COUNT + receiver->getReturnsCount() + index->getData(), value);
 }
 
-void BEER_CALL Method::getParam(Thread* thread, StackRef<Method> receiver, StackRef<Param> ret, Integer::IntegerData index)
+void Method::getParam(Thread* thread, StackRef<Method> receiver, StackRef<Param> ret, Integer::IntegerData index)
 {
 	DBG_ASSERT(index < receiver->getParamsCount(), BEER_WIDEN("Unknown argument"));
-	Object::getChild(thread, receiver, CHILD_ID_METHOD_NAME + 1 + receiver->getReturnsCount() + index, ret); // +1 for name
+	Object::getChild(thread, receiver, METHOD_CHILDREN_COUNT + receiver->getReturnsCount() + index, ret);
+}
+
+void Method::MethodTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* inst)
+{
+	Class::DefaultInstanceTraverser(receiver, klass, inst);
+
+	Method* instance = static_cast<Method*>(inst);
+
+	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mName));
+	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mPool));
+
+	uint32 childrenCount = Method::METHOD_CHILDREN_COUNT + instance->getParamsCount() + instance->getReturnsCount();
+	for(uint32 i = 0; i < childrenCount; i++)
+	{
+		receiver->traverseObjectPtr(&instance->getChildren()[i]);
+	}
 }

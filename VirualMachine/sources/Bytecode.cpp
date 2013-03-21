@@ -17,6 +17,8 @@
 #include "StringDescriptor.h"
 #include "ClassFileDescriptor.h"
 
+#include "FrameInspector.h"
+
 using namespace Beer;
 
 #define BEER_BC_DISPATCH_SWITCH 0
@@ -24,102 +26,6 @@ using namespace Beer;
 
 #define BEER_BC_DISPATCH	BEER_BC_DISPATCH_SWITCH
 
-
-void Bytecode::loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Pool> pool(frame, frame->stackPush(
-		mPool
-	));
-
-	Pool::getItem(thread, pool, index, ret);
-
-	frame->stackMoveTop(-1); // pop pool
-}
-
-uint16 Bytecode::storeToPool(Thread* thread, StackRef<Object> object)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Pool> pool(frame, frame->stackPush(
-		mPool
-	));
-
-	if(pool.isNull())
-	{
-		createPool(thread, 10);
-		pool = mPool;
-	}
-	else
-	{
-		bool hasFreeSlot = false;
-		Pool::hasFreeSlot(thread, pool, hasFreeSlot);
-
-		if(!hasFreeSlot)
-		{
-			uint16 length = 0;
-			Pool::getLength(thread, pool, length);
-			createPool(thread, 2 * length);
-			pool = mPool;
-		}
-	}
-
-	uint16 index = 0;
-	Pool::createSlot(thread, pool, index);
-	Pool::setItem(thread, pool, index, object);
-	
-	frame->stackMoveTop(-1); // pop pool
-	return index;
-}
-
-void Bytecode::updateAtPool(Thread* thread, uint16 index, StackRef<Object> object)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Pool> pool(frame, frame->stackPush(
-		mPool
-	));
-
-	Pool::setItem(thread, pool, index, object);
-	frame->stackMoveTop(-1); // pop pool
-}
-
-void Bytecode::createPool(Thread* thread, uint16 length)
-{
-	// TODO: get from VM's pool of pools
-	
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Pool> newPool(frame, frame->stackPush());
-
-	newPool = thread->getPermanentHeap()->alloc<Pool>(Pool::POOL_CHILDREN_COUNT + length);
-	Pool::setLength(thread, newPool, length);
-	Pool::clear(thread, newPool);
-
-	if(mPool)
-	{
-		StackRef<Pool> oldPool(frame, frame->stackPush(
-			mPool
-		));
-
-		Pool::copyFrom(thread, newPool, oldPool);
-		mPool = *newPool;
-		Pool::clear(thread, oldPool);
-
-		frame->stackMoveTop(-1); // pop oldPool
-	}
-	else
-	{
-		mPool = *newPool;
-	}
-
-	frame->stackMoveTop(-1); // pop newPool
-}
 
 uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) const
 {
@@ -263,7 +169,7 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 	return size;
 }
 
-void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* instr)
+void Bytecode::printTranslatedInstruction(Thread* thread, StackRef<Method> method, const Instruction* instr)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -305,10 +211,10 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 	case BEER_INSTR_PUSH_INT64:
 		{
 			StackRef<Integer> value(frame, frame->stackPush());
-			loadFromPool(thread, instr->getData<int16>(), value);
+			method->loadFromPool(thread, instr->getData<int16>(), value);
 
 			cout << "PUSH_INT64 " << value->getData();
-			frame->stackMoveTop(-1); // pop value
+			frame->stackPop(); // pop value
 		}
 		break;
 
@@ -319,10 +225,10 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 	case BEER_INSTR_PUSH_STRING:
 		{
 			StackRef<String> value(frame, frame->stackPush());
-			loadFromPool(thread, instr->getData<int16>(), value);
+			method->loadFromPool(thread, instr->getData<int16>(), value);
 
 			cout << "PUSH_STRING \"" << value->c_str() << "\"";
-			frame->stackMoveTop(-1); // pop value
+			frame->stackPop(); // pop value
 		}
 		break;
 
@@ -340,7 +246,7 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 			StackRef<String> name(frame, frame->stackPush());
 
 			StackRef<Class> klass(frame, frame->stackPush());
-			loadFromPool(thread, instr->getData<int16>(), klass);
+			method->loadFromPool(thread, instr->getData<int16>(), klass);
 
 			Class::getName(thread, klass, name);
 
@@ -368,33 +274,33 @@ void Bytecode::printTranslatedInstruction(Thread* thread, const Instruction* ins
 	case BEER_INSTR_VIRTUAL_INVOKE:
 		{
 			StackRef<String> selector(frame, frame->stackPush());
-			loadFromPool(thread, instr->getData<uint16>(), selector);
+			method->loadFromPool(thread, instr->getData<uint16>(), selector);
 
 			cout << "VIRTUAL_INVOKE \"" << selector->c_str() << "\"";
 
-			frame->stackMoveTop(-1); // pop selector
+			frame->stackPop(); // pop selector
 		}
 		break;
 	
 	case BEER_INSTR_INTERFACE_INVOKE:
 		{
 			StackRef<String> selector(frame, frame->stackPush());
-			loadFromPool(thread, instr->getData<uint16>(), selector);
+			method->loadFromPool(thread, instr->getData<uint16>(), selector);
 
 			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
 			
-			frame->stackMoveTop(-1); // pop selector
+			frame->stackPop(); // pop selector
 		}
 		break;
 	
 	case BEER_INSTR_SPECIAL_INVOKE:
 		{
 			StackRef<String> selector(frame, frame->stackPush());
-			loadFromPool(thread, instr->getData<uint16>(), selector);
+			method->loadFromPool(thread, instr->getData<uint16>(), selector);
 
 			cout << "SPECIAL_INVOKE \"" << selector->c_str() << "\"";
 			
-			frame->stackMoveTop(-1); // pop selector
+			frame->stackPop(); // pop selector
 		}
 		break;
 
@@ -566,7 +472,7 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, B
 					));
 
 					ostream.write<uint16>(bc->storeToPool(thread, value));
-					frame->stackMoveTop(-1); // pop value
+					frame->stackPop(); // pop value
 				}
 				break;
 
@@ -619,7 +525,7 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, B
 						));
 						
 						ostream.write<uint16>(bc->storeToPool(thread, selector));
-						frame->stackMoveTop(-1); // pop selector
+						frame->stackPop(); // pop selector
 					}
 				}
 				break;
@@ -654,7 +560,7 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, B
 					thread->createInteger(value, istream.read<int8>()); // TODO: on permanent heap
 
 					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
-					frame->stackMoveTop(-1); // pop value
+					frame->stackPop(); // pop value
 				}
 				break;
 
@@ -666,7 +572,7 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, B
 					thread->createInteger(value, istream.read<int32>()); // TODO: on permanent heap
 
 					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
-					frame->stackMoveTop(-1); // pop value
+					frame->stackPop(); // pop value
 				}
 				break;
 			case BEER_INSTR_PUSH_INT64:
@@ -677,7 +583,7 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, B
 					thread->createInteger(value, istream.read<int64>()); // TODO: on permanent heap
 
 					ostream.write<uint16>(bc->storeToPool(thread, value.staticCast<Object>()));
-					frame->stackMoveTop(-1); // pop value
+					frame->stackPop(); // pop value
 				}
 				break;
 
@@ -788,6 +694,8 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 void Bytecode::call(Thread* thread)
 {
 	Frame* frame = thread->getFrame();
+	Method* invokedMethod = frame->stackTop<Method>(-1);
+	NULL_ASSERT(invokedMethod);
 	byte* ip = NULL;
 	uint32 vPC = frame->getProgramCounter();
 	void* jumpAddr = NULL;
@@ -883,21 +791,21 @@ BEER_BC_LABEL(INSTR_MOVE_TOP):
 BEER_BC_LABEL(INSTR_PUSH_INT64):
 	{
 		StackRef<Object> value(frame, frame->stackPush());
-		loadFromPool(thread, BEER_BC_DATA(uint16), value);
+		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), value);
 	}
 	BEER_BC_NEXT(sizeof(Object*));
 
 BEER_BC_LABEL(INSTR_PUSH_FLOAT):
 	{
 		StackRef<Object> value(frame, frame->stackPush());
-		loadFromPool(thread, BEER_BC_DATA(uint16), value);
+		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), value);
 	}
 	BEER_BC_NEXT(sizeof(float64));
 
 BEER_BC_LABEL(INSTR_PUSH_STRING):
 	{
 		StackRef<Object> str(frame, frame->stackPush());
-		loadFromPool(thread, BEER_BC_DATA(uint16), str);
+		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), str);
 	}
 	BEER_BC_NEXT(sizeof(uint16));
 
@@ -913,10 +821,10 @@ BEER_BC_LABEL(INSTR_NEW):
 	{
 		StackRef<Object> instance(frame, frame->stackPush());
 		StackRef<Class> klass(frame, frame->stackPush());
-		loadFromPool(thread, BEER_BC_DATA(uint16), klass);
+		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), klass);
 
 		thread->createInstance(klass, instance);
-		frame->stackMoveTop(-1); // pop  klass
+		frame->stackPop(); // pop  klass
 	}
 	BEER_BC_NEXT(sizeof(uint16));
 
@@ -970,7 +878,7 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 		// fetch method
 		{
 			StackRef<String> selector(frame, frame->stackPush());
-			loadFromPool(thread, BEER_BC_DATA(uint16), selector);
+			invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), selector);
 
 			StackRef<Class> klass(frame, frame->stackPush());
 			thread->getType(object, klass);
@@ -990,10 +898,16 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 		{
 			Instruction* instr = getInstruction(frame->getProgramCounter() - 1);
 			instr->setOpcode(BEER_OPTIMAL_CACHED_INVOKE);
-			instr->setData<uint16>(storeToPool(thread, method));
+			instr->setData<uint16>(invokedMethod->storeToPool(thread, method));
 		}
 		
 		thread->openFrame();
+
+		/*FrameInspector::debugPrintFrames(thread);
+		if(method->isBytecode())
+		{
+			int a = 0;
+		}*/
 	}
 	BEER_BC_MOVE(sizeof(uint16));
 	BEER_BC_RETURN();
@@ -1001,7 +915,7 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 BEER_BC_LABEL(OPTIMAL_CACHED_INVOKE):
 	{
 		StackRef<Method> method(frame, frame->stackPush());
-		loadFromPool(thread, BEER_BC_DATA(uint16), method); // load from cache
+		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), method); // load from cache
 		DBG_ASSERT(*method != NULL, BEER_WIDEN("Method is null"));
 
 		thread->openFrame();
@@ -1020,12 +934,12 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 		// fetch method
 		{
 			StackRef<String> selector(frame, frame->stackPush());
-			loadFromPool(thread, BEER_BC_DATA(uint16), selector);
+			invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), selector);
 
 			BEER_BC_MOVE(sizeof(uint16)); // pass selector
 
 			StackRef<PolymorphicCache> cache(frame, frame->stackPush());
-			loadFromPool(thread, BEER_BC_DATA(uint16), cache);
+			invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), cache);
 
 			StackRef<Class> klass(frame, frame->stackPush());
 			thread->getType(receiver, klass);
@@ -1090,7 +1004,7 @@ BEER_BC_LABEL(INLINE_BOOLEAN_NEGATION):
 	frame->stackStore(frame->stackTopIndex() - 1, Boolean::makeInlineValue(
 		!frame->stackTop<Boolean>(frame->stackTopIndex())->getData()
 	));
-	frame->stackMoveTop(-1);
+	frame->stackPop();
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_PLUS):
@@ -1169,7 +1083,7 @@ BEER_BC_LABEL(INLINE_ARRAY_GET_LENGTH):
 	{
 		StackRef<Integer> ret(frame, frame->stackTopIndex() - 1);
 		Integer::IntegerData result = frame->stackTop<Array>()->getSize();
-		frame->stackMoveTop(-1);
+		frame->stackPop();
 		thread->createInteger(ret, result);
 	}
 	BEER_BC_NEXT(0);

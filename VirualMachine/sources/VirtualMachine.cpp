@@ -24,6 +24,7 @@
 #include "LoadedObject.h"
 #include "Pair.h"
 #include "RandomGenerator.h"
+#include "Pool.h"
 
 using namespace Beer;
 
@@ -123,9 +124,21 @@ void VirtualMachine::init()
 		Frame* frame = getFrame();
 		BEER_STACK_CHECK();
 
-		//StackRef<Integer> childIdClass(frame, frame->stackPush());
-		//createInteger(childIdClass, Object::CHILD_ID_CLASS);
+		// create MetaClass
+		StackRef<MetaClass> metaClass(frame, frame->stackPush(
+			mMetaClass = getPermanentHeap()->alloc<MetaClass>(
+				Class::CLASS_CHILDREN_COUNT + 1 + 2 + Object::OBJECT_METHODS_COUNT // 1 parent, 2 methods
+		)));
 
+		mMetaClass = *metaClass; // ugly, TODO
+		mMetaClass->mFlags = 0; // deprecated
+		mMetaClass->mParentsCount = 1;
+		mMetaClass->mPropertiesCount = 0;
+		mMetaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
+		mMetaClass->mParentNext = mMetaClass->mMethodNext = mMetaClass->mPropertyNext = 0;
+		mMetaClass->mTraverser = &MetaClass::DefaultClassTraverser;
+
+		// create MetaClass name
 		StackRef<String> metaClassName(frame, frame->stackPush(
 			mHeap->alloc<String>(
 				static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 9 for "MetaClass", 1 for "\0"
@@ -134,18 +147,6 @@ void VirtualMachine::init()
 
 		metaClassName->size(9); // 9 for "MetaClass"
 		metaClassName->copyData(BEER_WIDEN("MetaClass"));
-
-		StackRef<MetaClass> metaClass(frame, frame->stackPush(
-			mMetaClass = getPermanentHeap()->alloc<MetaClass>(
-				Class::CLASS_CHILDREN_COUNT + 1 + 2 + Object::OBJECT_METHODS_COUNT // 1 parent, 2 methods
-		)));
-
-		mMetaClass = *metaClass; // ugly, TODO
-		metaClass->mFlags = 0; // deprecated
-		metaClass->mParentsCount = 1;
-		metaClass->mPropertiesCount = 0;
-		metaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
-		metaClass->mParentNext = metaClass->mMethodNext = metaClass->mPropertyNext = 0;
 
 		Object::setChild(static_cast<Thread*>(this), metaClass, Class::CHILD_ID_CLASS_NAME, metaClassName); // set name
 
@@ -161,6 +162,7 @@ void VirtualMachine::init()
 		mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskInitializer);
 		mClassLoader->addClassInitializer(BEER_WIDEN("Pair"), new PairClassInitializer);
 		mClassLoader->addClassInitializer(BEER_WIDEN("RandomGenerator"), new RandomGeneratorClassInitializer);
+		mClassLoader->addClassInitializer(BEER_WIDEN("Pool"), new PoolClassInitializer);
 
 		// create Object class name
 		StackRef<String> objectClassName(frame, frame->stackPush(
@@ -171,7 +173,25 @@ void VirtualMachine::init()
 		objectClassName->size(6); // 6 for "Object"
 		objectClassName->copyData(BEER_WIDEN("Object"));
 
+		// create Method class name
+		StackRef<String> methodClassName(frame, frame->stackPush(
+			mHeap->alloc<String>(
+				static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Method", 1 for "\0"
+				Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+		)));
+		methodClassName->size(6); // 6 for "Method"
+		methodClassName->copyData(BEER_WIDEN("Method"));
+
+		// vars
 		StackRef<Class> objectClass(frame, frame->stackPush());
+		StackRef<Class> methodClass(frame, frame->stackPush());
+
+		// create Method class
+		{
+			mClassLoader->createClass<Class>(this, methodClassName, methodClass, 1, 0, Object::OBJECT_METHODS_COUNT + 6); // extends Object, has 6 methods
+			methodClass->setTraverser(&Method::MethodTraverser);
+			mMethodClass = *methodClass;
+		}
 
 		// create Object class
 		{
@@ -180,6 +200,7 @@ void VirtualMachine::init()
 			// fix references
 			Class::addParent(this, metaClass.staticCast<Class>(), objectClass);
 			Class::addParent(this, objectClass, objectClass);
+			Class::addParent(this, methodClass, objectClass);
 
 			mObjectClass = *objectClass;
 		}
@@ -204,6 +225,7 @@ void VirtualMachine::init()
 			delete stringInit;
 
 			// fix references
+			Object::setType(this, metaClassName, stringClass); // set class
 			Object::setType(this, objectClassName, stringClass); // set class
 			Object::setType(this, stringClassName, stringClass); // set class
 
@@ -220,8 +242,10 @@ void VirtualMachine::init()
 		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
 		// TODO: getType
 
+		// TODO: fix Method methods
 
-		frame->stackMoveTop(-4); // clean
+
+		frame->stackMoveTop(-6); // clean
 		//closeFrame();
 	}
 
@@ -231,6 +255,7 @@ void VirtualMachine::init()
 	mIntegerClass = findClass(BEER_WIDEN("Integer"));
 	mArrayClass = findClass(BEER_WIDEN("Array"));
 	//mTaskClass = findClass(BEER_WIDEN("Task"));
+	mPoolClass = findClass(BEER_WIDEN("Pool"));
 
 	// !!! the order is important !!!
 	////////////////////////////////////////////////////// xxxxxxx0 // Object
@@ -280,7 +305,7 @@ void VirtualMachine::work()
 				int a = 0;
 			}
 
-			frame->stackMoveTop(-1); // pop klassName
+			frame->stackPop(); // pop klassName
 		}
 #endif // BEER_FOLDING_BLOCK
 
@@ -289,7 +314,7 @@ void VirtualMachine::work()
 			StackRef<Boolean> tmp(frame, frame->stackPush());
 			Class::substituable(this, klass, entryPointClass, tmp);
 			substituable = tmp->getData();
-			frame->stackMoveTop(-1); // pop tmp
+			frame->stackPop(); // pop tmp
 		}
 
 		if(klass.get() != entryPointClass.get() && substituable)  // TODO
@@ -314,7 +339,7 @@ void VirtualMachine::work()
 						throw MethodNotFoundException(*klass, ((Thread*)this)->getType(klass), *selector); // TODO
 					}
 
-					frame->stackMoveTop(-1); // pop selector
+					frame->stackPop(); // pop selector
 #endif // BEER_FOLDING_BLOCK
 				}
 
@@ -360,7 +385,7 @@ void VirtualMachine::work()
 					TrampolineThread* thread = new TrampolineThread(this, mGC);
 					getThreads().insert(thread);
 
-					thread->getFrame()->stackMoveTop(1); // for return
+					thread->getFrame()->stackPush(); // for return
 					thread->getFrame()->stackPush(*instance); // push receiver
 					thread->getFrame()->stackPush(*method); // push method
 					thread->openFrame();
@@ -394,7 +419,7 @@ void VirtualMachine::work()
 					{
 						throw MethodNotFoundException(*instance, *klass, *selector); // TODO
 					}
-					frame->stackMoveTop(-1); // pop selector
+					frame->stackPop(); // pop selector
 #endif // BEER_FOLDING_BLOCK
 				}
 
@@ -406,10 +431,10 @@ void VirtualMachine::work()
 			}
 		}
 
-		frame->stackMoveTop(-1); // pop class
+		frame->stackPop(); // pop class
 	}
 
-	frame->stackMoveTop(-1); // pop entrypoint class
+	frame->stackPop(); // pop entrypoint class
 	
 	// wait for all threads
 	for(ThreadSet::iterator it = mThreads.begin(); it != mThreads.end(); it++)
@@ -439,7 +464,7 @@ String* VirtualMachine::createString(const string& s)
 	//String* object = getStringClass()->createInstance<String>(this, frame, getHeap()); // initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass) length
 	String* object = *stringOnStack;
 
-	frame->stackMoveTop(-1); // pop string
+	frame->stackPop(); // pop string
 	object->copyData(s.c_str());
 
 	return object;
@@ -458,7 +483,7 @@ Pair* VirtualMachine::createPair(Object* first, Object* second)
 	((Thread*)this)->createPair(arg1, arg2, ret);
 
 	Pair* p = *ret;
-	frame->stackMoveTop(-1);
+	frame->stackPop();
 	return p;
 }
 
@@ -471,6 +496,6 @@ Class* VirtualMachine::findClass(string name)
 	((Thread*)this)->createString(nameOnStack, name);
 	
 	Class* c = findClass(nameOnStack);
-	frame->stackMoveTop(-1); // pop nameOnStack
+	frame->stackPop(); // pop nameOnStack
 	return c;
 }

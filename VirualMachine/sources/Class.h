@@ -5,6 +5,7 @@
 #include "Pair.h"
 #include "Property.h"
 #include "String.h" // TODO
+#include "TraverseObjectReceiver.h"
 
 
 namespace Beer
@@ -14,7 +15,6 @@ namespace Beer
 	class VirtualMachine;
 	class Thread;
 
-	//#pragma pack(push, 1)
 	class Class : public Object
 	{
 	public:
@@ -23,6 +23,9 @@ namespace Beer
 			FLAG_VALUE_TYPE = 0x01,
 			FLAG_INTERFACE = 0x02
 		};
+
+		typedef void (*Traverser)(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
+		//typedef void (*TraverseClassFn)(TraverseObjectReceiver* receiver, Class* klass);
 
 		enum
 		{
@@ -36,6 +39,8 @@ namespace Beer
 			CHILD_ID_CLASS_NAME = OBJECT_CHILDREN_COUNT,
 		};
 
+		friend class MetaClass;
+
 		////////////////////////////////////////////////////////////
 		////             Initialized by ClassLoader             ////
 		////////////////////////////////////////////////////////////
@@ -48,6 +53,8 @@ namespace Beer
 		uint32 mParentNext;
 		uint32 mPropertyNext;
 		uint32 mMethodNext;
+
+		Traverser mTraverser;
 		////////////////////////////////////////////////////////////
 
 	public:
@@ -65,11 +72,18 @@ namespace Beer
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
 
+		// traverser
+
+		Traverser getTraverser() const;
+		void setTraverser(Traverser value);
+
 		// parents
 
-		//INLINE uint16 getParentsCount() const { return mParentsCount; }
-		//INLINE uint16 getMethodsCount() const { return mMethodsCount; }
-		//INLINE uint32 getPropertiesCount() const { return mPropertiesCount; }
+		uint32 getParentsCount() const;
+		uint32 getMethodsCount() const;
+		uint32 getPropertiesCount() const;
+
+		INLINE String* getName() { return static_cast<String*>(getChildren()[CHILD_ID_CLASS_NAME]); }
 
 		// methods
 
@@ -98,6 +112,9 @@ namespace Beer
 		//static void BEER_CALL getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret);
 		static void getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, StackRef<Property> ret);
 
+		// traversers
+		static void DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
+
 	protected:
 		static void BEER_CALL getPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL getMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
@@ -111,5 +128,31 @@ namespace Beer
 		static bool hasMethodFreeSlot(Thread* thread, StackRef<Class> receiver);
 		static bool hasParentFreeSlot(Thread* thread, StackRef<Class> receiver);
 	};
-	//#pragma pack(pop)
+
+	// inline definitions
+
+	INLINE Class::Traverser Class::getTraverser() const
+	{
+		return mTraverser;
+	}
+
+	INLINE void Class::setTraverser(Class::Traverser value)
+	{
+		mTraverser = value;
+	}
+
+	INLINE uint32 Class::getParentsCount() const
+	{
+		return mParentsCount;
+	}
+	
+	INLINE uint32 Class::getMethodsCount() const
+	{
+		return mMethodsCount;
+	}
+	
+	INLINE uint32 Class::getPropertiesCount() const
+	{
+		return mPropertiesCount;
+	}
 };

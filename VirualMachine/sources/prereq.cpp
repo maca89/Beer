@@ -25,7 +25,7 @@ using namespace Beer;
 
 AbstractMethodException::AbstractMethodException(Method* method, string filename, long line)
 	: RuntimeException(
-	string(BEER_WIDEN("Method ")) + ((String*)method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str() + BEER_WIDEN(" is abstract"), // TODO
+	string(BEER_WIDEN("Method ")) + method->getName()->c_str() + BEER_WIDEN(" is abstract"), // TODO
 		filename, 
 		line
 	)

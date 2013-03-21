@@ -25,12 +25,12 @@ void Debugger::printLastOutput()
 	cout << std::endl;
 }
 
-void Debugger::printInstruction(Bytecode* bc, const Bytecode::Instruction* instr, uint16 programCounter)
+void Debugger::printInstruction(StackRef<Method> method, Bytecode* bc, const Bytecode::Instruction* instr, uint16 programCounter)
 {
 	cout /*<< std::endl*/ << BEER_WIDEN("[Instruction]") << std::endl;
 	cout << std::setw(4);
 	cout << std::setfill(BEER_WIDEN(' ')) << BEER_WIDEN("+") << programCounter << BEER_WIDEN(" ");
-	bc->printTranslatedInstruction(this, instr);
+	bc->printTranslatedInstruction(this, method, instr);
 	cout << std::endl;
 }
 
@@ -50,7 +50,7 @@ void Debugger::printClassName(StackRef<Class> klass)
 	StackRef<String> klassName(frame, frame->stackPush());
 	Class::getName(this, klass, klassName);
 	cout << klassName->c_str();
-	frame->stackMoveTop(-1); // pop klassName
+	frame->stackPop(); // pop klassName
 }
 
 void Debugger::printObjectClassName(StackRef<Object> object)
@@ -64,7 +64,7 @@ void Debugger::printObjectClassName(StackRef<Object> object)
 
 	printClassName(klass);
 	
-	frame->stackMoveTop(-1); // pop klass
+	frame->stackPop(); // pop klass
 }
 
 void Debugger::printCalledMethodSignature(Frame* frame, StackRef<Object> receiver, StackRef<Method> method)
@@ -85,7 +85,7 @@ void Debugger::printMethodSignature(StackRef<Method> method)
 	Frame* frame = getFrame();
 	BEER_STACK_CHECK();
 
-	cout << ((String*)method->getChildren()[Method::CHILD_ID_METHOD_NAME])->c_str();
+	cout << method->getName()->c_str();
 	cout << "(";
 				
 	StackRef<Param> arg(frame, frame->stackPush());
@@ -254,13 +254,13 @@ void Debugger::printObject(StackRef<Object> object)
 				createString(selector, BEER_WIDEN("Object::String()")); // TODO: selector in a pool
 
 				Class::findMethod(this, klass, selector, toStringMethod);
-				frame->stackMoveTop(-1); // pop selector
+				frame->stackPop(); // pop selector
 
 				// there should be a method, so no check for NULL
 				if(toStringMethod.isNull())
 				{
 					cout << "*no Object::String() method*";
-					frame->stackMoveTop(-1);
+					frame->stackPop();
 					goto end;
 				}
 
@@ -295,7 +295,7 @@ void Debugger::printObject(StackRef<Object> object)
 							Property::getPropertyName(this, prop, name);
 
 							cout << name->c_str() << ": ";
-							frame->stackMoveTop(-1); // pop name
+							frame->stackPop(); // pop name
 						}
 
 						// print child
@@ -304,18 +304,18 @@ void Debugger::printObject(StackRef<Object> object)
 							Object::getChild(this, object, Object::OBJECT_CHILDREN_COUNT + i, child);
 
 							printObject(child);
-							frame->stackMoveTop(-1); // pop child
+							frame->stackPop(); // pop child
 						}
 
 						if(i < propertiesCount->getData() - 1) cout << ", ";
 					}
 
-					frame->stackMoveTop(-1); // pop prop
+					frame->stackPop(); // pop prop
 				}
 				cout << "}";
 			}
 
-			frame->stackMoveTop(-1); // pop propertiesCount
+			frame->stackPop(); // pop propertiesCount
 		}
 		else
 		{
@@ -323,7 +323,7 @@ void Debugger::printObject(StackRef<Object> object)
 		}
 
 end:
-		frame->stackMoveTop(-1); // pop class
+		frame->stackPop(); // pop class
 	}
 
 	mPrintedObjects.pop_back();
@@ -437,7 +437,7 @@ void Debugger::printClassMethods(StackRef<Class> klass)
 		}*/
 	}
 
-	frame->stackMoveTop(-1); // pop methodsCount
+	frame->stackPop(); // pop methodsCount
 }
 
 void Debugger::started()
@@ -517,7 +517,7 @@ void Debugger::printBytecodeMethods(Class* c)
 		Class::getName(this, klass, name);
 		klassName = name->c_str();
 		klassName += BEER_WIDEN("::");
-		frame->stackMoveTop(-1); // pop name
+		frame->stackPop(); // pop name
 	}
 
 	StackRef<Integer> methodsCount(frame, frame->stackPush());
@@ -549,7 +549,7 @@ void Debugger::printBytecodeMethods(Class* c)
 					size_t pos = cselector.find(klassName);
 					parentOrOverriding = pos != 0;//klassName.size(); // ugly, TODO
 
-					frame->stackMoveTop(-1); // pop selector
+					frame->stackPop(); // pop selector
 				}
 
 				if(!parentOrOverriding)
@@ -558,7 +558,7 @@ void Debugger::printBytecodeMethods(Class* c)
 				}
 			}
 			
-			frame->stackMoveTop(-1); // method
+			frame->stackPop(); // method
 		}
 	}
 
@@ -575,7 +575,7 @@ void Debugger::printBytecodeMethod(StackRef<Class> klass, StackRef<Method> metho
 		StackRef<String> name(frame, frame->stackPush());
 		Class::getName(this, klass, name);
 		cout << name->c_str() << "::";
-		frame->stackMoveTop(-1); // pop name
+		frame->stackPop(); // pop name
 	}
 
 	// print method name
@@ -583,26 +583,26 @@ void Debugger::printBytecodeMethod(StackRef<Class> klass, StackRef<Method> metho
 		StackRef<String> name(frame, frame->stackPush());
 		Method::getName(this, method, name);
 		cout << name->c_str();
-		frame->stackMoveTop(-1); // pop name
+		frame->stackPop(); // pop name
 	}
 
 	cout << "\n{";
 
 	// print bytecode
 	{
-		printBytecode(method->getBytecode());
+		printBytecode(method, method->getBytecode());
 	}
 
 	cout << "}\n";
 }
 
-void Debugger::printBytecode(Bytecode* bc)
+void Debugger::printBytecode(StackRef<Method> method, Bytecode* bc)
 {
 	for(uint16 i = 0; i < bc->getInstructionCount(); i++)
 	{
 		const Bytecode::Instruction* instr = bc->getInstruction(i);
 		cout << "\t";
-		bc->printTranslatedInstruction(this, instr);
+		bc->printTranslatedInstruction(this, method, instr);
 		cout << "\n";
 	}
 }

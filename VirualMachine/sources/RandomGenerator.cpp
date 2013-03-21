@@ -21,7 +21,7 @@ void BEER_CALL RandomGenerator::createInstance(Thread* thread, StackRef<Class> r
 
 	Object::setType(thread, ret, receiver);
 
-	frame->stackMoveTop(-1); // pop propertiesCount
+	frame->stackPop(); // pop propertiesCount
 }
 
 void BEER_CALL RandomGenerator::init(Thread* thread, StackRef<RandomGenerator> receiver, StackRef<RandomGenerator> ret)
@@ -85,7 +85,7 @@ void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loa
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);

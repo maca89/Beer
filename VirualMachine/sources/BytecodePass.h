@@ -28,14 +28,14 @@ namespace Beer
 	{
 	public:
 		virtual ~BytecodeLinker() {}
-		virtual Bytecode* link(Thread* thread, ClassFileDescriptor* classFile, byte* data, uint32 dataLength, uint16 instrCount) = 0;
+		virtual Bytecode* link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, byte* data, uint32 dataLength, uint16 instrCount) = 0;
 	};
 
 	class BytecodeOptimiser
 	{
 	public:
 		virtual ~BytecodeOptimiser() {}
-		virtual Bytecode* optimise(Thread* thread, Bytecode* bc) = 0;
+		virtual Bytecode* optimise(Thread* thread, StackRef<Method> method, Bytecode* bc) = 0;
 	};
 
 	class BytecodeCompiler

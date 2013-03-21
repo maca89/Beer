@@ -38,6 +38,7 @@ namespace Beer
 	protected:
 		// TODO: flag type
 		
+		//Frame* previous;
 		uint8 mFrameFlags;
 		int16 mFrameOffset;
 		//uint32 mArgsCount;

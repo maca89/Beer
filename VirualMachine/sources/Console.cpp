@@ -75,7 +75,7 @@ void BEER_CALL Console::printArray(Thread* thread, StackRef<Console> receiver, S
 
 	Console::printString(thread, receiver, serialisedArray);
 
-	frame->stackMoveTop(-1); // pop serialisedArray
+	frame->stackPop(); // pop serialisedArray
 }
 
 void BEER_CALL Console::printlnArray(Thread* thread, StackRef<Console> receiver, StackRef<Array> arg)
@@ -89,7 +89,7 @@ void BEER_CALL Console::printlnArray(Thread* thread, StackRef<Console> receiver,
 	Console::printString(thread, receiver, serialisedArray);
 	Console::getOutput() << "\n"; // FOR PERFORMANCE REASONS DO NOT USE std::endl
 	
-	frame->stackMoveTop(-1); // pop serialisedArray
+	frame->stackPop(); // pop serialisedArray
 }
 
 void BEER_CALL Console::readInteger(Thread* thread, StackRef<Console> receiver, StackRef<Integer> ret)
@@ -162,7 +162,7 @@ void ConsoleClassInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 		StackRef<Class> objectClass(frame, frame->stackPush());
 		thread->getObjectClass(objectClass);
 		Class::addParent(thread, klass, objectClass);
-		frame->stackMoveTop(-1); //  pop objectClass
+		frame->stackPop(); //  pop objectClass
 	}
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("Console"), BEER_WIDEN("Console::Console()"), &Console::init, 1, 0);

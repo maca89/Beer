@@ -72,7 +72,7 @@ void ClassLoader::loadClass(Thread* thread, StackRef<String> name)
 	StackRef<Class> klass(frame, frame->stackPush());
 	classInit->createClass(thread, this, name, klass);
 	//mVM->addClass(klass); // where to put this???
-	frame->stackMoveTop(-1); // pop klass
+	frame->stackPop(); // pop klass
 
 	mBeingLoaded.pop_back();
 
@@ -112,13 +112,14 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 		));
 
 		Object::setType(thread, ret, metaClass);
-		frame->stackMoveTop(-1); // pop metaClass
+		frame->stackPop(); // pop metaClass
 	}
 
 	ret->mParentsCount = parents;
 	ret->mPropertiesCount = properties;
 	ret->mMethodsCount = methods;
 	ret->mParentNext = ret->mMethodNext = ret->mPropertyNext = 0;
+	ret->mTraverser = &Class::DefaultInstanceTraverser;
 
 	// TODO: where??
 	thread->getVM()->addClass(thread, *ret);
@@ -129,22 +130,31 @@ void ClassLoader::createClass(Thread* thread, StackRef<String> classname, StackR
 
 void ClassLoader::createMethod(Thread* thread, StackRef<Method> ret, Cb fn, uint16 returns, uint16 params)
 {
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
 	ret = thread->getPermanentHeap()->alloc<Method>(
-		Method::METHOD_CHILDREN_COUNT + returns + params + 10
+		Method::METHOD_CHILDREN_COUNT + returns + params
 	);
 
-	new(*ret) Method(); // init __vtable, Warning: may cause troubles in DEBUG, ctor sets debug values
+	// set class
+	{
+		StackRef<Class> methodClass(frame, frame->stackPush(
+			thread->getVM()->getMethodClass()
+		));
+
+		Object::setType(thread, ret, methodClass);
+		frame->stackPop(); // pop methodClass
+	}
 
 	// init flags, TODO: is it really needed?
-	ret->mFlags = 0;
-
+	ret->setFlags(0);
 	ret->setMaxStack(20); // default value, TODO: get rid of
-	
+	ret->setBytecode(NULL);
 	ret->setFunction(fn);
-	
-	// TODO: garbaged
-	ret->mReturnsCount = returns;
-	ret->mParamsCount = params;
+	ret->setTimeSpent(0);
+	ret->setReturnsCount(returns);
+	ret->setParamsCount(params);
 }
 
 void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
@@ -170,7 +180,7 @@ void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, const char_t*
 	}
 
 	Class::addMethod(thread, klass, pair);
-	frame->stackMoveTop(-1); // pop pair
+	frame->stackPop(); // pop pair
 }
 
 void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const char_t* selector)
@@ -186,11 +196,11 @@ void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, StackRef<Meth
 		thread->createString(selectorOnStack, selector); // TODO
 
 		thread->createPair(selectorOnStack, method, pair);
-		frame->stackMoveTop(-1); // pop selectorOnStack
+		frame->stackPop(); // pop selectorOnStack
 	}
 
 	Class::addMethod(thread, klass, pair);
-	frame->stackMoveTop(-1); // pop pair
+	frame->stackPop(); // pop pair
 }
 
 void ClassLoader::createParam(Thread* thread, StackRef<Param> ret)

@@ -30,7 +30,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 	
 	Object::setType(thread, ret, receiver);
 
-	frame->stackMoveTop(-1); // pop propertiesCount
+	frame->stackPop(); // pop propertiesCount
 }
 
 void BEER_CALL Class::findMethodIndex(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret1, StackRef<Integer> ret2)
@@ -77,7 +77,7 @@ void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, Stack
 	StackRef<Integer> index(frame, frame->stackPush());
 	Class::findMethodIndex(thread, receiver, selector, ret, index);
 
-	frame->stackMoveTop(-1); // pop index
+	frame->stackPop(); // pop index
 }
 
 void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret)
@@ -152,7 +152,7 @@ void BEER_CALL Class::getParent(Thread* thread, StackRef<Class> receiver, StackR
 
 	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + index->getData(), ret); // 1 for name 
 
-	frame->stackMoveTop(-1); // pop parentsCount
+	frame->stackPop(); // pop parentsCount
 }
 
 void BEER_CALL Class::getParentsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
@@ -172,7 +172,7 @@ void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackR
 
 	// set child
 	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentNext->getData(), value); // 1 for name
-	frame->stackMoveTop(-1); // pop parentNext
+	frame->stackPop(); // pop parentNext
 
 	// copy methods
 	if(*receiver != *value){
@@ -239,7 +239,7 @@ void BEER_CALL Class::getMethod(Thread* thread, StackRef<Class> receiver, StackR
 
 	Pair::getSecond(thread, pair, ret);
 
-	frame->stackMoveTop(-1); // pop pair
+	frame->stackPop(); // pop pair
 }*/
 
 void BEER_CALL Class::getMethodsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
@@ -275,7 +275,7 @@ void Class::getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, 
 
 	Class::getProperty(thread, receiver, i, ret);
 
-	frame->stackMoveTop(-1); // pop i
+	frame->stackPop(); // pop i
 }
 
 void BEER_CALL Class::getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret)
@@ -406,4 +406,19 @@ bool Class::hasParentFreeSlot(Thread* thread, StackRef<Class> receiver)
 	bool result = next->getData() < count->getData();
 	frame->stackMoveTop(-2); // pop next, count
 	return result;
+}
+
+void Class::DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance)
+{
+	if(!Object::isInlineValue(instance))
+	{
+		receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mType));
+	
+		uint32 childrenCount = Object::OBJECT_CHILDREN_COUNT + klass->getPropertiesCount();
+
+		for(uint32 i = 0; i < childrenCount; i++)
+		{
+			receiver->traverseObjectPtr(&instance->getChildren()[i]);
+		}
+	}
 }
