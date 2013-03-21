@@ -19,3 +19,4 @@ You can compile both projects with MSBuildu and Build.bat. The executables will 
 // Example of the knapsack
 > beer-compile.exe source/knapsack-plain.beer
 > beer-run.exe source/knapsack-plain.class
+
