@@ -104,20 +104,16 @@ void Method::createPool(Thread* thread, uint16 length)
 }
 
 
-void Method::runFunction(Thread* thread)
+void Method::invokeNative(Thread* thread)
 {
 	Frame* frame = thread->getFrame();
 	//BEER_STACK_CHECK();
+	
+	Method* invokedMethod = frame->stackTop<Method>(-1);
+	DBG_ASSERT(invokedMethod != NULL, BEER_WIDEN("Method is NULL"));
 
-	Cb fn = mFunction;
+	Cb fn = invokedMethod->mFunction;
 	DBG_ASSERT(fn != NULL, BEER_WIDEN("Abstract method"));
-	/*if(fn == NULL)
-	{
-		// TODO
-		throw AbstractMethodException(this);
-	}*/
-
-	//NULL_ASSERT(fn);
 
 	uint16 i = 0;
 	int32 elemi = 0;
@@ -127,8 +123,8 @@ void Method::runFunction(Thread* thread)
 	Object** objPtr = NULL;
 #endif // BEER_STACK_DEBUGGING
 
-	uint16 returnCount = getReturnsCount();
-	uint16 paramsCount = getParamsCount();
+	uint16 returnCount = invokedMethod->getReturnsCount();
+	uint16 paramsCount = invokedMethod->getParamsCount();
 
 	uint32 pushedSize
 		= sizeof(StackRef<Object>) * returnCount						// returns

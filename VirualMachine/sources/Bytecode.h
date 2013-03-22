@@ -168,9 +168,7 @@ namespace Beer
 		INLINE const void* getData() const { return mData; }
 		INLINE uint32 getDataLength() const { return mDataSize; }
 
-		//void update(BytecodeOutputStream* ostream);
-		void call(Thread* thread);
-		void build(Thread* thread, ClassFileDescriptor* classFile);
+		INLINE void* getData() { return mData; }
 
 		INLINE const Instruction* getInstruction(uint16 offset) const { return reinterpret_cast<const Instruction*>(&mData[offset]); }
 		INLINE Instruction* getInstruction(uint16 offset) { return reinterpret_cast<Instruction*>(&mData[offset]); }
@@ -178,5 +176,6 @@ namespace Beer
 		void printTranslatedInstruction(Thread* thread, Method* method, const Instruction* instr);
 
 		static void init(Thread* thread); // important!!!
+		static void invokeBytecode(Thread* thread);
 	};
 };

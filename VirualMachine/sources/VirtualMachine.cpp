@@ -347,7 +347,7 @@ void VirtualMachine::work()
 				frame->stackPush(*method);
 
 				openFrame();
-				method->call(this); // pops copied klass, copied method
+				method->invoke(this); // pops copied klass, copied method
 
 				instance = *ret;
 				frame->stackMoveTop(-2); // pop method, ret
@@ -425,7 +425,7 @@ void VirtualMachine::work()
 				//getDebugger()->printFrameStack(frame);
 
 				openFrame();
-				method->call(this);
+				method->invoke(this);
 #endif // BEER_FOLDING_BLOCK
 			}
 		}

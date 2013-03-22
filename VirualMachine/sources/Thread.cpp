@@ -400,7 +400,7 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 		method.push(frame);
 
 		openFrame();
-		method->call(this); // pops copied class, copied method
+		method->invoke(this); // pops copied class, copied method
 
 		ret = copiedRet;
 		frame->stackPop(); // pop copiedRet

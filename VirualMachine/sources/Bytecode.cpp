@@ -626,11 +626,6 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, c
 #endif // BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
 }
 
-/*void Bytecode::update(BytecodeOutputStream* ostream)
-{
-	ostream->finish(&mData, mDataSize, &mDict, mDictSize);
-}*/
-
 void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 
@@ -709,19 +704,21 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 #endif // BEER_BC_DISPATCH
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Bytecode::call(Thread* thread)
+void Bytecode::invokeBytecode(Thread* thread)
 {
 	Frame* frame = thread->getFrame();
+
 	Method* invokedMethod = frame->stackTop<Method>(-1);
+	DBG_ASSERT(invokedMethod != NULL, BEER_WIDEN("Method is NULL"));
+
 	byte* ip = reinterpret_cast<byte*>(frame->ip());
 	void* jumpAddr = NULL;
 
 	if(ip == NULL)
 	{
-		ip = mData;
+		ip = reinterpret_cast<byte*>(invokedMethod->getBytecode()->getData());
+		DBG_ASSERT(ip != NULL, BEER_WIDEN("Null bytecode"));
 	}
-
-	DBG_ASSERT(invokedMethod != NULL, BEER_WIDEN("Method is NULL"));
 
 
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT

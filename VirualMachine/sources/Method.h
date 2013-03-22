@@ -27,6 +27,8 @@ namespace Beer
 			METHOD_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT,
 		};
 
+		typedef void (*InvokeMethod)(Thread*);
+
 		// children order:
 		// # name
 		// # returns size		// TODO
@@ -34,11 +36,14 @@ namespace Beer
 		// # params size		// TODO
 		// # params array
 
+		InvokeMethod invoke;
+
 	protected:
 		uint8 mFlags;
 
 		uint16 mMaxStack;
 		Cb mFunction;
+
 		Bytecode* mBytecode;
 		float64 mTimeSpent;
 
@@ -90,6 +95,7 @@ namespace Beer
 			unmarkBytecode();
 			markNative();
 			mFunction = fn;
+			invoke = &Method::invokeNative;
 		}
 		
 		INLINE void setBytecode(Bytecode* value)
@@ -97,23 +103,10 @@ namespace Beer
 			unmarkNative();
 			markBytecode();
 			mBytecode = value;
+			invoke = &Bytecode::invokeBytecode;
 		}
 		
 		INLINE Bytecode* getBytecode() { return mBytecode; }
-
-		// calls
-
-		INLINE void call(Thread* thread)
-		{
-			if(isBytecode())
-			{
-				mBytecode->call(thread);
-			}
-			else
-			{
-				runFunction(thread);
-			}
-		}
 
 		void loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret);
 		uint16 storeToPool(Thread* thread, StackRef<Object> object);
@@ -139,7 +132,7 @@ namespace Beer
 		static void MethodTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 
 	protected:
-		void runFunction(Thread* thread);
+		static void invokeNative(Thread* thread);
 	};
 
 	// inline definitions

@@ -269,7 +269,7 @@ void Debugger::printObject(StackRef<Object> object)
 				frame->stackPush(*object);
 				frame->stackPush(*toStringMethod);
 				openFrame();
-				toStringMethod->call(this); // pops copied object, copied method
+				toStringMethod->invoke(this); // pops copied object, copied method
 
 				cout << result->c_str();
 
