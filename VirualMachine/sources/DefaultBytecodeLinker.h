@@ -12,6 +12,6 @@ namespace Beer
 	class DefaultBytecodeLinker : public BytecodeLinker
 	{
 	public:
-		virtual Bytecode* link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, byte* data, uint32 dataLength, uint16 instrCount);
+		virtual void link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, const TemporaryBytecode& bc, TemporaryBytecode& out_bc);
 	};
 };

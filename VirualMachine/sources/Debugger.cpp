@@ -30,7 +30,7 @@ void Debugger::printInstruction(StackRef<Method> method, Bytecode* bc, const Byt
 	cout /*<< std::endl*/ << BEER_WIDEN("[Instruction]") << std::endl;
 	cout << std::setw(4);
 	cout << std::setfill(BEER_WIDEN(' ')) << BEER_WIDEN("+") << programCounter << BEER_WIDEN(" ");
-	bc->printTranslatedInstruction(this, method, instr);
+	bc->printTranslatedInstruction(this, *method, instr);
 	cout << std::endl;
 }
 
@@ -598,11 +598,13 @@ void Debugger::printBytecodeMethod(StackRef<Class> klass, StackRef<Method> metho
 
 void Debugger::printBytecode(StackRef<Method> method, Bytecode* bc)
 {
-	for(uint16 i = 0; i < bc->getInstructionCount(); i++)
+	cout << "*NOT IMPLEMENTED*";
+	//TODO
+	/*for(uint16 i = 0; i < bc->getInstructionCount(); i++)
 	{
 		const Bytecode::Instruction* instr = bc->getInstruction(i);
 		cout << "\t";
-		bc->printTranslatedInstruction(this, method, instr);
+		bc->printTranslatedInstruction(this, *method, instr);
 		cout << "\n";
-	}
+	}*/
 }

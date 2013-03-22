@@ -12,11 +12,11 @@
 using namespace Beer;
 
 
-void DefaultBytecodeLoader::load(Thread* thread, BytecodeDescriptor* bcDescr, byte** out_data, uint32& out_dataLength, uint16& out_instrCount)
+void DefaultBytecodeLoader::load(Thread* thread, BytecodeDescriptor* bcDescr, TemporaryBytecode& out_bc)
 {
-	*out_data = bcDescr->getData();
-	out_dataLength = bcDescr->getSize();
-	out_instrCount = bcDescr->getInstrCount();
+	out_bc.data = bcDescr->getData();
+	out_bc.dataLength = bcDescr->getSize();
+	out_bc.instrCount = bcDescr->getInstrCount();
 }
 
 BytecodeBuilder::BytecodeBuilder()
@@ -43,11 +43,13 @@ void BytecodeBuilder::build(Thread* thread, StackRef<Method> method, ClassFileDe
 	uint32 dataLength = 0;
 	uint16 instrCount = 0;
 
-	mLoader->load(thread, bcDescr, &data, dataLength, instrCount);
-	//mVerifier->verify(thread, klassFile, data, dataLength, instrCount);
+	TemporaryBytecode tmpBc;
 
-	bc = mLinker->link(thread, method, klassFile, data, dataLength, instrCount); // new Bytecode(data, dataLength, instrCount);
-	bc = mOptimiser->optimise(thread, method, bc);
+	mLoader->load(thread, bcDescr, tmpBc);
+	//mVerifier->verify(thread, klassFile, tmpBc);
+
+	mLinker->link(thread, method, klassFile, tmpBc, tmpBc); // new Bytecode(data, dataLength, instrCount);
+	mOptimiser->optimise(thread, method, tmpBc, tmpBc);
 	
-	mCompiler->compile(thread, method, bc); // TODO: return fn pointer
+	mCompiler->compile(thread, method, tmpBc); // TODO: return fn pointer
 }

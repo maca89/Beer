@@ -18,13 +18,13 @@ MultipassBytecodeOptimiser::~MultipassBytecodeOptimiser()
 {
 }
 
-Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> method, Bytecode* bc)
+void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	BytecodeInputStream istream(bc->getData(), bc->getDataLength());
-	BytecodeOutputStream ostream(bc->getInstructionCount());
+	BytecodeInputStream istream(bc.data, bc.dataLength);
+	BytecodeOutputStream ostream(bc.instrCount);
 
 	while(!istream.end())
 	{
@@ -135,8 +135,6 @@ Bytecode* MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> 
 				break;
 		}
 	}
-
-	bc->update(&ostream);
-
-	return bc;
+	
+	ostream.finish(&out_bc.data, out_bc.dataLength, &out_bc.dict, out_bc.instrCount);
 }

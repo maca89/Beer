@@ -18,7 +18,7 @@ namespace Beer
 	class DefaultBytecodeCompiler : public BytecodeCompiler
 	{
 	public:
-		virtual void compile(Thread* thread, StackRef<Method> method, Bytecode* bc);
+		virtual void compile(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc);
 	};
 
 	class Bytecode //: public Object
@@ -106,6 +106,8 @@ namespace Beer
 		
 		typedef uint8 OpCode;
 
+		friend class DefaultBytecodeCompiler;
+
 		#pragma pack(push, 1)
 		struct Instruction // deprecated
 		{
@@ -139,9 +141,6 @@ namespace Beer
 		#pragma pack(pop)
 
 	protected:
-		uint16 mDictSize;
-		uint32* mDict;
-
 		uint32 mDataSize;
 		byte* mData;
 
@@ -150,16 +149,15 @@ namespace Beer
 
 	public:
 		INLINE Bytecode()
-			: mDict(NULL), mDictSize(0)
+			: mData(NULL), mDataSize(0)
 		{
 		}
 
-		INLINE Bytecode(byte data[], uint32 size, uint16 instrCount)
-			: mDict(NULL), mDictSize(0)
+		INLINE Bytecode(byte data[], uint32 size)
+			: mData(data), mDataSize(size)
 		{
 			mDataSize = size;
 			mData = data;
-			mDictSize = instrCount;
 		}
 
 		INLINE ~Bytecode()
@@ -170,16 +168,14 @@ namespace Beer
 		INLINE const void* getData() const { return mData; }
 		INLINE uint32 getDataLength() const { return mDataSize; }
 
-		void update(BytecodeOutputStream* ostream);
+		//void update(BytecodeOutputStream* ostream);
 		void call(Thread* thread);
 		void build(Thread* thread, ClassFileDescriptor* classFile);
 
-		INLINE const Instruction* getInstruction(uint16 instri) const { return reinterpret_cast<const Instruction*>(&mData[mDict[instri]]); }
-		INLINE Instruction* getInstruction(uint16 instri) { return reinterpret_cast<Instruction*>(&mData[mDict[instri]]); }
+		INLINE const Instruction* getInstruction(uint16 offset) const { return reinterpret_cast<const Instruction*>(&mData[offset]); }
+		INLINE Instruction* getInstruction(uint16 offset) { return reinterpret_cast<Instruction*>(&mData[offset]); }
 
-		INLINE uint16 getInstructionCount() const { return mDictSize; }
-
-		void printTranslatedInstruction(Thread* thread, StackRef<Method> method, const Instruction* instr);
+		void printTranslatedInstruction(Thread* thread, Method* method, const Instruction* instr);
 
 		static void init(Thread* thread); // important!!!
 	};

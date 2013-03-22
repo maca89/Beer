@@ -13,15 +13,13 @@
 using namespace Beer;
 
 
-Bytecode* DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, byte* data, uint32 dataLength, uint16 instrCount)
+void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, const TemporaryBytecode& bc, TemporaryBytecode& out_bc)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	Bytecode* bc = new Bytecode();
-
-	BytecodeInputStream istream(data, dataLength);
-	BytecodeOutputStream ostream(instrCount);
+	BytecodeInputStream istream(bc.data, bc.dataLength);
+	BytecodeOutputStream ostream(bc.instrCount);
 
 	while(!istream.end())
 	{
@@ -201,7 +199,6 @@ Bytecode* DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, C
 		}
 	}
 
-	bc->update(&ostream);
-
-	return bc;
+	
+	ostream.finish(&out_bc.data, out_bc.dataLength, &out_bc.dict, out_bc.instrCount);
 }

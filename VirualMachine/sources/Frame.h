@@ -43,12 +43,13 @@ namespace Beer
 		int16 mFrameOffset;
 		//uint32 mArgsCount;
 		uint16 mVPC;
+		void* mIp;
 		WorkStack mStack;
 		int32 mBonusSpace;
 
 	public:
 		INLINE Frame(void* bp, int16 frameOffset, int32 stackSize, int32 bonusSpace)
-			: mStack(bp, stackSize), mVPC(0), mFrameOffset(frameOffset), mBonusSpace(bonusSpace), mFrameFlags(0)
+			: mStack(bp, stackSize), mVPC(0), mIp(NULL), mFrameOffset(frameOffset), mBonusSpace(bonusSpace), mFrameFlags(0)
 		{
 		}
 
@@ -77,6 +78,16 @@ namespace Beer
 		INLINE void setProgramCounter(uint16 value)
 		{
 			mVPC = value;
+		}
+
+		INLINE void* ip()
+		{
+			return mIp;
+		}
+
+		INLINE void ip(void* value)
+		{
+			mIp = value;
 		}
 
 		INLINE uint16 incrProgramCounter()

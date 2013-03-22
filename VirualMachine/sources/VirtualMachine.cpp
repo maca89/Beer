@@ -196,12 +196,6 @@ void VirtualMachine::init()
 		// create Object class
 		{
 			mClassLoader->createClass<Class>(this, objectClassName, objectClass, 1, 0, Object::OBJECT_METHODS_COUNT); // extends Object, has 6 methods
-
-			// fix references
-			Class::addParent(this, metaClass.staticCast<Class>(), objectClass);
-			Class::addParent(this, objectClass, objectClass);
-			Class::addParent(this, methodClass, objectClass);
-
 			mObjectClass = *objectClass;
 		}
 
@@ -241,6 +235,11 @@ void VirtualMachine::init()
 		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
 		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
 		// TODO: getType
+
+		// fix references
+		Class::addParent(this, metaClass.staticCast<Class>(), objectClass);
+		Class::addParent(this, objectClass, objectClass);
+		Class::addParent(this, methodClass, objectClass);
 
 		// TODO: fix Method methods
 

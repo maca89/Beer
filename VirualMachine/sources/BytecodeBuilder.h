@@ -45,6 +45,6 @@ namespace Beer
 	class DefaultBytecodeLoader : public BytecodeLoader
 	{
 	public:
-		virtual void load(Thread* thread, BytecodeDescriptor* bcDescr, byte** out_data, uint32& out_dataLength, uint16& out_instrCount);
+		virtual void load(Thread* thread, BytecodeDescriptor* bcDescr, TemporaryBytecode& out_bc);
 	};
 };

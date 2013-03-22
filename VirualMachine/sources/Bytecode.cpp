@@ -169,7 +169,7 @@ uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) con
 	return size;
 }
 
-void Bytecode::printTranslatedInstruction(Thread* thread, StackRef<Method> method, const Instruction* instr)
+void Bytecode::printTranslatedInstruction(Thread* thread, Method* method, const Instruction* instr)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -390,9 +390,29 @@ void Bytecode::printTranslatedInstruction(Thread* thread, StackRef<Method> metho
 	}
 }
 
-void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, Bytecode* bc)
+void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc)
 {
-	method->setBytecode(bc);
+	for(uint16 instri = 0; instri < bc.instrCount; instri++)
+	{
+		uint16 instrIndex = bc.dict[instri];
+		Bytecode::Instruction* instr = reinterpret_cast<Bytecode::Instruction*>(&bc.data[instrIndex]);
+		Bytecode::OpCode opcode = instr->getOpcode();
+
+		switch(opcode)
+		{
+			case BEER_INSTR_JMP:
+			case BEER_INSTR_JMP_TRUE:
+			case BEER_INSTR_JMP_FALSE:
+				{
+					uint16 index = bc.dict[instr->getData<uint16>()];
+					int16 offset = static_cast<int16>(static_cast<int32>(index) - static_cast<int32>(instrIndex));
+					instr->setData<int16>(offset);
+				}
+				break;
+		}
+	}
+
+	method->setBytecode(new Bytecode(bc.data, bc.dataLength));
 
 	// TODO
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
@@ -606,10 +626,10 @@ void DefaultBytecodeCompiler::compile(Thread* thread, StackRef<Method> method, B
 #endif // BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
 }
 
-void Bytecode::update(BytecodeOutputStream* ostream)
+/*void Bytecode::update(BytecodeOutputStream* ostream)
 {
 	ostream->finish(&mData, mDataSize, &mDict, mDictSize);
-}
+}*/
 
 void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
@@ -617,7 +637,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
 
-#define BEER_BC_PRINT() cout << *(uint8*)ip << "\t"; printTranslatedInstruction(thread, reinterpret_cast<Instruction*>(ip)); cout<<"\n";
+#define BEER_BC_PRINT() cout << *(uint8*)ip << "\t"; printTranslatedInstruction(thread, invokedMethod, reinterpret_cast<Instruction*>(ip)); cout<<"\n";
 
 #define BEER_BC_OPCODE() *(reinterpret_cast<uint8*>(ip)++)
 
@@ -627,19 +647,17 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_BC_MOVE(howmuch) ip += howmuch
 
-#define BEER_BC_JUMP(instri) frame->setProgramCounter(instri);
+#define BEER_BC_JUMP(offset) ip += (offset - 1); frame->ip(ip);
 
-#define BEER_BC_NEXT(skip) BEER_BC_PASS();
-
-#define BEER_BC_FETCH() ip = reinterpret_cast<byte*>(getInstruction(frame->incrProgramCounter()));
+#define BEER_BC_NEXT(skip) BEER_BC_MOVE(skip); BEER_BC_PASS();
 
 #define BEER_BC_PASS() break;
 
-#define BEER_BC_RETURN() return;
+#define BEER_BC_RETURN() frame->ip(ip); return;
 
-#define BEER_BC_START bool cont = true; while(cont) { BEER_BC_FETCH(); /*BEER_BC_PRINT();*/ switch(BEER_BC_OPCODE()) {
+#define BEER_BC_START while(true) { /*BEER_BC_PRINT();*/ switch(BEER_BC_OPCODE()) {
 
-#define BEER_BC_END }} return;
+#define BEER_BC_END }} frame->ip(ip); return;
 
 #define BEER_BC_LABEL(name) case BEER_##name
 
@@ -695,10 +713,15 @@ void Bytecode::call(Thread* thread)
 {
 	Frame* frame = thread->getFrame();
 	Method* invokedMethod = frame->stackTop<Method>(-1);
-	NULL_ASSERT(invokedMethod);
-	byte* ip = NULL;
-	uint32 vPC = frame->getProgramCounter();
+	byte* ip = reinterpret_cast<byte*>(frame->ip());
 	void* jumpAddr = NULL;
+
+	if(ip == NULL)
+	{
+		ip = mData;
+	}
+
+	DBG_ASSERT(invokedMethod != NULL, BEER_WIDEN("Method is NULL"));
 
 
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
@@ -722,7 +745,7 @@ BEER_BC_LABEL(INSTR_NOP):
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INSTR_JMP):
-	BEER_BC_JUMP(BEER_BC_DATA(uint16));
+	BEER_BC_JUMP(BEER_BC_DATA(int16));
 	BEER_BC_NEXT(0); // zero is important!!!
 
 BEER_BC_LABEL(INSTR_JMP_TRUE):
@@ -732,13 +755,13 @@ BEER_BC_LABEL(INSTR_JMP_TRUE):
 		if(((Boolean*)frame->stackTop())->getData())
 		{
 			frame->stackPop();
-			BEER_BC_JUMP(BEER_BC_DATA(uint16));
+			BEER_BC_JUMP(BEER_BC_DATA(int16));
 			BEER_BC_NEXT(0); // zero is important!!!
 		}
 
 		frame->stackPop();
 	}
-	BEER_BC_NEXT(sizeof(uint16));
+	BEER_BC_NEXT(sizeof(int16));
 
 BEER_BC_LABEL(INSTR_JMP_FALSE):
 	{
@@ -747,13 +770,13 @@ BEER_BC_LABEL(INSTR_JMP_FALSE):
 		if(!((Boolean*)frame->stackTop())->getData())
 		{
 			frame->stackPop();
-			BEER_BC_JUMP(BEER_BC_DATA(uint16));
+			BEER_BC_JUMP(BEER_BC_DATA(int16));
 			BEER_BC_NEXT(0); // zero is important!!!
 		}
 
 		frame->stackPop();
 	}
-	BEER_BC_NEXT(sizeof(uint16));
+	BEER_BC_NEXT(sizeof(int16));
 
 BEER_BC_LABEL(INSTR_POP):
 	frame->stackPop();
@@ -793,14 +816,14 @@ BEER_BC_LABEL(INSTR_PUSH_INT64):
 		StackRef<Object> value(frame, frame->stackPush());
 		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), value);
 	}
-	BEER_BC_NEXT(sizeof(Object*));
+	BEER_BC_NEXT(sizeof(uint16));
 
 BEER_BC_LABEL(INSTR_PUSH_FLOAT):
 	{
 		StackRef<Object> value(frame, frame->stackPush());
 		invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), value);
 	}
-	BEER_BC_NEXT(sizeof(float64));
+	BEER_BC_NEXT(sizeof(uint16));
 
 BEER_BC_LABEL(INSTR_PUSH_STRING):
 	{
@@ -895,8 +918,8 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 		}
 
 		// set new opcode
-		{
-			Instruction* instr = getInstruction(frame->getProgramCounter() - 1);
+		if(true){
+			Instruction* instr = reinterpret_cast<Instruction*>(ip - sizeof(OpCode));
 			instr->setOpcode(BEER_OPTIMAL_CACHED_INVOKE);
 			instr->setData<uint16>(invokedMethod->storeToPool(thread, method));
 		}
