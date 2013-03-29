@@ -19,7 +19,8 @@ namespace Beer
 		enum
 		{
 			FLAG_BYTECODE = 0x01,
-			FLAG_NATIVE = 0x02
+			FLAG_NATIVE = 0x02,
+			FLAG_ABSTRACT = 0x04
 		};
 
 		enum
@@ -71,6 +72,10 @@ namespace Beer
 		INLINE void markNative() { markFlag(FLAG_NATIVE); }
 		INLINE void unmarkNative() { unmarkFlag(FLAG_NATIVE); }
 		INLINE bool isNative() const { return hasFlag(FLAG_NATIVE); }
+		
+		INLINE void markAbstract() { markFlag(FLAG_ABSTRACT); }
+		INLINE void unmarkAbstract() { unmarkFlag(FLAG_ABSTRACT); }
+		INLINE bool isAbstract() const { return hasFlag(FLAG_ABSTRACT); }
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }

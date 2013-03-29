@@ -18,9 +18,7 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 	NULL_ASSERT(*receiver);
 
 	TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
-
 	thread->getVM()->getThreads().insert(thread2);
-
 	Frame* frame = thread2->getFrame();
 
 	// push receiver
@@ -81,9 +79,16 @@ void BEER_CALL Task::getId(Thread* thread, StackRef<Task> receiver, StackRef<Int
 	ret = Integer::makeInlineValue(1);
 }
 
+void BEER_CALL Task::abstractWork(Thread* thread, StackRef<Task> receiver)
+{
+	Frame* frame = thread->getFrame();
+	StackRef<Method> method(frame, Frame::INDEX_METHOD);
+	throw AbstractMethodException(*method);
+}
+
 void TaskInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 7 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, ret, 1, Task::TASK_CHILDREN_COUNT, Task::TASK_METHODS_COUNT);
 }
 
 void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
@@ -108,6 +113,8 @@ void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Cl
 
 	loader->addMethod(thread, klass, BEER_WIDEN("getCompleted"), BEER_WIDEN("Task::getCompleted()"), &Task::getCompleted, 0, 1);
 	loader->addMethod(thread, klass, BEER_WIDEN("getCanceled"), BEER_WIDEN("Task::getCanceled()"), &Task::getCanceled, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("getFailed"), BEER_WIDEN("TaskgetFailedgetCompleted()"), &Task::getFailed, 0, 1);
+	loader->addMethod(thread, klass, BEER_WIDEN("getFailed"), BEER_WIDEN("Task::getFailed()"), &Task::getFailed, 0, 1);
 	loader->addMethod(thread, klass, BEER_WIDEN("getId"), BEER_WIDEN("Task::getId()"), &Task::getId, 0, 1);
+
+	loader->addMethod(thread, klass, BEER_WIDEN("work"), BEER_WIDEN("Task::work()"), &Task::abstractWork, 0, 0); // abstract, TODO: mark abstract
 }

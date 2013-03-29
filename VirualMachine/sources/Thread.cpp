@@ -13,7 +13,7 @@ using namespace Beer;
 
 
 Thread::Thread(VirtualMachine* vm, GenerationalGC * gc)
-	: mVM(vm), mGC(gc), mTopFrame(NULL), mRootFrame(NULL), mPolycache(NULL)
+	: mVM(vm), mGC(gc), mPolycache(NULL), mContext(NULL)//, mTopFrame(NULL), mRootFrame(NULL)
 {
 }
 
@@ -21,169 +21,16 @@ void Thread::init()
 {
 	mHeap = mGC->createHeap();
 
-	mRootFrame = allocFrame(NULL, 250, 0);
+	// just a temporary solution, TODO
+	mTemporaryContext.init(mHeap);
+	setContext(&mTemporaryContext);
 
-	Frame* frame = allocFrame(NULL, 50, 2);
-	//frame->setFrameOffset(2);
-	frame->stackPush(); // simulae receiver
-	frame->stackPush(); // simulate method
-	mRootFrame->stackPush(frame);
-	fetchTopFrame();
-
+	// init cache, TODO
+	Frame* frame = getFrame();
 	StackRef<PolymorphicCache> pcache(frame, frame->stackPush());
 	createPolycache(pcache, CREATE_INSTANCE_CACHE_SIZE);
 	mPolycache = *pcache;
 	frame->stackPop(); // pop pcache
-}
-
-Frame* Thread::allocFrame(Frame* previousFrame, uint32 stackSize, uint32 argsCount)
-{
-	Frame* frame = NULL;
-
-	if(!mTopFrame || (frame = mTopFrame->pushFrame(argsCount, stackSize)) == NULL)
-	{
-		uint32 frameLength = sizeof(Frame) + (stackSize * sizeof(Object*)) + DEFAULT_FRAME_SPACE + sizeof(Frame*);
-		frame = getHeap()->alloc<Frame>(frameLength, 0);
-		if(frame == NULL)
-		{
-			throw NotEnoughMemoryException(BEER_WIDEN("Not enough memory to allocate Frame"));
-		}
-
-		void* bp = reinterpret_cast<byte*>(frame) + frameLength - sizeof(Frame*);
-		*reinterpret_cast<Frame**>(bp) = previousFrame;
-		new(frame) Frame(bp, argsCount, stackSize, DEFAULT_FRAME_SPACE);
-		frame->markHeapAllocated();
-		//cout << "frame " << frame << " allocated on heap\n";
-	}
-	else
-	{
-		//cout << "frame " << frame << " allocated on previous frame stack\n";
-	}
-
-	return frame;
-}
-
-void Thread::discardFrame(Frame* previousFrame, Frame* currentFrame)
-{
-	if(previousFrame == NULL)
-	{
-		//cout << "frame " << currentFrame << " not discarded, previous frame is NULL\n";
-		return; // TODO???
-	}
-
-	if(previousFrame->popFrame(currentFrame))
-	{
-		//cout << "frame " << currentFrame << " discarded\n";
-	}
-	else
-	{
-		//cout << "frame " << currentFrame << " will be collected by GC\n";
-	}
-}
-
-Frame* Thread::getPreviousFrame()
-{
-	if(mRootFrame->stackLength() > 1)
-	{
-		return mRootFrame->stackTop<Frame>(mRootFrame->stackTopIndex() - 1);
-	}
-	
-	return NULL;
-}
-
-Frame* Thread::openFrame()
-{
-	Frame* oldFrame = getFrame();
-	StackRef<Method> method(oldFrame, oldFrame->stackTopIndex());
-
-	uint16 stackSize = 25;
-	uint16 paramsCount = 0;
-	uint16 returnsCount = 0;
-
-	if(!method.isNull())
-	{
-		paramsCount = method->getParamsCount();
-		returnsCount = method->getReturnsCount();
-		stackSize = method->getMaxStack() + 5;
-	}
-
-	Frame* newFrame = allocFrame(oldFrame, stackSize, returnsCount + paramsCount + 2); // +2: receiver, method
-
-	if(!newFrame->isContinuous())
-	{
-		// make space for returns, if/else is an optimization
-		if(returnsCount == 1) newFrame->stackPush();
-		else newFrame->stackMoveTop(returnsCount);
-
-		// copy params
-		for(uint16 i = paramsCount; i >= 1; i--) // *BEWARE* index starts at this position to skip the method on stack!
-		{
-			newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - i - 1)); // -1 for receiver
-		}
-	
-		//mVM->getDebugger()->printFrameStack(this, oldFrame);
-
-		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex() - 1)); // copy receiver
-		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
-	}
-
-	mRootFrame->stackPush(newFrame);
-	fetchTopFrame();
-	return getFrame();
-}
-
-void Thread::closeFrame()
-{
-	Frame* currentFrame = getFrame();
-	Frame* previousFrame = getPreviousFrame();
-
-	StackRef<Method> method(currentFrame, -1);
-
-	uint16 paramsCount = 0;
-	uint16 returnsCount = 0;
-
-	if(!method.isNull())
-	{
-		//DBG_ASSERT(method.get()->getType() == NULL, BEER_WIDEN("Method's type should be NULL"));
-		paramsCount = method->getParamsCount();
-		returnsCount = method->getReturnsCount();
-	}
-
-	if(!currentFrame->isContinuous())
-	{
-	
-		if(!method.isNull())
-		{
-			paramsCount = method->getParamsCount();
-			returnsCount = method->getReturnsCount();
-		}
-
-		if(previousFrame)
-		{
-			// clean previous frame
-			previousFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
-	
-			// push returns on previous frame
-			for(int32 i = returnsCount; i >= 1; i--)
-			{
-				previousFrame->stackPush(currentFrame->stackTop(-paramsCount - i - 2));
-			}
-		}
-	}
-	else if(previousFrame)
-	{
-		// clean previous frame
-		previousFrame->stackMoveTop(-(paramsCount + 2)); // returns will stay
-	}
-
-#ifdef BEER_STACK_DEBUGGING
-	// clean current frame
-	currentFrame->stackMoveTop(-(paramsCount + returnsCount + 2));
-#endif // BEER_STACK_DEBUGGING
-
-	discardFrame(previousFrame, currentFrame);
-	mRootFrame->stackPop();
-	mTopFrame = previousFrame;
 }
 
 void Thread::loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile)

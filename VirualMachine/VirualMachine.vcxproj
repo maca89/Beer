@@ -22,6 +22,7 @@
     <ClCompile Include="sources\AlignedHeap.cpp" />
     <ClCompile Include="sources\AllocationBlock.cpp" />
     <ClCompile Include="sources\BytecodeBuilder.cpp" />
+    <ClCompile Include="sources\CreateAllEntryPointsTask.cpp" />
     <ClCompile Include="sources\DefaultBytecodeLinker.cpp" />
     <ClCompile Include="sources\DynamicHeap.cpp" />
     <ClCompile Include="sources\FixedHeap.cpp" />
@@ -66,6 +67,7 @@
     <ClCompile Include="sources\prereq.cpp" />
     <ClCompile Include="sources\Property.cpp" />
     <ClCompile Include="sources\RandomGenerator.cpp" />
+    <ClCompile Include="sources\CreateOneEntryPointTask.cpp" />
     <ClCompile Include="sources\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">Create</PrecompiledHeader>
@@ -76,6 +78,8 @@
     <ClCompile Include="sources\StringDescriptor.cpp" />
     <ClCompile Include="sources\Task.cpp" />
     <ClCompile Include="sources\NativeThread.cpp" />
+    <ClCompile Include="sources\TaskContext.cpp" />
+    <ClCompile Include="sources\TaskScheduler.cpp" />
     <ClCompile Include="sources\Thread.cpp" />
     <ClCompile Include="sources\MiliTimer.cpp" />
     <ClCompile Include="sources\Timer.cpp" />
@@ -89,6 +93,7 @@
     <ClInclude Include="sources\BytecodeBuilder.h" />
     <ClInclude Include="sources\BytecodeInputStream.h" />
     <ClInclude Include="sources\BytecodePass.h" />
+    <ClInclude Include="sources\CreateAllEntryPointsTask.h" />
     <ClInclude Include="sources\DefaultBytecodeLinker.h" />
     <ClInclude Include="sources\DownwardStack.h" />
     <ClInclude Include="sources\DynamicHeap.h" />
@@ -117,6 +122,9 @@
     <ClInclude Include="sources\MultipassBytecodeOptimiser.h" />
     <ClInclude Include="sources\NurseryGC.h" />
     <ClInclude Include="sources\ObjectInspector.h" />
+    <ClInclude Include="sources\CreateOneEntryPointTask.h" />
+    <ClInclude Include="sources\TaskContext.h" />
+    <ClInclude Include="sources\TaskScheduler.h" />
     <ClInclude Include="sources\TraverseObjectReceiver.h" />
     <ClInclude Include="sources\Pair.h" />
     <ClInclude Include="sources\PolymorphicCache.h" />

@@ -107,13 +107,13 @@ namespace Beer
 	public:
 		INLINE StackRef(Frame* frame, int32 index)
 		{
-			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
+			static_cast<Object*>(reinterpret_cast<T*>(NULL)); // check if can be cast
 			mPtr = frame->stackTopPtr(index);
 		}
 
 		INLINE StackRef(T** object)
 		{
-			static_cast<T*>(reinterpret_cast<Object*>(NULL)); // check if can be cast
+			static_cast<Object*>(reinterpret_cast<T*>(NULL)); // check if can be cast
 			mPtr = reinterpret_cast<Object**>(object);
 		}
 

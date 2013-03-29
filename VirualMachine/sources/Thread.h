@@ -5,6 +5,7 @@
 #include "Integer.h"
 #include "Float.h"
 #include "GenerationalGC.h"
+#include "TaskContext.h"
 
 
 namespace Beer
@@ -21,22 +22,18 @@ namespace Beer
 
 	class Thread : public NativeThread
 	{
-	public:
-		//typedef FixedStack<Frame*> FramesStack;
-
 	protected:
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;  // is it needed?
-		Frame* mRootFrame;
-		Frame* mTopFrame;
 		Heap* mHeap;
 		PolymorphicCache* mPolycache; // TODO: in Thread's pool
+
+		TaskContext mTemporaryContext;
+		TaskContext* mContext;
 
 		enum
 		{
 			CREATE_INSTANCE_CACHE_SIZE = 3, // TODO: bigger
-
-			DEFAULT_FRAME_SPACE = 4*1024, // 4KB
 		};
 
 	public:
@@ -46,19 +43,19 @@ namespace Beer
 		{
 		}
 
+		void setContext(TaskContext* value) { mContext = value; }
+		TaskContext* getThreadContext() { return mContext; }
+
 		INLINE VirtualMachine* getVM() { return mVM; }
 		INLINE GenerationalGC* getGC() { return mGC; } // does every thread need GC?
 		INLINE Heap* getHeap() { return mHeap; }
 		INLINE Heap* getPermanentHeap() { return mGC->getPermanentHeap(); }
 
-		// TODO: move all Frames to Task
-		INLINE Frame* getFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
-		INLINE bool hasFrame() { return mRootFrame->stackLength() != 0; }
-		Frame* openFrame();
-		void closeFrame();
-		Frame* getPreviousFrame();
-
-		INLINE Frame* getFrames() { return mRootFrame; }
+		// TODO: get rid of
+		INLINE Frame* getFrame() { return mContext->getFrame(); }
+		INLINE bool hasFrame() { return mContext->hasFrame(); }
+		INLINE Frame* openFrame() { return mContext->openFrame(); }
+		INLINE void closeFrame() { mContext->closeFrame(); }
 
 		
 		void loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile);
@@ -93,14 +90,5 @@ namespace Beer
 
 	protected:
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
-
-		INLINE void fetchTopFrame()
-		{
-			if(hasFrame()) mTopFrame = mRootFrame->stackTop<Frame>();
-			else mTopFrame = NULL;
-		}
-
-		Frame* allocFrame(Frame* previousFrame, uint32 stackSize, uint32 argsCout);
-		void discardFrame(Frame* previousFrame, Frame* currentFrame);
 	};
 };

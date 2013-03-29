@@ -21,7 +21,9 @@ namespace Beer
 		enum
 		{
 			FLAG_VALUE_TYPE = 0x01,
-			FLAG_INTERFACE = 0x02
+			FLAG_INTERFACE = 0x02,
+
+			FLAG_ENTRYPOINT = 0x04,
 		};
 
 		typedef void (*Traverser)(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
@@ -68,6 +70,9 @@ namespace Beer
 		
 		INLINE void markAsInterface() { markFlag(FLAG_INTERFACE); }
 		INLINE bool isInterface() const { return hasFlag(FLAG_INTERFACE); }
+		
+		INLINE void markEntryPoint() { markFlag(FLAG_ENTRYPOINT); }
+		INLINE bool isEntryPoint() const { return hasFlag(FLAG_ENTRYPOINT); }
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }

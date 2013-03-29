@@ -33,6 +33,11 @@ namespace Beer
 
 			FRAME_HEAP_ALLOCATED = 2,
 			FRAME_STACK_ALLOCATED = 4,
+
+			INDEX_FIRST_ARG = -3,
+			INDEX_RECEIVER = -2,
+			INDEX_METHOD = -1,
+			INDEX_FIRST_VAR = 0,
 		};
 
 	protected:

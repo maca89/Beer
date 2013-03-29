@@ -12,6 +12,14 @@ namespace Beer
 	class Task : public Object
 	{
 	public:
+		enum
+		{
+			TASK_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT,
+			TASK_METHODS_COUNT = OBJECT_METHODS_COUNT + 8,
+		};
+
+
+	public:
 		static void BEER_CALL init(Thread* thread, StackRef<Task> receiver, StackRef<Task> ret);
 
 		static void BEER_CALL schedule(Thread* thread, StackRef<Task> receiver);
@@ -21,6 +29,8 @@ namespace Beer
 		static void BEER_CALL getCanceled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret);
 		static void BEER_CALL getFailed(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret);
 		static void BEER_CALL getId(Thread* thread, StackRef<Task> receiver, StackRef<Integer> ret);
+
+		static void BEER_CALL abstractWork(Thread* thread, StackRef<Task> receiver);
 	};
 
 	class TaskInitializer : public ClassInitializer

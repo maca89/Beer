@@ -125,7 +125,7 @@ void Debugger::printCallStack(Thread* thread, Frame* frame)
 	uint32 framei = 0;
 	FrameVector myframes(framesMax);
 
-	Frame* frames = thread->getFrames();
+	Frame* frames = thread->getThreadContext()->getFrames();
 	for(framei; framei < frames->stackLength(); framei++)
 	{
 		Frame* otherFrame = frames->stackTop<Frame>(framei);

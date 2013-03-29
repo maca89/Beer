@@ -172,6 +172,18 @@
     <ClCompile Include="sources\ObjectInpector.cpp">
       <Filter>Sources\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="sources\TaskScheduler.cpp">
+      <Filter>Sources\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\TaskContext.cpp">
+      <Filter>Sources\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CreateOneEntryPointTask.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CreateAllEntryPointsTask.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -405,6 +417,18 @@
     </ClInclude>
     <ClInclude Include="sources\ObjectInspector.h">
       <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\TaskScheduler.h">
+      <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\TaskContext.h">
+      <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CreateOneEntryPointTask.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CreateAllEntryPointsTask.h">
+      <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

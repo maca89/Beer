@@ -161,26 +161,21 @@ void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, const char_t*
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
-	
-	StackRef<Pair> pair(frame, frame->stackPush());
 
-	// create pair
+	StackRef<Method> method(frame, frame->stackPush());
+	createMethod(thread, method, fn, returns, params);
+
+	// set name
 	{
-		StackRef<Method> method(frame, frame->stackPush());
-		createMethod(thread, method, fn, returns, params);
+		StackRef<String> nameOnStack(frame, frame->stackPush());
+		thread->createString(nameOnStack, name); // TODO: constant
 
-		StackRef<String> str(frame, frame->stackPush());
-		thread->createString(str, name); // TODO: constant
-
-		Method::setName(thread, method, str);
-		
-		thread->createString(str, selector); // TODO: constant
-		thread->createPair(str, method, pair);
-		frame->stackMoveTop(-2); // pop str, method
+		Method::setName(thread, method, nameOnStack);
+		frame->stackPop(); // pop nameOnStack
 	}
 
-	Class::addMethod(thread, klass, pair);
-	frame->stackPop(); // pop pair
+	addMethod(thread, klass, method, selector);
+	frame->stackPop(); // pop method
 }
 
 void ClassLoader::addMethod(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const char_t* selector)
