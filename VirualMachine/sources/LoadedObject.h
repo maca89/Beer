@@ -41,15 +41,15 @@ namespace Beer
 		}
 
 		// interface ClassInitializer
-		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret);
-		virtual void initClass(Thread* vm, ClassLoader* loader, StackRef<Class> klass);
+		virtual Class* createClass(Thread* thread, ClassLoader* loader, String* name);
+		virtual void initClass(Thread* vm, ClassLoader* loader, Class* klass);
 
 	protected:
 		AttributeDescriptor* getAtribute(uint16 i);
 		MethodDescriptor* getMethod(uint16 i);
 
 		void makeProperty(Thread* thread, StackRef<Property> ret, ClassLoader* loader, AttributeDescriptor* attrDescr);
-		void makeMethod(Thread* thread, StackRef<Method> ret, ClassLoader* loader, MethodDescriptor* methodDescr);
+		Method* makeMethod(Thread* thread, ClassLoader* loader, MethodDescriptor* methodDescr);
 		void makeParam(Thread* thread, StackRef<Param> ret, ClassLoader* loader, ParamDescriptor* paramDescr);
 
 		const char_t* getParentClassName(Thread* thread, uint16 i);

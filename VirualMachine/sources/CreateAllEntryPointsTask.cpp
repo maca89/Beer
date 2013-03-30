@@ -37,6 +37,8 @@ void BEER_CALL CreateAllEntryPointsTask::work(Thread* thread, StackRef<CreateAll
 
 		// fetch substituable
 		{
+			//substituable = Class::substituable(thread, klass, entryPointClass); // TODO
+
 			StackRef<Boolean> tmp(frame, frame->stackPush());
 			Class::substituable(thread, klass, entryPointClass, tmp);
 			substituable = tmp->getData();
@@ -63,23 +65,14 @@ void BEER_CALL CreateAllEntryPointsTask::work(Thread* thread, StackRef<CreateAll
 	frame->stackPop(); // pop entryPointClass
 }
 
-void CreateAllEntryPointsTaskInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* CreateAllEntryPointsTaskInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, CreateAllEntryPointsTask::CREATEEPSTASK_CHILDREN_COUNT, CreateAllEntryPointsTask::CREATEEPSTASK_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, CreateAllEntryPointsTask::CREATEEPSTASK_CHILDREN_COUNT, CreateAllEntryPointsTask::CREATEEPSTASK_METHODS_COUNT);
 }
 
-void CreateAllEntryPointsTaskInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void CreateAllEntryPointsTaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> taskClass(frame, frame->stackPush(
-			thread->getVM()->findClass(BEER_WIDEN("Task"))
-		));
-		Class::addParent(thread, klass, taskClass);
-		frame->stackPop(); //  pop taskClass
-	}
+	klass->addParent(thread->getVM()->findClass(BEER_WIDEN("Task")));
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("CreateAllEntryPointsTask"), BEER_WIDEN("CreateAllEntryPointsTask::CreateAllEntryPointsTask()"), &CreateAllEntryPointsTask::init, 1, 0);
 	loader->addMethod(thread, klass, BEER_WIDEN("work"), BEER_WIDEN("Task::work()"), &CreateAllEntryPointsTask::work, 0, 0); // interface method, TODO: second selector

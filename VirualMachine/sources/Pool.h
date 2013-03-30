@@ -47,8 +47,8 @@ namespace Beer
 	{
 	public:
 		// ClassInitializer
-		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret);
-		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass);
+		virtual Class* createClass(Thread* thread, ClassLoader* loader, String* name);
+		virtual void initClass(Thread* thread, ClassLoader* loader, Class* klass);
 	};
 
 	INLINE void Pool::getLength(Thread* thread, StackRef<Pool> pool, uint16& length)

@@ -3,9 +3,9 @@
 #include "Object.h"
 #include "Frame.h"
 #include "Pair.h"
-#include "Property.h"
 #include "String.h" // TODO
 #include "TraverseObjectReceiver.h"
+#include "Property.h"
 
 
 namespace Beer
@@ -82,13 +82,34 @@ namespace Beer
 		Traverser getTraverser() const;
 		void setTraverser(Traverser value);
 
-		// parents
+		// children
 
+		bool hasPropertyFreeSlot() const;
+		bool hasMethodFreeSlot() const;
+		bool hasParentFreeSlot() const;
+
+		String* getName();
+		void setName(String* value);
+		
+		Class* getParent(uint32 index);
 		uint32 getParentsCount() const;
-		uint32 getMethodsCount() const;
+		uint32 getParentNext() const;
+		void addParent(Class* value);
+		void setParent(uint32 index, Class* value);
+		
+		Property* getProperty(uint32 index);
 		uint32 getPropertiesCount() const;
+		uint32 getPropertyNext() const;
+		void addProperty(Property* value);
+		void setProperty(uint32 index, Property* value);
+		
+		Pair* getMethod(uint32 index);
+		uint32 getMethodsCount() const;
+		uint32 getMethodNext() const;
+		void addMethod(Pair* value);
+		void setMethod(uint32 index, Pair* value);
 
-		INLINE String* getName() { return static_cast<String*>(getChildren()[CHILD_ID_CLASS_NAME]); }
+		//bool substituable(Class otherClass); // TODO
 
 		// methods
 
@@ -121,17 +142,9 @@ namespace Beer
 		static void DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 
 	protected:
-		static void BEER_CALL getPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL getMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL getParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-
 		static void BEER_CALL incrPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL incrMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 		static void BEER_CALL incrParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-
-		static bool hasPropertyFreeSlot(Thread* thread, StackRef<Class> receiver);
-		static bool hasMethodFreeSlot(Thread* thread, StackRef<Class> receiver);
-		static bool hasParentFreeSlot(Thread* thread, StackRef<Class> receiver);
 	};
 
 	// inline definitions
@@ -146,18 +159,104 @@ namespace Beer
 		mTraverser = value;
 	}
 
+	// slots
+
+	INLINE bool Class::hasPropertyFreeSlot() const
+	{
+		return mPropertyNext < mPropertiesCount;
+	}
+
+	INLINE bool Class::hasMethodFreeSlot() const
+	{
+		return mMethodNext < mMethodsCount;
+	}
+
+	INLINE bool Class::hasParentFreeSlot() const
+	{
+		return mParentNext < mParentsCount;
+	}
+
+	// parents
+
+	INLINE Class* Class::getParent(uint32 index)
+	{
+		BOUNDS_ASSERT(index, mParentsCount);
+		return static_cast<Class*>(getChild(CHILD_ID_CLASS_NAME + 1 + index)); // +1 for name 
+	}
+
+	INLINE void Class::setParent(uint32 index, Class* value)
+	{
+		BOUNDS_ASSERT(index, mParentsCount);
+		setChild(CHILD_ID_CLASS_NAME + 1 + index, value); // +1 for name 
+	}
+
+	INLINE uint32 Class::getParentNext() const
+	{
+		return mParentNext;
+	}
+
 	INLINE uint32 Class::getParentsCount() const
 	{
 		return mParentsCount;
+	}
+
+	// methods
+
+	INLINE Pair* Class::getMethod(uint32 index)
+	{
+		BOUNDS_ASSERT(index, mMethodsCount);
+		return static_cast<Pair*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index)); // +1 for name 
+	}
+
+	INLINE void Class::setMethod(uint32 index, Pair* value)
+	{
+		BOUNDS_ASSERT(index, mMethodsCount);
+		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index, value); // +1 for name 
 	}
 	
 	INLINE uint32 Class::getMethodsCount() const
 	{
 		return mMethodsCount;
 	}
+
+	INLINE uint32 Class::getMethodNext() const
+	{
+		return mMethodNext;
+	}
+
+	// properties
+
+	INLINE Property* Class::getProperty(uint32 index)
+	{
+		BOUNDS_ASSERT(index, mPropertiesCount);
+		return static_cast<Property*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + mMethodsCount + index)); // +1 for name 
+	}
+
+	INLINE void Class::setProperty(uint32 index, Property* value)
+	{
+		BOUNDS_ASSERT(index, mPropertiesCount);
+		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + mMethodsCount + index, value); // +1 for name 
+	}
 	
 	INLINE uint32 Class::getPropertiesCount() const
 	{
 		return mPropertiesCount;
+	}
+
+	INLINE uint32 Class::getPropertyNext() const
+	{
+		return mPropertyNext;
+	}
+
+	// name
+
+	INLINE String* Class::getName()
+	{
+		return static_cast<String*>(getChild(CHILD_ID_CLASS_NAME));
+	}
+
+	INLINE void Class::setName(String* value)
+	{
+		setChild(CHILD_ID_CLASS_NAME, value);
 	}
 };

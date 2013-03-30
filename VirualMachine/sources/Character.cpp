@@ -44,22 +44,14 @@ void BEER_CALL Character::createInstance(Thread* thread, StackRef<Class> receive
 	ret = Character::makeInlineValue(' ');
 }
 
-void CharacterClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* CharacterClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	loader->createClass<Class>(thread, name, ret, 1, 0, 6 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, 0, 6 + Object::OBJECT_METHODS_COUNT);
 }
 
-void CharacterClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void CharacterClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 
 	klass->markAsValueType();
 	

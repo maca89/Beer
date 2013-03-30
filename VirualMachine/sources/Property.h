@@ -2,7 +2,6 @@
 #include "prereq.h"
 #include "Object.h"
 #include "String.h"
-#include "Class.h"
 #include "StackRef.h"
 
 
@@ -37,23 +36,5 @@ namespace Beer
 
 	// inlined methods
 
-	INLINE void BEER_CALL Property::getPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> ret)
-	{
-		Object::getChild(thread, receiver, CHILD_ID_PROPERTY_TYPE, ret);
-	}
-
-	INLINE void BEER_CALL Property::setPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> type)
-	{
-		Object::setChild(thread, receiver, CHILD_ID_PROPERTY_TYPE, type);
-	}
-
-	INLINE void BEER_CALL Property::getPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> ret)
-	{
-		Object::getChild(thread, receiver, CHILD_ID_PROPERTY_NAME, ret);
-	}
-
-	INLINE void BEER_CALL Property::setPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> type)
-	{
-		Object::setChild(thread, receiver, CHILD_ID_PROPERTY_NAME, type);
-	}
+	
 };

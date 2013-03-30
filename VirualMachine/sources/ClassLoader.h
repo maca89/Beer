@@ -16,9 +16,9 @@ namespace Beer
 	{
 	public:
 		virtual ~ClassInitializer() {}
-
-		virtual void createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret) = 0;
-		virtual void initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass) = 0;
+		
+		virtual Class* createClass(Thread* thread, ClassLoader* loader, String* name) = 0;
+		virtual void initClass(Thread* thread, ClassLoader* loader, Class* klass) = 0;
 	};
 
 	class ClassLoader // TODO: interface
@@ -43,30 +43,24 @@ namespace Beer
 		bool canLoadClass(string name);
 		//void unloadClass(string name) // TODO
 
-		void addMethod(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const char_t* selector);
-		void addMethod(Thread* thread, StackRef<Class> klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+		Method* addMethod(Thread* thread, Class* klass, Method* method, const char_t* selector);
+		Method* addMethod(Thread* thread, Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params);
 
-		void createClass(Thread* thread, StackRef<String> name, StackRef<Class> ret, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);
-		void createMethod(Thread* thread, StackRef<Method> ret, Cb fn, uint16 returns, uint16 params);
+		Class* createClass(Thread* thread, String* name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);
+		Method* createMethod(Thread* thread, Cb fn, uint16 returns, uint16 params);
 		void createParam(Thread* thread, StackRef<Param> ret);
 		void createProperty(Thread* thread, StackRef<Property> ret);
 
 		template <typename T>
-		INLINE void addMethod(Thread* thread, StackRef<Class> klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
+		Method* addMethod(Thread* thread, Class* klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
 		{
-			addMethod(thread, klass, name, selector, reinterpret_cast<Cb>(fn), returns, params);
+			return addMethod(thread, klass, name, selector, reinterpret_cast<Cb>(fn), returns, params);
 		}
 
-		/*template <typename T>
-		INLINE void addAbstractMethod(Thread* thread, StackRef<Class> klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
-		{
-			addMethod(thread, klass, name, selector, reinterpret_cast<Cb>(fn), returns, params);
-		}*/
-
 		template <typename T>
-		INLINE void createClass(Thread* thread, StackRef<String> name, StackRef<Class> ret, uint16 parents, uint16 properties, uint16 methods)
+		INLINE Class* createClass(Thread* thread, String* name, uint16 parents, uint16 properties, uint16 methods)
 		{
-			createClass(thread, name, ret, sizeof(T), parents, properties, methods);
+			return createClass(thread, name, sizeof(T), parents, properties, methods);
 		}
 
 	protected:

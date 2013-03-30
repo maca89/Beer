@@ -106,22 +106,14 @@ void BEER_CALL Integer::createInstance(Thread* thread, StackRef<Class> receiver,
 	ret = Integer::makeInlineValue(0);
 }
 
-void IntegerClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* IntegerClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
 }
 
-void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 
 	klass->markAsValueType();
 

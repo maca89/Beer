@@ -185,22 +185,14 @@ void BEER_CALL String::createInstance(Thread* thread, StackRef<Class> receiver, 
 	frame->stackPop(); // pop length
 }
 
-void StringClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* StringClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
 	throw Exception(BEER_WIDEN("Implemented elsewehere"), __WFILE__, __LINE__);
 }
 
-void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 
 	//klass->markAsValueType();
 	

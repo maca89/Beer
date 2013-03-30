@@ -103,6 +103,16 @@ namespace Beer
 		INLINE Class* getArrayClass() { return mArrayClass; }
 		INLINE Class* getPoolClass() { return mPoolClass; }
 		INLINE Class* getPairClass() { return findClass(BEER_WIDEN("Pair")); }
+		
+		INLINE void setMetaClass(Class* value) { mMetaClass = value; }
+		INLINE void setMethodClass(Class* value) { mMethodClass = value; }
+		INLINE void setObjectClass(Class* value) { mObjectClass = value; }
+		INLINE void setFloatClass(Class* value) { mFloatClass = value; }
+		INLINE void setIntegerClass(Class* value) { mIntegerClass = value; }
+		INLINE void setBooleanClass(Class* value) { mBooleanClass = value; }
+		INLINE void setStringClass(Class* value) { mStringClass = value; }
+		INLINE void setArrayClass(Class* value) { mArrayClass = value; }
+		INLINE void setPoolClass(Class* value) { mPoolClass = value; }
 
 	protected:
 		// Thread

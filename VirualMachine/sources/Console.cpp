@@ -148,22 +148,14 @@ void BEER_CALL Console::getArg(Thread* thread, StackRef<Console> receiver, Stack
 	else ret = thread->getVM()->createString(BEER_WIDEN(""));
 }
 
-void ConsoleClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* ConsoleClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 18 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, 0, 18 + Object::OBJECT_METHODS_COUNT);
 }
 
-void ConsoleClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void ConsoleClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("Console"), BEER_WIDEN("Console::Console()"), &Console::init, 1, 0);
 

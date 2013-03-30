@@ -184,6 +184,9 @@
     <ClCompile Include="sources\CreateAllEntryPointsTask.cpp">
       <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
+    <ClCompile Include="sources\InitVMTask.cpp">
+      <Filter>Sources\InternalClasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -428,6 +431,9 @@
       <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\CreateAllEntryPointsTask.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InitVMTask.h">
       <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
   </ItemGroup>

@@ -83,6 +83,9 @@ namespace Beer
 		Object** getChildren();
 		Object** getChildren(uint32 staticSize);
 
+		void setChild(int64 index, Object* child);
+		Object* getChild(int64);
+
 		// shortcuts
 		static void getChild(Thread* thread, StackRef<Object> object, int64 index, StackRef<Object> ret);
 		static void setChild(Thread* thread, StackRef<Object> object, int64 index, StackRef<Object> child);
@@ -128,5 +131,15 @@ namespace Beer
 	INLINE Object** Object::getChildren(uint32 staticSize)
 	{
 		return reinterpret_cast<Object**>(getDynamicDataStart(staticSize));
+	}
+
+	INLINE void Object::setChild(int64 index, Object* child)
+	{
+		getChildren()[index] = child;
+	}
+
+	INLINE Object* Object::getChild(int64 index)
+	{
+		return getChildren()[index];
 	}
 };

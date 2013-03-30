@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Pool.h"
 #include "Class.h"
+#include "Thread.h"
+#include "VirtualMachine.h"
 
 using namespace Beer;
 
@@ -95,23 +97,14 @@ void Pool::PoolInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass,
 	}*/
 }
 
-void PoolClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* PoolClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	loader->createClass<Class>(thread, name, ret, 1, Pool::POOL_CHILDREN_COUNT, Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, Pool::POOL_CHILDREN_COUNT, Object::OBJECT_METHODS_COUNT);
 }
 
-void PoolClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void PoolClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
 	klass->setTraverser(&Pool::PoolInstanceTraverser);
 
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	// extends Object
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 }

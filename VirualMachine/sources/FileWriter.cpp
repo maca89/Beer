@@ -72,22 +72,14 @@ void BEER_CALL FileWriter::writeFailed(Thread* thread, StackRef<FileWriter> rece
 }
 
 
-void FileWriterClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* FileWriterClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 10 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, 0, 10 + Object::OBJECT_METHODS_COUNT);
 }
 
-void FileWriterClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void FileWriterClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 
 	loader->addMethod(thread, klass, BEER_WIDEN("FileWriter"), BEER_WIDEN("FileWriter::FileWriter()"), &FileWriter::init, 1, 0);
 

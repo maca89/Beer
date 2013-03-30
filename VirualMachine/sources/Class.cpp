@@ -140,19 +140,36 @@ void BEER_CALL Class::setName(Thread* thread, StackRef<Class> receiver, StackRef
 	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME, value);
 }
 
+void Class::addParent(Class* klass)
+{
+	DBG_ASSERT(hasParentFreeSlot(), BEER_WIDEN("Unable to add more parents"));
+
+	// set child
+	setParent(mParentNext++, klass);
+
+	// copy methods
+	if(this != klass)
+	{
+		for(uint16 i = 0; i < klass->getMethodsCount(); i++)
+		{
+			Pair* method = klass->getMethod(i);
+			addMethod(method);
+		}
+	}
+
+	// copy properties
+	{
+		for(uint16 i = 0; i < klass->getPropertiesCount(); i++)
+		{
+			Property* prop = klass->getProperty(i);
+			addProperty(prop);
+		}
+	}
+}
+
 void BEER_CALL Class::getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> parentsCount(frame, frame->stackPush());
-	Class::getParentsCount(thread, receiver, parentsCount);
-
-	BOUNDS_ASSERT(index->getData(), parentsCount->getData());
-
-	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + index->getData(), ret); // 1 for name 
-
-	frame->stackPop(); // pop parentsCount
+	ret = receiver->getParent(static_cast<uint32>(index->getData()));
 }
 
 void BEER_CALL Class::getParentsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
@@ -162,71 +179,18 @@ void BEER_CALL Class::getParentsCount(Thread* thread, StackRef<Class> receiver, 
 
 void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value)
 {
-	DBG_ASSERT(hasParentFreeSlot(thread, receiver), BEER_WIDEN("Unable to add more parents"));
+	receiver->addParent(*value);
+}
 
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> parentNext(frame, frame->stackPush());
-	Class::incrParentNext(thread, receiver, parentNext);
-
-	// set child
-	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentNext->getData(), value); // 1 for name
-	frame->stackPop(); // pop parentNext
-
-	// copy methods
-	if(*receiver != *value){
-		StackRef<Integer> index(frame, frame->stackPush());
-		StackRef<Pair> method(frame, frame->stackPush());
-
-		StackRef<Integer> methodsCount(frame, frame->stackPush());
-		Class::getMethodsCount(thread, value, methodsCount);
-
-		for(uint16 i = 0; i < methodsCount->getData(); i++)
-		{
-			thread->createInteger(index, i);
-			Class::getMethod(thread, value, index, method);
-			Class::addMethod(thread, receiver, method);
-		}
-
-		frame->stackMoveTop(-3); // pop index, method, methodsCount
-	}
-
-	// copy properties
-	{
-		StackRef<Integer> index(frame, frame->stackPush());
-		StackRef<Property> prop(frame, frame->stackPush());
-
-		StackRef<Integer> propertiesCount(frame, frame->stackPush());
-		Class::getPropertiesCount(thread, value, propertiesCount);
-
-		for(uint16 i = 0; i < propertiesCount->getData(); i++)
-		{
-			thread->createInteger(index, i);
-			Class::getProperty(thread, value, index, prop);
-			Class::addProperty(thread, receiver, prop);
-		}
-
-		frame->stackMoveTop(-3); // pop prop, index, propertiesCount
-	}
+void Class::addMethod(Pair* value)
+{
+	DBG_ASSERT(hasMethodFreeSlot(), BEER_WIDEN("Unable to add more methods"));
+	setMethod(mMethodNext++, value);
 }
 
 void BEER_CALL Class::getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> methodsCount(frame, frame->stackPush());
-	Class::getMethodsCount(thread, receiver, methodsCount);
-
-	StackRef<Integer> parentsCount(frame, frame->stackPush());
-	Class::getParentsCount(thread, receiver, parentsCount);
-
-	BOUNDS_ASSERT(index->getData(), methodsCount->getData());
-
-	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + index->getData(), ret); // 1 for name
-
-	frame->stackMoveTop(-2); // pop parentsCount, methodsCount
+	ret = receiver->getMethod(static_cast<uint32>(index->getData()));
 }
 
 /*void Class::getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret)
@@ -249,54 +213,23 @@ void BEER_CALL Class::getMethodsCount(Thread* thread, StackRef<Class> receiver, 
 
 void BEER_CALL Class::addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value)
 {
-	DBG_ASSERT(hasMethodFreeSlot(thread, receiver), BEER_WIDEN("Unable to add more methods"));
+	receiver->addMethod(*value);
+}
 
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> parentsCount(frame, frame->stackPush());
-	Class::getParentsCount(thread, receiver, parentsCount);
-
-	StackRef<Integer> methodNext(frame, frame->stackPush());
-	Class::incrMethodNext(thread, receiver, methodNext);
-
-	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodNext->getData(), value); // 1 for name
-
-	frame->stackMoveTop(-2); // pop parentsCount, methodNext
+void Class::addProperty(Property* value)
+{
+	DBG_ASSERT(hasPropertyFreeSlot(), BEER_WIDEN("Unable to add more properties"));
+	setProperty(mPropertyNext++, value);
 }
 
 void Class::getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, StackRef<Property> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> i(frame, frame->stackPush());
-	thread->createInteger(i, index);
-
-	Class::getProperty(thread, receiver, i, ret);
-
-	frame->stackPop(); // pop i
+	ret = receiver->getProperty(index);
 }
 
 void BEER_CALL Class::getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> methodsCount(frame, frame->stackPush());
-	Class::getMethodsCount(thread, receiver, methodsCount);
-
-	StackRef<Integer> parentsCount(frame, frame->stackPush());
-	Class::getParentsCount(thread, receiver, parentsCount);
-
-	StackRef<Integer> propertiesCount(frame, frame->stackPush());
-	Class::getPropertiesCount(thread, receiver, propertiesCount);
-
-	BOUNDS_ASSERT(index->getData(), propertiesCount->getData());
-
-	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodsCount->getData() + index->getData(), ret); // 1 for name 
-
-	frame->stackMoveTop(-3); // pop methodsCount, parentsCount, propertiesCount
+	ret = receiver->getProperty(static_cast<uint32>(index->getData()));
 }
 
 void BEER_CALL Class::getPropertiesCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
@@ -306,43 +239,7 @@ void BEER_CALL Class::getPropertiesCount(Thread* thread, StackRef<Class> receive
 
 void BEER_CALL Class::addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value)
 {
-	DBG_ASSERT(hasPropertyFreeSlot(thread, receiver), BEER_WIDEN("Unable to add more properties"));
-
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> methodsCount(frame, frame->stackPush());
-	Class::getMethodsCount(thread, receiver, methodsCount);
-
-	StackRef<Integer> parentsCount(frame, frame->stackPush());
-	Class::getParentsCount(thread, receiver, parentsCount);
-
-	StackRef<Integer> propertyNext(frame, frame->stackPush());
-	Class::incrPropertyNext(thread, receiver, propertyNext);
-
-	Object::setChild(
-		thread,
-		receiver, 
-		CHILD_ID_CLASS_NAME + 1 + parentsCount->getData() + methodsCount->getData() + propertyNext->getData(),
-		value
-	); // 1 for name
-
-	frame->stackMoveTop(-3); // pop methodsCount, parentsCount, propertyNext
-}
-
-void BEER_CALL Class::getPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mPropertyNext); // TODO
-}
-
-void BEER_CALL Class::getMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mMethodNext); // TODO
-}
-
-void BEER_CALL Class::getParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mParentNext); // TODO
+	receiver->addProperty(*value);
 }
 
 void BEER_CALL Class::incrPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
@@ -358,54 +255,6 @@ void BEER_CALL Class::incrMethodNext(Thread* thread, StackRef<Class> receiver, S
 void BEER_CALL Class::incrParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
 {
 	thread->createInteger(ret, receiver->mParentNext++); // TODO
-}
-
-bool Class::hasPropertyFreeSlot(Thread* thread, StackRef<Class> receiver)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> next(frame, frame->stackPush());
-	StackRef<Integer> count(frame, frame->stackPush());
-
-	Class::getPropertiesCount(thread, receiver, count);
-	Class::getPropertyNext(thread, receiver, next);
-
-	bool result = next->getData() < count->getData();
-	frame->stackMoveTop(-2); // pop next, count
-	return result;
-}
-
-bool Class::hasMethodFreeSlot(Thread* thread, StackRef<Class> receiver)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> next(frame, frame->stackPush());
-	StackRef<Integer> count(frame, frame->stackPush());
-
-	Class::getMethodsCount(thread, receiver, count);
-	Class::getMethodNext(thread, receiver, next);
-
-	bool result = next->getData() < count->getData();
-	frame->stackMoveTop(-2); // pop next, count
-	return result;
-}
-
-bool Class::hasParentFreeSlot(Thread* thread, StackRef<Class> receiver)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> next(frame, frame->stackPush());
-	StackRef<Integer> count(frame, frame->stackPush());
-
-	Class::getParentsCount(thread, receiver, count);
-	Class::getParentNext(thread, receiver, next);
-
-	bool result = next->getData() < count->getData();
-	frame->stackMoveTop(-2); // pop next, count
-	return result;
 }
 
 void Class::DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance)

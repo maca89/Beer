@@ -64,7 +64,7 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 }
 
 
-void LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -115,36 +115,33 @@ void LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader, S
 		frame->stackMoveTop(-2); // pop objectKlass, methodsCount
 	}
 
-	loader->createClass<Class>(
+	return loader->createClass<Class>(
 		thread, 
 		name, // classDescr->getName(classFile)->c_str()
-		ret,
 		mClassDescr->getParentsLength() == 0 ? 1 : mClassDescr->getParentsLength() /*+ (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0)*/, // + 1 for Object, TODO: Main in classfile
 		propertiesLength, 
 		methodsLength + 1 // +1 for createInstance
 	);
 }
 
-void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass) // TODO: add parents properties into properties size
+void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass) // TODO: add parents properties into properties size
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	StackRef<Method> method(frame, frame->stackPush());
-	mClass = *klass; // ugly, TODO: get rid of
+	StackRef<Class> klassOnStack(frame, frame->stackPush(klass)); // TODO: get rid of
+
+	mClass = klass; // ugly, TODO: get rid of
 
 	uint16 methodStart = 0;
 
 	StackRef<String> className(frame, frame->stackPush());
 	
-	Class::getName(thread, klass, className);
+	className = klass->getName();
 
 	if(mClassDescr->getParentsLength() == 0)
 	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); // pop objectClass
+		klass->addParent(thread->getVM()->getObjectClass());
 	}
 
 	// parents
@@ -156,7 +153,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 		StackRef<Class> parentClass(frame, frame->stackPush());
 		thread->findClass(parentClassName, parentClass);
 
-		Class::addParent(thread, klass, parentClass);
+		Class::addParent(thread, klassOnStack, parentClass);
 		
 		frame->stackMoveTop(-2); // pop parentClass, parentClassName
 	}
@@ -169,7 +166,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 		{
 			AttributeDescriptor* attrDescr = getAtribute(i);
 			makeProperty(thread, prop, loader, attrDescr);
-			Class::addProperty(thread, klass, prop);
+			Class::addProperty(thread, klassOnStack, prop);
 		}
 
 		frame->stackPop(); // pop property
@@ -179,10 +176,10 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
 		MethodDescriptor* methodDescr = getMethod(i);
-		makeMethod(thread, method, loader, methodDescr);
+		Method* method = makeMethod(thread, loader, methodDescr);
 
 		StackRef<String> str(frame, frame->stackPush());
-		Method::getName(thread, method, str);
+		str = method->getName();
 		string selector = string() + BEER_WIDEN("::") + str->c_str();
 
 		selector += BEER_WIDEN("(");
@@ -207,7 +204,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Sta
 
 	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &LoadedObject::createInstance, 1, 0);
 
-	frame->stackMoveTop(-2); // pop classname, method
+	frame->stackMoveTop(-2); // pop classname, klassOnStack
 }
 
 AttributeDescriptor* LoadedObjectInitializer::getAtribute(uint16 i)
@@ -283,24 +280,24 @@ void LoadedObjectInitializer::makeParam(Thread* thread, StackRef<Param> ret, Cla
 	}
 }
 
-void LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Method> ret, ClassLoader* loader, MethodDescriptor* methodDescr)
+Method* LoadedObjectInitializer::makeMethod(Thread* thread, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	loader->createMethod(thread, ret, NULL, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
+	Method* method = loader->createMethod(thread, NULL, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
+
+	// TODO: get rid of this
+	StackRef<Method> methodOnStack(frame, frame->stackPush(
+		method
+	));
 
 	// set name
-	{
-		StackRef<String> name(frame, frame->stackPush(
-			*String::gTranslate(thread, methodDescr->getName(mClassFile)->c_str())
-		));
-
-		Method::setName(thread, ret, name);
-		frame->stackPop(); // pop name
-	}
+	method->setName(
+		*String::gTranslate(thread, methodDescr->getName(mClassFile)->c_str())
+	);
 	
-	ret->setMaxStack(20); // TODO: methodDescr->getMaxStack()
+	method->setMaxStack(20); // TODO: methodDescr->getMaxStack()
 
 	// returns
 	{
@@ -314,7 +311,7 @@ void LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Method> ret, C
 			ParamDescriptor* returnDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getReturnId(reti));
 			makeParam(thread, param, loader, returnDescr);
 
-			Method::setReturn(thread, ret, index, param);
+			Method::setReturn(thread, methodOnStack, index, param);
 		}
 
 		frame->stackMoveTop(-2); // pop param, index
@@ -332,7 +329,7 @@ void LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Method> ret, C
 			ParamDescriptor* paramDescr = mClassFile->getDescriptor<ParamDescriptor>(methodDescr->getParamId(parami));
 			makeParam(thread, param, loader, paramDescr);
 
-			Method::setParam(thread, ret, index, param);
+			Method::setParam(thread, methodOnStack, index, param);
 		}
 		
 		frame->stackMoveTop(-2); // pop param, index
@@ -342,8 +339,12 @@ void LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Method> ret, C
 	{
 		// bytecode
 		BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
-		thread->getVM()->getBytecodeBuilder()->build(thread, ret, mClassFile, bcDescr);
+		thread->getVM()->getBytecodeBuilder()->build(thread, methodOnStack, mClassFile, bcDescr);
 	}
+
+	frame->stackPop(); // pop methodOnStack
+
+	return method;
 }
 
 void LoadedObjectInitializer::getParentClassName(Thread* thread, StackRef<String> ret, uint16 i)

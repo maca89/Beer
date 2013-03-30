@@ -28,6 +28,7 @@
     <ClCompile Include="sources\FixedHeap.cpp" />
     <ClCompile Include="sources\FrameInspector.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
+    <ClCompile Include="sources\InitVMTask.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
     <ClCompile Include="sources\MultipassBytecodeOptimiser.cpp" />
     <ClCompile Include="sources\NurseryGC.cpp" />
@@ -103,6 +104,7 @@
     <ClInclude Include="sources\FrameInspector.h" />
     <ClInclude Include="sources\GenerationalGC.h" />
     <ClInclude Include="sources\Heap.h" />
+    <ClInclude Include="sources\InitVMTask.h" />
     <ClInclude Include="sources\MemoryAllocator.h" />
     <ClInclude Include="sources\MetaClass.h" />
     <ClInclude Include="sources\Character.h" />

@@ -71,22 +71,14 @@ void BEER_CALL RandomGenerator::toss(Thread* thread, StackRef<RandomGenerator> r
 	ret = Boolean::makeInlineValue(random < max);
 }
 
-void RandomGeneratorClassInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* RandomGeneratorClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, 0, 8 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, 0, 8 + Object::OBJECT_METHODS_COUNT);
 }
 
-void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);
 	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator(Integer)"), &RandomGenerator::initInteger, 1, 1);

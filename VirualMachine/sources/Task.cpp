@@ -86,22 +86,14 @@ void BEER_CALL Task::abstractWork(Thread* thread, StackRef<Task> receiver)
 	throw AbstractMethodException(*method);
 }
 
-void TaskInitializer::createClass(Thread* thread, ClassLoader* loader, StackRef<String> name, StackRef<Class> ret)
+Class* TaskInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, ret, 1, Task::TASK_CHILDREN_COUNT, Task::TASK_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, Task::TASK_CHILDREN_COUNT, Task::TASK_METHODS_COUNT);
 }
 
-void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass)
+void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	{
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		thread->getObjectClass(objectClass);
-		Class::addParent(thread, klass, objectClass);
-		frame->stackPop(); //  pop objectClass
-	}
+	klass->addParent(thread->getVM()->getObjectClass());
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);
 	

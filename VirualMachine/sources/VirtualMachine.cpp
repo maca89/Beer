@@ -23,6 +23,7 @@
 #include "Task.h"
 #include "CreateOneEntryPointTask.h"
 #include "CreateAllEntryPointsTask.h"
+#include "InitVMTask.h"
 #include "LoadedObject.h"
 #include "Pair.h"
 #include "RandomGenerator.h"
@@ -59,37 +60,6 @@ void VirtualMachine::addClass(Thread* thread, Class* klass)
 	mClasses[name->c_str()] = klass; // TODO
 }
 
-/*void VirtualMachine::removeClass(ClassReflection* reflection)
-{
-	throw Exception(BEER_WIDEN("Not yet implemented"), __WFILE__, __LINE__);
-
-	// TODO
-	ClassReflectionTable::iterator it = mClasses.find(reflection->getName()->c_str());
-	RUNTIME_ASSERT(it != mClasses.end(), BEER_WIDEN("No class with such name"));
-	mClasses.erase(it);
-	VM_DEBUG(BEER_WIDEN("Removed class ") << reflection->getName());
-}
-
-bool VirtualMachine::hasClass(string name) const
-{
-	// TODO
-	return (mClasses.find(name) != mClasses.end()) || mClassLoader->canLoadClass(name);
-}*/
-	
-Class* VirtualMachine::findClass(StackRef<String> name)
-{
-	ClassReflectionTable::iterator it = mClasses.find(name->c_str()); // TODO
-	if(it != mClasses.end()) return mClasses.find(name->c_str())->second; // TODO
-
-	mClassLoader->loadClass(this, name);
-
-	// TODO
-	it = mClasses.find(name->c_str()); // TODO
-	if(it != mClasses.end()) return mClasses.find(name->c_str())->second; // TODO
-
-	throw ClassNotFoundException(name->c_str()); // TODO
-}
-
 void VirtualMachine::loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile)
 {
 	this->Thread::loadClassFile(loader, classFile);
@@ -119,6 +89,23 @@ void VirtualMachine::init()
 	mBytecodeBuilder = new BytecodeBuilder();
 	Bytecode::init(this);
 
+	mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Integer"), new IntegerClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Float"), new FloatClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Console"), new ConsoleClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Array"), new ArrayClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Timer"), new TimerClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("FileReader"), new FileReaderClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("FileWriter"), new FileWriterClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Pair"), new PairClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("RandomGenerator"), new RandomGeneratorClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Pool"), new PoolClassInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("CreateOneEntryPointTask"), new CreateOneEntryPointTaskInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("CreateAllEntryPointsTask"), new CreateAllEntryPointsTaskInitializer);
+	mClassLoader->addClassInitializer(BEER_WIDEN("InitVMTask"), new InitVMTaskInitializer);
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// init objects and their classes
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,134 +113,21 @@ void VirtualMachine::init()
 		Frame* frame = getFrame();
 		BEER_STACK_CHECK();
 
-		// create MetaClass
-		StackRef<MetaClass> metaClass(frame, frame->stackPush(
-			mMetaClass = getPermanentHeap()->alloc<MetaClass>(
-				Class::CLASS_CHILDREN_COUNT + 1 + 2 + Object::OBJECT_METHODS_COUNT // 1 parent, 2 methods
-		)));
+		InitVMTask* task = mHeap->alloc<InitVMTask>(InitVMTask::INITVMTASK_CHILDREN_COUNT);
+		//task->setType(findClass(BEER_WIDEN("InitVMTask"))); // TODO
 
-		mMetaClass = *metaClass; // ugly, TODO
-		mMetaClass->mFlags = 0; // deprecated
-		mMetaClass->mParentsCount = 1;
-		mMetaClass->mPropertiesCount = 0;
-		mMetaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
-		mMetaClass->mParentNext = mMetaClass->mMethodNext = mMetaClass->mPropertyNext = 0;
-		mMetaClass->mTraverser = &MetaClass::DefaultClassTraverser;
+		// TODO: schedule
 
-		// create MetaClass name
-		StackRef<String> metaClassName(frame, frame->stackPush(
-			mHeap->alloc<String>(
-				static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 9 for "MetaClass", 1 for "\0"
-				Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
-		)));
-
-		metaClassName->size(9); // 9 for "MetaClass"
-		metaClassName->copyData(BEER_WIDEN("MetaClass"));
-
-		Object::setChild(static_cast<Thread*>(this), metaClass, Class::CHILD_ID_CLASS_NAME, metaClassName); // set name
-
-		mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Integer"), new IntegerClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Float"), new FloatClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Console"), new ConsoleClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Array"), new ArrayClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Timer"), new TimerClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("FileReader"), new FileReaderClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("FileWriter"), new FileWriterClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Pair"), new PairClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("RandomGenerator"), new RandomGeneratorClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Pool"), new PoolClassInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("Task"), new TaskInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("CreateOneEntryPointTask"), new CreateOneEntryPointTaskInitializer);
-		mClassLoader->addClassInitializer(BEER_WIDEN("CreateAllEntryPointsTask"), new CreateAllEntryPointsTaskInitializer);
-
-		// create Object class name
-		StackRef<String> objectClassName(frame, frame->stackPush(
-			mHeap->alloc<String>(
-				static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Object", 1 for "\0"
-				Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
-		)));
-		objectClassName->size(6); // 6 for "Object"
-		objectClassName->copyData(BEER_WIDEN("Object"));
-
-		// create Method class name
-		StackRef<String> methodClassName(frame, frame->stackPush(
-			mHeap->alloc<String>(
-				static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Method", 1 for "\0"
-				Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
-		)));
-		methodClassName->size(6); // 6 for "Method"
-		methodClassName->copyData(BEER_WIDEN("Method"));
-
-		// vars
-		StackRef<Class> objectClass(frame, frame->stackPush());
-		StackRef<Class> methodClass(frame, frame->stackPush());
-
-		// create Method class
+		// temporary solution
 		{
-			mClassLoader->createClass<Class>(this, methodClassName, methodClass, 1, 0, Object::OBJECT_METHODS_COUNT + 6); // extends Object, has 6 methods
-			methodClass->setTraverser(&Method::MethodTraverser);
-			mMethodClass = *methodClass;
+			Frame* frame = getFrame();
+			BEER_STACK_CHECK();
+	
+			StackRef<InitVMTask> taskOnStack(frame, frame->stackPush(task));
+			InitVMTask::work(this, taskOnStack);
+
+			frame->stackPop(); // pop taskOnStack
 		}
-
-		// create Object class
-		{
-			mClassLoader->createClass<Class>(this, objectClassName, objectClass, 1, 0, Object::OBJECT_METHODS_COUNT); // extends Object, has 6 methods
-			mObjectClass = *objectClass;
-		}
-
-		// create String class
-		{
-			StackRef<String> stringClassName(frame, frame->stackPush(
-				mHeap->alloc<String>(
-					static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "String", 1 for "\0"
-					Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
-			)));
-			stringClassName->size(6); // 6 for "String"
-			stringClassName->copyData(BEER_WIDEN("String"));
-
-			StackRef<Class> stringClass(frame, frame->stackPush());
-			mClassLoader->createClass<Class>(this, stringClassName, stringClass, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
-
-			mStringClass = *stringClass; // ugly, TODO
-
-			StringClassInitializer* stringInit = new StringClassInitializer();
-			stringInit->initClass(this, mClassLoader, stringClass);
-			delete stringInit;
-
-			// fix references
-			Object::setType(this, metaClassName, stringClass); // set class
-			Object::setType(this, objectClassName, stringClass); // set class
-			Object::setType(this, stringClassName, stringClass); // set class
-
-			frame->stackMoveTop(-2); // pop stringClassName, stringClass
-		}
-
-		// fix metaclass methods
-		mClassLoader->addMethod(this, metaClass.staticCast<Class>(), BEER_WIDEN("MetaClass"), BEER_WIDEN("MetaClass::MetaClass()"), &MetaClass::init, 1, 0);
-		//mClassLoader->addMethod(*(metaClass.staticCast<Class>()), BEER_WIDEN("findMethod"), BEER_WIDEN("Class::findMethod(String)"), &MetaClass::findMethod, 1, 1);
-
-		// default Object methods
-		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
-		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
-		mClassLoader->addMethod(this, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
-		// TODO: getType
-
-		// fix references
-		Class::addParent(this, metaClass.staticCast<Class>(), objectClass);
-		Class::addParent(this, objectClass, objectClass);
-		Class::addParent(this, methodClass, objectClass);
-
-		// TODO: fix Method methods
-
-		// create Task class
-		//findClass(BEER_WIDEN("Task"));
-		//findClass(BEER_WIDEN("Task"));
-
-
-		frame->stackMoveTop(-6); // clean
-		//closeFrame();
 	}
 
 	// preloading of some classes
@@ -328,7 +202,7 @@ String* VirtualMachine::createString(const string& s)
 	// TODO: why the cast???
 	((Thread*)this)->createString(lengthOnStack, stringOnStack);
 
-	//String* object = getStringClass()->createInstance<String>(this, frame, getHeap()); // initClass(Thread* thread, ClassLoader* loader, StackRef<Class> klass) length
+	//String* object = getStringClass()->createInstance<String>(this, frame, getHeap()); // initClass(Thread* thread, ClassLoader* loader, Class* klass) length
 	String* object = *stringOnStack;
 
 	frame->stackPop(); // pop string
@@ -356,13 +230,28 @@ Pair* VirtualMachine::createPair(Object* first, Object* second)
 
 Class* VirtualMachine::findClass(string name)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
+	ClassReflectionTable::iterator it = mClasses.find(name); // TODO
+	if(it != mClasses.end()) return mClasses.find(name)->second; // TODO
 
-	StackRef<String> nameOnStack(frame, frame->stackPush());
-	((Thread*)this)->createString(nameOnStack, name);
-	
-	Class* c = findClass(nameOnStack);
-	frame->stackPop(); // pop nameOnStack
-	return c;
+	{
+		Frame* frame = getFrame();
+		BEER_STACK_CHECK();
+
+		StackRef<String> nameOnStack(frame, frame->stackPush());
+		((Thread*)this)->createString(nameOnStack, name);
+
+		mClassLoader->loadClass(this, nameOnStack);
+		frame->stackPop(); // pop nameOnStack
+	}
+
+	// TODO
+	it = mClasses.find(name); // TODO
+	if(it != mClasses.end()) return mClasses.find(name)->second; // TODO
+
+	throw ClassNotFoundException(name); // TODO
+}
+
+Class* VirtualMachine::findClass(StackRef<String> name)
+{
+	return findClass(name->c_str());
 }
