@@ -250,6 +250,6 @@ int __cdecl main(int argc, const char** argv)
 	Console::getOutput() << BEER_WIDEN("\nMain took ") << mainTimer.stop();
 #endif // BEER_MEASURE_PERFORMANCE
 
-	//system(BEER_WIDEN("PAUSE"));
+	//system(BEER_WIDEN("PAUSE"));zguh
 	return 0;
 }
