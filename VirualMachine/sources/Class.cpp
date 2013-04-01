@@ -44,10 +44,7 @@ void BEER_CALL Class::findMethodIndex(Thread* thread, StackRef<Class> receiver, 
 		StackRef<Pair> pair(frame, frame->stackPush());
 		StackRef<Integer> index(frame, frame->stackPush());
 
-		StackRef<Integer> methodsCount(frame, frame->stackPush());
-		Class::getMethodsCount(thread, receiver, methodsCount);
-
-		for(Integer::IntegerData i = methodsCount->getData() - 1; i >= 0; i--)
+		for(Integer::IntegerData i = receiver->getMethodsCount() - 1; i >= 0; i--)
 		{
 			thread->createInteger(index, i);
 			Class::getMethod(thread, receiver, index, pair);
@@ -65,7 +62,7 @@ void BEER_CALL Class::findMethodIndex(Thread* thread, StackRef<Class> receiver, 
 			}
 		}
 
-		frame->stackMoveTop(-4); // pop otherSelector, pair, index, methodsCount
+		frame->stackMoveTop(-3); // pop otherSelector, pair, index
 	}
 }
 

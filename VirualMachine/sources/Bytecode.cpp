@@ -922,12 +922,6 @@ BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 		}
 		
 		thread->openFrame();
-
-		/*FrameInspector::debugPrintFrames(thread);
-		if(method->isBytecode())
-		{
-			int a = 0;
-		}*/
 	}
 	BEER_BC_MOVE(sizeof(uint16));
 	BEER_BC_RETURN();

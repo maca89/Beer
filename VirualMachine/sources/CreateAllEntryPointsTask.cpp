@@ -3,16 +3,17 @@
 #include "TrampolineThread.h"
 #include "Method.h"
 #include "CreateOneEntryPointTask.h"
+#include "VirtualMachine.h"
 
 using namespace Beer;
 
 
 void BEER_CALL CreateAllEntryPointsTask::init(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver, StackRef<CreateAllEntryPointsTask> ret)
 {
-	ret = receiver;
+	Task::init(thread, receiver.staticCast<Task>(), ret.staticCast<Task>());
 }
 
-void BEER_CALL CreateAllEntryPointsTask::work(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver)
+void BEER_CALL CreateAllEntryPointsTask::run(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -52,7 +53,7 @@ void BEER_CALL CreateAllEntryPointsTask::work(Thread* thread, StackRef<CreateAll
 			thread->createInstance(createEntryPointTaskClass, task);
 			
 			CreateOneEntryPointTask::init_Class(thread, task, klass, task);
-			CreateOneEntryPointTask::work(thread, task);
+			CreateOneEntryPointTask::run(thread, task);
 			// TODO: schedule task
 
 			frame->stackPop(); // pop task
@@ -75,5 +76,5 @@ void CreateAllEntryPointsTaskInitializer::initClass(Thread* thread, ClassLoader*
 	klass->addParent(thread->getVM()->findClass(BEER_WIDEN("Task")));
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("CreateAllEntryPointsTask"), BEER_WIDEN("CreateAllEntryPointsTask::CreateAllEntryPointsTask()"), &CreateAllEntryPointsTask::init, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("work"), BEER_WIDEN("Task::work()"), &CreateAllEntryPointsTask::work, 0, 0); // interface method, TODO: second selector
+	loader->addMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &CreateAllEntryPointsTask::run, 0, 0); // interface method, TODO: second selector
 }

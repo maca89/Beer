@@ -126,19 +126,16 @@ void Thread::createFloat(StackRef<Float> ret, Float::FloatData value)
 
 void Thread::createString(StackRef<String> ret, string value)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> length(frame, frame->stackPush());
-	createInteger(length, value.size());
-
-	createString(length, ret);
-	frame->stackPop(); // pop length
-	
+	createString(ret, value.size());
 	ret->copyData(value.c_str());
 }
 
 void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
+{
+	createString(ret, length->getData());
+}
+
+void Thread::createString(StackRef<String> ret, Integer::IntegerData length)
 {
 	Frame* frame = getFrame();
 	BEER_STACK_CHECK();
@@ -150,10 +147,10 @@ void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 	Class::getPropertiesCount(this, stringClass, propertiesCount);
 
 	ret = getHeap()->alloc<String>(
-		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (length->getData() + 1)), // +1 for \0
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (length + 1)), // +1 for \0
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
 	);
-	ret->size(length->getData());
+	ret->size(length);
 	Object::setType(this, ret, stringClass);
 
 	frame->stackMoveTop(-2); // pop class, propertiesCount

@@ -2,17 +2,19 @@
 #include "CreateOneEntryPointTask.h"
 #include "TrampolineThread.h"
 #include "Method.h"
+#include "VirtualMachine.h"
+#include "Debugger.h"
 
 using namespace Beer;
 
 
 void BEER_CALL CreateOneEntryPointTask::init_Class(Thread* thread, StackRef<CreateOneEntryPointTask> receiver, StackRef<Class> klass, StackRef<CreateOneEntryPointTask> ret)
 {
+	Task::init(thread, receiver.staticCast<Task>(), ret.staticCast<Task>());
 	Object::setChild(thread, receiver, CHILD_ID_ENTRY_POINT_CLASS, klass);
-	ret = receiver;
 }
 
-void BEER_CALL CreateOneEntryPointTask::work(Thread* thread, StackRef<CreateOneEntryPointTask> receiver)
+void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEntryPointTask> receiver)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -20,7 +22,7 @@ void BEER_CALL CreateOneEntryPointTask::work(Thread* thread, StackRef<CreateOneE
 	StackRef<Class> klass(frame, frame->stackPush());
 	Object::getChild(thread, receiver, CHILD_ID_ENTRY_POINT_CLASS, klass);
 
-	StackRef<Object> instance(frame, frame->stackPush(NULL));
+	StackRef<Task> instance(frame, frame->stackPush(NULL));
 
 	// create new instance
 	thread->createInstance(klass, instance);
@@ -69,7 +71,7 @@ void BEER_CALL CreateOneEntryPointTask::work(Thread* thread, StackRef<CreateOneE
 
 
 	// Task::run()
-	{
+	if(false){
 #ifdef BEER_FOLDING_BLOCK
 		StackRef<Method> method(frame, frame->stackPush());
 		//getDebugger()->printFrameStack(frame);
@@ -78,7 +80,7 @@ void BEER_CALL CreateOneEntryPointTask::work(Thread* thread, StackRef<CreateOneE
 		{
 #ifdef BEER_FOLDING_BLOCK
 			StackRef<String> selector(frame, frame->stackPush()); // TODO
-			thread->createString(selector, BEER_WIDEN("Task::schedule()")); // why the cast?!, TODO
+			thread->createString(selector, BEER_WIDEN("Task::run()")); // why the cast?!, TODO
 
 			Class::findMethod(thread, klass, selector, method);
 
@@ -90,14 +92,24 @@ void BEER_CALL CreateOneEntryPointTask::work(Thread* thread, StackRef<CreateOneE
 #endif // BEER_FOLDING_BLOCK
 		}
 
-		//getDebugger()->printFrameStack(frame);
+		//thread->getVM()->getDebugger()->printFrame(thread, thread->getFrame());
 
 		thread->openFrame();
+
+		//thread->getVM()->getDebugger()->printFrame(thread, thread->getFrame());
+
 		method->invoke(thread); // closes frame, pop method, instance
+
+		//thread->getVM()->getDebugger()->printFrame(thread, thread->getFrame());
+
 #endif // BEER_FOLDING_BLOCK
 	}
+	else
+	{
+		thread->getVM()->getScheduler()->schedule(thread, instance);
+	}
 
-	//frame->stackPop(); // pop instance
+	frame->stackPop(); // pop instance
 	frame->stackPop(); // pop klass
 }
 
@@ -111,5 +123,5 @@ void CreateOneEntryPointTaskInitializer::initClass(Thread* thread, ClassLoader* 
 	klass->addParent(thread->getVM()->findClass(BEER_WIDEN("Task")));
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("CreateOneEntryPointTask"), BEER_WIDEN("CreateOneEntryPointTask::CreateOneEntryPointTask(Class)"), &CreateOneEntryPointTask::init_Class, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("work"), BEER_WIDEN("Task::work()"), &CreateOneEntryPointTask::work, 0, 0); // interface method, TODO: second selector
+	loader->addMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &CreateOneEntryPointTask::run, 0, 0); // interface method, TODO: second selector
 }

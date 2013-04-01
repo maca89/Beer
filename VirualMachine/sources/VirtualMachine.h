@@ -12,6 +12,7 @@
 //#include "Pair.h"
 #include "ClassTable.h"
 #include "InlineFunctionTable.h"
+#include "TaskScheduler.h"
 
 
 namespace Beer
@@ -40,6 +41,7 @@ namespace Beer
 		InlineFunctionTable mInlineFnTable;
 		ThreadSet mThreads;
 		BytecodeBuilder* mBytecodeBuilder;
+		TaskScheduler mScheduler;
 
 		// TODO: get rid of these
 		Class* mMetaClass;
@@ -69,13 +71,11 @@ namespace Beer
 		void loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile);
 	
 		void addClass(Thread* thread, Class* reflection);
-		//void removeClass(ClassReflection* reflection);
-		//bool hasClass(string name) const;
-
 		Class* findClass(StackRef<String> name);
 		Class* findClass(string name);
 
 		//INLINE Heap* getHeap() const { return mHeap; }
+		//INLINE GenerationalGC* getGC() { return mGC; }
 		INLINE Debugger* getDebugger() const { return mDebugger; }
 		INLINE ClassTable* getClassTable() { return &mClassTable; }
 		INLINE InlineFunctionTable* getInlineFunctionTable() { return &mInlineFnTable; }
@@ -83,15 +83,12 @@ namespace Beer
 		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
 		INLINE ClassReflectionTable& getClasses() { return mClasses; }
 		INLINE BytecodeBuilder* getBytecodeBuilder() { return mBytecodeBuilder; }
+		INLINE TaskScheduler* getScheduler() { return &mScheduler; }
 
 		void init();
 		void run();
-		void wait();
+		//void wait();
 		void destroy();
-
-		// deprecated, TODO: get rid of these
-		String* createString(const string& s);
-		Pair* createPair(Object* first, Object* second);
 		
 		INLINE Class* getMetaClass() { return mMetaClass; }
 		INLINE Class* getMethodClass() { return mMethodClass; }

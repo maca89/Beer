@@ -85,6 +85,10 @@ namespace Beer
 
 		void setChild(int64 index, Object* child);
 		Object* getChild(int64);
+		
+		static bool hasFlag(uint8 flags, uint8 n);
+		static void markFlag(uint8& flags, uint8 n);
+		static void unmarkFlag(uint8& flags, uint8 n);
 
 		// shortcuts
 		static void getChild(Thread* thread, StackRef<Object> object, int64 index, StackRef<Object> ret);
@@ -102,6 +106,22 @@ namespace Beer
 
 
 	// inlined methods
+
+	INLINE bool Object::hasFlag(uint8 flags, uint8 n)
+	{
+		return (flags & n) == n;
+	}
+	
+	INLINE void Object::markFlag(uint8& flags, uint8 n)
+	{
+		flags |= n;
+	}
+	
+	INLINE void Object::unmarkFlag(uint8& flags, uint8 n)
+	{
+		Object::markFlag(flags, n);
+		flags ^= n;
+	}
 
 	INLINE void Object::setType(Class* value)
 	{

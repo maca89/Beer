@@ -8,7 +8,7 @@
 using namespace Beer;
 
 TaskContext::TaskContext()
-	: mHeap(NULL), mRootFrame(NULL), mTopFrame(NULL)
+	: mHeap(NULL), mRootFrame(NULL), mTopFrame(NULL), mFramesCount(0)
 {
 	
 }
@@ -19,6 +19,8 @@ TaskContext::~TaskContext()
 
 void TaskContext::init(Heap* heap)
 {
+	mRootFrame = NULL;
+	mTopFrame = NULL;
 	mHeap = heap;
 
 	// just a temporary solution, TODO
@@ -30,6 +32,7 @@ void TaskContext::init(Heap* heap)
 	frame->stackPush(); // simulate method
 	mRootFrame->stackPush(frame);
 	fetchTopFrame();
+	mFramesCount++;
 }
 
 Frame* TaskContext::allocFrame(Frame* previousFrame, uint32 stackSize, uint32 argsCount)
@@ -125,6 +128,7 @@ Frame* TaskContext::openFrame()
 
 	mRootFrame->stackPush(newFrame);
 	fetchTopFrame();
+	mFramesCount++;
 	return getFrame();
 }
 
@@ -180,6 +184,7 @@ void TaskContext::closeFrame()
 	discardFrame(previousFrame, currentFrame);
 	mRootFrame->stackPop();
 	mTopFrame = previousFrame;
+	mFramesCount--;
 }
 
 StackRef<Method> TaskContext::getMethod()

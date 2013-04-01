@@ -22,6 +22,7 @@ namespace Beer
 		Heap* mHeap;
 		Frame* mRootFrame;
 		Frame* mTopFrame;
+		int64 mFramesCount;
 
 	public:
 		TaskContext();

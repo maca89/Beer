@@ -62,18 +62,19 @@ void VirtualMachine::addClass(Thread* thread, Class* klass)
 
 void VirtualMachine::loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile)
 {
-	this->Thread::loadClassFile(loader, classFile);
+	this->Thread::loadClassFile(loader, classFile); // TODO: Task
 }
 
 void VirtualMachine::run()
 {
-	this->Thread::run();
+	//this->Thread::run();
+	work();
 }
 
-void VirtualMachine::wait()
+/*void VirtualMachine::wait()
 {
 	this->Thread::wait();
-}
+}*/
 
 void VirtualMachine::init()
 {
@@ -88,6 +89,8 @@ void VirtualMachine::init()
 
 	mBytecodeBuilder = new BytecodeBuilder();
 	Bytecode::init(this);
+
+	mScheduler.init(this, mGC);
 
 	mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
@@ -139,7 +142,7 @@ void VirtualMachine::init()
 	mPoolClass = findClass(BEER_WIDEN("Pool"));
 
 	// !!! the order is important !!!
-	////////////////////////////////////////////////////// xxxxxxx0 // Object
+	////////////////////////////////////////////////////////////////// xxxxxxx0 // Object
 	getClassTable()->add(mIntegerClass);							// xxxxxx01 // Integer
 	getClassTable()->add(mBooleanClass);							// xxxx0011 // Boolean
 	getClassTable()->add(findClass(BEER_WIDEN("Character")));		// xxxx0111 // Character
@@ -172,10 +175,16 @@ void VirtualMachine::work()
 		BEER_STACK_CHECK();
 	
 		StackRef<CreateAllEntryPointsTask> taskOnStack(frame, frame->stackPush(task));
-		CreateAllEntryPointsTask::work(this, taskOnStack);
+		CreateAllEntryPointsTask::init(this, taskOnStack, taskOnStack);
+		//CreateAllEntryPointsTask::work(this, taskOnStack);
+
+		getScheduler()->schedule(this, taskOnStack.staticCast<Task>());
 
 		frame->stackPop(); // pop taskOnStack
 	}
+
+	getScheduler()->resumeAll();
+	//getScheduler()->
 
 	// wait for all threads
 	for(ThreadSet::iterator it = mThreads.begin(); it != mThreads.end(); it++)
@@ -188,44 +197,6 @@ void VirtualMachine::work()
 	}
 	
 	//DBG_ASSERT(frame->stackLength() == 2, BEER_WIDEN("Stack was not properly cleaned"));
-}
-
-String* VirtualMachine::createString(const string& s)
-{
-	Frame* frame = getFrame();
-	
-	StackRef<String> stringOnStack(frame, frame->stackPush(NULL));
-	
-	StackRef<Integer> lengthOnStack(frame, frame->stackPush(NULL));
-	createInteger(lengthOnStack, s.size());
-
-	// TODO: why the cast???
-	((Thread*)this)->createString(lengthOnStack, stringOnStack);
-
-	//String* object = getStringClass()->createInstance<String>(this, frame, getHeap()); // initClass(Thread* thread, ClassLoader* loader, Class* klass) length
-	String* object = *stringOnStack;
-
-	frame->stackPop(); // pop string
-	object->copyData(s.c_str());
-
-	return object;
-}
-
-Pair* VirtualMachine::createPair(Object* first, Object* second)
-{
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Pair> ret(frame, frame->stackPush());
-	StackRef<Object> arg2(frame, frame->stackPush(second));
-	StackRef<Object> arg1(frame, frame->stackPush(first));
-
-	// TODO: why the cast???
-	((Thread*)this)->createPair(arg1, arg2, ret);
-
-	Pair* p = *ret;
-	frame->stackPop();
-	return p;
 }
 
 Class* VirtualMachine::findClass(string name)

@@ -25,7 +25,7 @@ void BEER_CALL Integer::operatorString(Thread* thread, StackRef<Integer> receive
 	stringstream ss;
 	ss << receiver->getData();
 	// TODO: check and throw Exception
-	ret = thread->getVM()->createString(ss.str());
+	thread->createString(ret, ss.str());
 }
 
 void BEER_CALL Integer::operatorAdd(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Integer> ret)

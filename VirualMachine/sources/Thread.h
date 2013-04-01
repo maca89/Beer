@@ -56,7 +56,6 @@ namespace Beer
 		INLINE bool hasFrame() { return mContext->hasFrame(); }
 		INLINE Frame* openFrame() { return mContext->openFrame(); }
 		INLINE void closeFrame() { mContext->closeFrame(); }
-
 		
 		void loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile);
 
@@ -75,12 +74,12 @@ namespace Beer
 		void createFloat(StackRef<Float> ret, Float::FloatData value);
 		void createString(StackRef<String> ret, string value);
 		void createString(StackRef<Integer> length, StackRef<String> ret);
+		void createString(StackRef<String> ret, Integer::IntegerData length);
 		void createArray(StackRef<Integer> length, StackRef<Array> ret);
 		void createPair(StackRef<Object> first, StackRef<Object> second, StackRef<Pair> ret);
 		void createInstance(StackRef<Class> klass, StackRef<Object> ret);
 		void createPolycache(StackRef<PolymorphicCache> ret, uint16 length);
 		void createPool(StackRef<Pool> ret, uint16 length);
-		
 		
 		Class* getType(Object* object);
 		Class* getType(StackRef<Object> object);

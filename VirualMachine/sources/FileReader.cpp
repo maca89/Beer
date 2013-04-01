@@ -46,7 +46,7 @@ void BEER_CALL FileReader::readString(Thread* thread, StackRef<FileReader> recei
 {
 	string data;
 	(*receiver->mFile) >> data;
-	ret = thread->getVM()->createString(data);
+	thread->createString(ret, data);
 }
 
 void BEER_CALL FileReader::readFailed(Thread* thread, StackRef<FileReader> receiver, StackRef<Boolean> ret)

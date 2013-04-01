@@ -133,7 +133,7 @@ void BEER_CALL Console::readLine(Thread* thread, StackRef<Console> receiver, Sta
 	std::getline(cin, str);
 	if(cin.fail()) { receiver->setReadFailed(true); return; }
 	receiver->setReadFailed(false);
-	ret = thread->getVM()->createString(str);
+	thread->createString(ret, str);
 }
 
 void BEER_CALL Console::readFailed(Thread* thread, StackRef<Console> receiver, StackRef<Boolean> ret)
@@ -144,8 +144,14 @@ void BEER_CALL Console::readFailed(Thread* thread, StackRef<Console> receiver, S
 void BEER_CALL Console::getArg(Thread* thread, StackRef<Console> receiver, StackRef<Integer> index, StackRef<String> ret)
 {
 	Integer::IntegerData i = index->getData();
-	if(Console::gHasArg(i)) ret = thread->getVM()->createString(Console::gGetArg(i));
-	else ret = thread->getVM()->createString(BEER_WIDEN(""));
+	if(Console::gHasArg(i))
+	{
+		thread->createString(ret, Console::gGetArg(i));
+	}
+	else
+	{
+		thread->createString(ret, BEER_WIDEN(""));
+	}
 }
 
 Class* ConsoleClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)

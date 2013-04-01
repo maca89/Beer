@@ -17,7 +17,7 @@ namespace Beer
 
 	public:
 		static void BEER_CALL init(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver, StackRef<CreateAllEntryPointsTask> ret);
-		static void BEER_CALL work(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver);
+		static void BEER_CALL run(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver);
 	};
 
 	class CreateAllEntryPointsTaskInitializer : public ClassInitializer

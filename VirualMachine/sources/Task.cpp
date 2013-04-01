@@ -10,6 +10,8 @@ using namespace Beer;
 
 void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task> ret)
 {
+	receiver->mContext = TaskContext();
+	receiver->mTaskFlags = 0;
 	ret = receiver;
 }
 
@@ -59,19 +61,24 @@ void BEER_CALL Task::await(Thread* thread, StackRef<Task> receiver)
 
 }
 
+void BEER_CALL Task::getScheduled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
+{
+	ret = Boolean::makeInlineValue(receiver->isScheduled());
+}
+
 void BEER_CALL Task::getCompleted(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(false);
+	ret = Boolean::makeInlineValue(receiver->isCompleted());
 }
 
 void BEER_CALL Task::getCanceled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(false);
+	ret = Boolean::makeInlineValue(receiver->isCanceled());
 }
 
 void BEER_CALL Task::getFailed(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
 {
-	ret = Boolean::makeInlineValue(false);
+	ret = Boolean::makeInlineValue(receiver->isFailed());
 }
 
 void BEER_CALL Task::getId(Thread* thread, StackRef<Task> receiver, StackRef<Integer> ret)
@@ -79,7 +86,7 @@ void BEER_CALL Task::getId(Thread* thread, StackRef<Task> receiver, StackRef<Int
 	ret = Integer::makeInlineValue(1);
 }
 
-void BEER_CALL Task::abstractWork(Thread* thread, StackRef<Task> receiver)
+void BEER_CALL Task::abstractRun(Thread* thread, StackRef<Task> receiver)
 {
 	Frame* frame = thread->getFrame();
 	StackRef<Method> method(frame, Frame::INDEX_METHOD);
@@ -108,5 +115,6 @@ void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klas
 	loader->addMethod(thread, klass, BEER_WIDEN("getFailed"), BEER_WIDEN("Task::getFailed()"), &Task::getFailed, 0, 1);
 	loader->addMethod(thread, klass, BEER_WIDEN("getId"), BEER_WIDEN("Task::getId()"), &Task::getId, 0, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("work"), BEER_WIDEN("Task::work()"), &Task::abstractWork, 0, 0); // abstract, TODO: mark abstract
+	loader->addMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &Task::abstractRun, 0, 0)
+		->markAbstract();
 }

@@ -222,7 +222,7 @@ int __cdecl main(int argc, const char** argv)
 		if(settings.run)
 		{
 			vm->run();
-			vm->wait();
+			//vm->wait();
 		
 			for(ThreadSet::iterator it = vm->getThreads().begin(); it != vm->getThreads().end(); it++)
 			{
