@@ -22,6 +22,14 @@ void TaskScheduler::init(VirtualMachine* vm, GenerationalGC* gc)
 {
 	mVM = vm;
 	mGC = gc;
+
+	for(int i = 0; i < 2; i++)
+	{
+		TrampolineThread* thread = new TrampolineThread(mVM, mGC);
+		thread->init();
+
+		mAvailableThreads.push(thread);
+	}
 }
 
 void TaskScheduler::contextSwitch()
@@ -43,33 +51,41 @@ void TaskScheduler::resumeAll()
 
 		// temporary
 		{
-			TrampolineThread thread(mVM, mGC);
-			thread.init();
+			TrampolineThread* thread = mAvailableThreads.pop();
+			initializeTask(thread, task);
 
-			thread.setContext(task->getContext());
-			thread.trampoline();
+			thread->setContext(task->getContext());
+			thread->trampoline();
+			thread->setContext(NULL);
 
 			/*if(!task->isCompleted())
 			{
 				mScheduled.push(task);
 			}*/
+
+			mAvailableThreads.push(thread);
 		}
 	}
 }
 
-void TaskScheduler::schedule(Thread* thread, StackRef<Task> task)
+void TaskScheduler::schedule(Task* task)
+{
+	mScheduled.push(task);
+}
+
+void TaskScheduler::initializeTask(Thread* thread, Task* task)
 {
 	TaskContext* context = task->getContext();
 	context->init(thread->getHeap());
 
 	Frame* frame = context->getFrame();
-	frame->stackPush(*task); // push receiver
+	StackRef<Method> receiver(frame, frame->stackPush(task)); // push receiver
 	StackRef<Method> method(frame, frame->stackPush()); // push method
 				
 	// fetch method, TODO: cache
 	{
 		StackRef<Class> klass(frame, frame->stackPush());
-		thread->getType(task, klass);
+		thread->getType(receiver, klass);
 		DBG_ASSERT(*klass, BEER_WIDEN("Task has no type"));
 
 		StackRef<String> selector(frame, frame->stackPush()); // TODO
@@ -79,7 +95,7 @@ void TaskScheduler::schedule(Thread* thread, StackRef<Task> task)
 
 		if(method.isNull())
 		{
-			throw MethodNotFoundException(*task, *klass, *selector); // TODO
+			throw MethodNotFoundException(*receiver, *klass, *selector); // TODO
 		}
 
 		frame->stackPop(); // pop selector
@@ -91,9 +107,8 @@ void TaskScheduler::schedule(Thread* thread, StackRef<Task> task)
 	task->unmarkCompleted();
 	task->unmarkCanceled();
 	task->unmarkFailed();
-	mScheduled.push(*task);
 }
 
-void TaskScheduler::wait(Thread* thread, StackRef<Task> who, StackRef<Task> whatFor)
+void TaskScheduler::wait(Task* who, Task* whatFor)
 {
 }

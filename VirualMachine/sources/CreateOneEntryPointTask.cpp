@@ -106,7 +106,7 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 	}
 	else
 	{
-		thread->getVM()->getScheduler()->schedule(thread, instance);
+		thread->getVM()->getScheduler()->schedule(*instance);
 	}
 
 	frame->stackPop(); // pop instance

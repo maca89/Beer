@@ -178,7 +178,7 @@ void VirtualMachine::work()
 		CreateAllEntryPointsTask::init(this, taskOnStack, taskOnStack);
 		//CreateAllEntryPointsTask::work(this, taskOnStack);
 
-		getScheduler()->schedule(this, taskOnStack.staticCast<Task>());
+		getScheduler()->schedule(*taskOnStack);
 
 		frame->stackPop(); // pop taskOnStack
 	}

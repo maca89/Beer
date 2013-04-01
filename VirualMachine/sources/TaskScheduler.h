@@ -9,6 +9,7 @@
 namespace Beer
 {
 	class Task;
+	class TrampolineThread;
 	class VirtualMachine;
 	class GenerationalGC;
 
@@ -16,6 +17,7 @@ namespace Beer
 	{
 	public:
 		typedef InterlockedQueue<Task*> TaskQueue;
+		typedef InterlockedQueue<TrampolineThread*> ThreadQueue;
 
 	protected:
 		TaskQueue mActive;
@@ -23,8 +25,10 @@ namespace Beer
 		TaskQueue mDone;
 		TaskQueue mScheduled;
 		// TaskQueue mLocked;
+
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;
+		ThreadQueue mAvailableThreads;
 
 	public:
 		TaskScheduler();
@@ -36,10 +40,11 @@ namespace Beer
 		void pauseAll();
 		void resumeAll();
 
-		void schedule(Thread* thread, StackRef<Task> task);
-		void wait(Thread* thread, StackRef<Task> who, StackRef<Task> whatFor);
+		void schedule(Task* task);
+		void wait(Task* who, Task* whatFor);
 		// void wait(Thread* thread, StackRef<Task> who, StackRef<Lock> whatFor);
 
 	protected:
+		void initializeTask(Thread* thread, Task* task);
 	};
 };
