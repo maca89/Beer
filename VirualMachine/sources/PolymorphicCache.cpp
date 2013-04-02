@@ -7,6 +7,11 @@
 
 using namespace Beer;
 
+void BEER_CALL PolymorphicCache::init(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<String> selector)
+{
+	//thread->getGC()->setChild(receiver, NULL, selector); // TODO
+	receiver->mSelector = *selector;
+}
 
 void BEER_CALL PolymorphicCache::clear(Thread* thread, StackRef<PolymorphicCache> receiver)
 {

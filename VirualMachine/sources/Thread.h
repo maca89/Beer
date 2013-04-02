@@ -46,6 +46,8 @@ namespace Beer
 		void setContext(TaskContext* value) { mContext = value; }
 		TaskContext* getThreadContext() { return mContext; }
 
+		//volatile bool isSafePoint() const;
+
 		INLINE VirtualMachine* getVM() { return mVM; }
 		INLINE GenerationalGC* getGC() { return mGC; } // does every thread need GC?
 		INLINE Heap* getHeap() { return mHeap; }
@@ -90,4 +92,9 @@ namespace Beer
 	protected:
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 	};
+
+	/*INLINE volatile bool Thread::isSafePoint() const
+	{
+		return mVM->isSafePoint();
+	}*/
 };

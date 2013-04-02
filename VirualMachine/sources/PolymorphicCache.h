@@ -22,7 +22,11 @@ namespace Beer
 			CHILD_ID_METHODS = OBJECT_CHILDREN_COUNT + 1*/
 		};
 
+	protected:
+		String* mSelector;
+
 	public:
+		static void BEER_CALL init(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<String> selector);
 		static void BEER_CALL clear(Thread* thread, StackRef<PolymorphicCache> receiver);
 		static void BEER_CALL find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
 	};

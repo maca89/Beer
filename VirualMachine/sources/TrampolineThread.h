@@ -15,7 +15,7 @@ namespace Beer
 			init();
 		}
 
-		void trampoline();
+		bool trampoline();
 
 	protected:
 			virtual void work();

@@ -10,7 +10,7 @@ using namespace Beer;
 
 
 TaskScheduler::TaskScheduler()
-	: mVM(NULL), mGC(NULL)
+	: mVM(NULL), mGC(NULL), mSafePoint(false)
 {
 }
 
@@ -40,29 +40,60 @@ void TaskScheduler::pauseAll()
 {
 }
 
-void TaskScheduler::resumeAll()
+void TaskScheduler::initializeTasks()
 {
-	while(!mScheduled.empty())
+	while(!mScheduled.empty() && !isSafePoint())
 	{
 		Task* task = mScheduled.pop();
 
-		// TODO: run on thread
-		// TODO: mActive.push(task);
+		TrampolineThread* thread = mAvailableThreads.pop();
+		initializeTask(thread, task);
+		mAvailableThreads.push(thread);
 
-		// temporary
+		mActive.push(task);
+	}
+}
+
+void TaskScheduler::resumeAll()
+{
+	while(!mActive.empty() || !mScheduled.empty())
+	{
+		initializeTasks();
+
+		while(!mActive.empty())
 		{
-			TrampolineThread* thread = mAvailableThreads.pop();
-			initializeTask(thread, task);
-
-			thread->setContext(task->getContext());
-			thread->trampoline();
-			thread->setContext(NULL);
-
-			/*if(!task->isCompleted())
+			// dbg, TODO
+			if(isSafePoint())
 			{
-				mScheduled.push(task);
-			}*/
+				mGC->threadsSuspended();
+				while(isSafePoint())
+				{
+					Sleep(40);
+				}
+				//stopSafePoint();
+				continue;
+			}
 
+			Task* task = mActive.pop();
+
+			// TODO: run on thread
+			// TODO: mActive.push(task);
+
+			TrampolineThread* thread = mAvailableThreads.pop();
+			thread->setContext(task->getContext());
+			
+			// TODO: parallel
+			if(thread->trampoline())
+			{
+				task->markCompleted();
+				mDone.push(task);
+			}
+			else
+			{
+				mActive.push(task);
+			}
+
+			thread->setContext(NULL); // debug
 			mAvailableThreads.push(thread);
 		}
 	}

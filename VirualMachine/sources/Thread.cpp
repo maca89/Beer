@@ -257,9 +257,6 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 
 void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();	
-
 	ret = getHeap()->alloc(
 		staticSize,
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + klass->getPropertiesCount() + additionalChildrenCount)

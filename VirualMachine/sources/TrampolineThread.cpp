@@ -14,11 +14,11 @@ void TrampolineThread::work()
 }
 
 
-void TrampolineThread::trampoline()
+bool TrampolineThread::trampoline()
 {
-	mVM->getDebugger()->started();
+	//mVM->getDebugger()->started();
 		
-	while(hasFrame())
+	while(hasFrame() && !mVM->isSafePoint())
 	{
 		Frame* frame = getFrame();
 		StackRef<Method> method(frame, -1);
@@ -68,10 +68,12 @@ void TrampolineThread::trampoline()
 		}
 	}
 
-	mVM->getDebugger()->ended();
+	//mVM->getDebugger()->ended();
 
 	//Console::getOutput() << BEER_WIDEN("Exiting Thread\n");
 
 	// flush all output
 	//Console::getOutput().flush(cout);
+
+	return !hasFrame();
 }

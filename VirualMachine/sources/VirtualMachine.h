@@ -111,10 +111,30 @@ namespace Beer
 		INLINE void setArrayClass(Class* value) { mArrayClass = value; }
 		INLINE void setPoolClass(Class* value) { mPoolClass = value; }
 
+		volatile bool isSafePoint() const;
+		void startSafePoint();
+		void stopSafePoint();
+
 	protected:
 		// Thread
 		virtual void work();
-
-		
 	};
+
+
+	INLINE volatile bool VirtualMachine::isSafePoint() const
+	{
+		return mScheduler.isSafePoint();
+	}
+
+	INLINE void VirtualMachine::startSafePoint()
+	{
+		//cout << BEER_WIDEN("[SafePoint started]\n");
+		mScheduler.startSafePoint();
+	}
+	
+	INLINE void VirtualMachine::stopSafePoint()
+	{
+		//cout << BEER_WIDEN("[SafePoint stopped]\n");
+		mScheduler.stopSafePoint();
+	}
 };

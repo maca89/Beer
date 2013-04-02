@@ -29,6 +29,7 @@ namespace Beer
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;
 		ThreadQueue mAvailableThreads;
+		volatile bool mSafePoint;
 
 	public:
 		TaskScheduler();
@@ -44,7 +45,28 @@ namespace Beer
 		void wait(Task* who, Task* whatFor);
 		// void wait(Thread* thread, StackRef<Task> who, StackRef<Lock> whatFor);
 
+		volatile bool isSafePoint() const;
+		void startSafePoint();
+		void stopSafePoint();
+
 	protected:
 		void initializeTask(Thread* thread, Task* task);
+		void initializeTasks();
 	};
+
+	
+	INLINE volatile bool TaskScheduler::isSafePoint() const
+	{
+		return mSafePoint;
+	}
+
+	INLINE void TaskScheduler::startSafePoint()
+	{
+		mSafePoint = true;
+	}
+	
+	INLINE void TaskScheduler::stopSafePoint()
+	{
+		mSafePoint = false;
+	}
 };

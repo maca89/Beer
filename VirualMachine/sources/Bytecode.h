@@ -93,9 +93,7 @@ namespace Beer
 			//#define BEER_INLINE_ARRAY_SET_ITEM			(BEER_INSTR_SIZE + 17)
 
 			// optimalised instructions - the numbers may change!
-			// Integer
 			#define BEER_OPTIMAL_ARRAY_ALLOC			(BEER_INSTR_SIZE + 18)
-			// Class
 			#define BEER_OPTIMAL_CACHED_INVOKE			(BEER_INSTR_SIZE + 19)
 			
 			// important
