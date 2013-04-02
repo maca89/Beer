@@ -18,11 +18,11 @@ void FixedHeap::init()
 
 Object* FixedHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 {
-	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount/* + sizeof(GCObject)*/);
+	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount + sizeof(GCObject));
 
 	if (!canAlloc(size)) return NULL;
 
-	Object* obj = reinterpret_cast<Object*>(mMemory + mFilled/* + sizeof(GCObject)*/);
+	Object* obj = reinterpret_cast<Object*>(mMemory + mFilled + sizeof(GCObject));
 
 	mFilled += size;
 

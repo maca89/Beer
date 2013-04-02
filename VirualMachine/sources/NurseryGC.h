@@ -1,7 +1,6 @@
 #pragma once
 
 #include "prereq.h"
-//#include "AlignedHeap.h"
 #include "DynamicHeap.h"
 #include "NativeThread.h"
 #include "HeapThresholdNotify.h"
@@ -10,7 +9,7 @@ namespace Beer
 {	
 	class VirtualMachine;
 
-	class NurseryGC : public NativeThread, public HeapThresholdNotify
+	class NurseryGC : public NativeThread//, public HeapThresholdNotify
 	{
 	protected:
 
@@ -60,7 +59,6 @@ namespace Beer
 		void collect();
 
 		// heap threshold notification
-
 
 		void thresholdReached(Heap* heap, size_t threshold);
 		
