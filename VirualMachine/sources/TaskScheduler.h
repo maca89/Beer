@@ -49,6 +49,11 @@ namespace Beer
 		void startSafePoint();
 		void stopSafePoint();
 
+		TaskQueue* getActiveQueue();
+		TaskQueue* getWaitingQueue();
+		TaskQueue* getDoneQueue();
+		TaskQueue* getScheduledQueue();
+
 	protected:
 		void initializeTask(Thread* thread, Task* task);
 		void initializeTasks();
@@ -69,4 +74,29 @@ namespace Beer
 	{
 		mSafePoint = false;
 	}
+
+	INLINE TaskScheduler::TaskQueue* TaskScheduler::getActiveQueue()
+	{
+		return &mActive;
+	}
+
+	INLINE TaskScheduler::TaskQueue* TaskScheduler::getWaitingQueue()
+	{
+		return &mWaiting;
+	}
+
+	INLINE TaskScheduler::TaskQueue* TaskScheduler::getDoneQueue()
+	{
+		return &mDone;
+	}
+
+	INLINE TaskScheduler::TaskQueue* TaskScheduler::getScheduledQueue()
+	{
+		return &mScheduled;
+	}
+
+	/*TaskScheduler::TaskQueue* TaskScheduler::getLockedQueue()
+	{
+		return &mLocked;
+	}*/
 };
