@@ -69,7 +69,7 @@ namespace Beer
 
 		INLINE Object* getObject()
 		{
-			return reinterpret_cast<Object*>(this + sizeof(GCObject));
+			return reinterpret_cast<Object*>(reinterpret_cast<byte*>(this) + sizeof(GCObject));
 		}
 
 		INLINE static GCObject* get(Object* obj)

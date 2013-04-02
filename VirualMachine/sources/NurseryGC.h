@@ -1,19 +1,18 @@
 #pragma once
 
 #include "prereq.h"
-#include "DynamicHeap.h"
 #include "NativeThread.h"
-#include "HeapThresholdNotify.h"
+#include "NotifyHeap.h"
 
 namespace Beer
 {	
 	class VirtualMachine;
 
-	class NurseryGC : public NativeThread//, public HeapThresholdNotify
+	class NurseryGC : public NativeThread, public HeapThresholdNotify
 	{
 	protected:
 
-		typedef DynamicHeap NurseryHeap;
+		typedef NotifyHeap NurseryHeap;
 
 	protected:
 
@@ -58,8 +57,8 @@ namespace Beer
 
 		void collect();
 
-		// heap threshold notification
 
+		// heap threshold notification
 		void thresholdReached(Heap* heap, size_t threshold);
 		
 	protected:

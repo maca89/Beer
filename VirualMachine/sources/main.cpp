@@ -246,6 +246,7 @@ int __cdecl main(int argc, const char** argv)
 	}
 
 	SMART_DELETE(vm);
+	SMART_DELETE(gc);
 
 #ifdef BEER_MEASURE_PERFORMANCE
 	Console::getOutput() << BEER_WIDEN("\nMain took ") << mainTimer.stop();

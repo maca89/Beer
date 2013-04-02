@@ -31,6 +31,7 @@
     <ClCompile Include="sources\InitVMTask.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
     <ClCompile Include="sources\MultipassBytecodeOptimiser.cpp" />
+    <ClCompile Include="sources\NotifyHeap.cpp" />
     <ClCompile Include="sources\NurseryGC.cpp" />
     <ClCompile Include="sources\ObjectInpector.cpp" />
     <ClCompile Include="sources\Param.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="sources\FileWriter.h" />
     <ClInclude Include="sources\AlignedHeap.h" />
     <ClInclude Include="sources\MultipassBytecodeOptimiser.h" />
+    <ClInclude Include="sources\NotifyHeap.h" />
     <ClInclude Include="sources\NurseryGC.h" />
     <ClInclude Include="sources\ObjectInspector.h" />
     <ClInclude Include="sources\CreateOneEntryPointTask.h" />

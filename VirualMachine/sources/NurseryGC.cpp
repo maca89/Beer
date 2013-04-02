@@ -2,7 +2,6 @@
 #include "NurseryGC.h"
 
 #include "AllocationBlock.h"
-#include "MyDynamicHeap.h"
 #include "VirtualMachine.h"
 
 using namespace Beer;
@@ -11,13 +10,13 @@ NurseryGC::NurseryGC(size_t initSize, size_t blockSize)
 	:	mVM(NULL),
 		mBlockSize(blockSize)
 {
-	/*mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
+	mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
 	mCollect = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
-	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);*/
+	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
 
-	mAlloc = new NurseryHeap(initSize);
+	/*mAlloc = new NurseryHeap(initSize);
 	mCollect = new NurseryHeap(initSize);
-	mPromote = new NurseryHeap(initSize);
+	mPromote = new NurseryHeap(initSize);*/
 
 	::InitializeCriticalSection(&mCS);
 }
@@ -51,7 +50,7 @@ void NurseryGC::thresholdReached(Heap* heap, size_t threshold)
 {
 	ThreadSet& threads = mVM->getThreads();
 
-	/*for (ThreadSet::iterator it = threads.beginLocked(); it.hasNext(); it++)
+	/*for (ThreadSet::iterator it = threads.begin(); it != threads.end(); it++)
 	{
 		(*it)->setSaveSuspend(true);
 	}*/

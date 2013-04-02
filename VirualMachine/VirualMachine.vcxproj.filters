@@ -187,6 +187,9 @@
     <ClCompile Include="sources\InitVMTask.cpp">
       <Filter>Sources\InternalClasses</Filter>
     </ClCompile>
+    <ClCompile Include="sources\NotifyHeap.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -436,7 +439,12 @@
     <ClInclude Include="sources\InitVMTask.h">
       <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
-    <ClInclude Include="sources\GCObject.h" />
+    <ClInclude Include="sources\GCObject.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\NotifyHeap.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">

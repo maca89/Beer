@@ -109,12 +109,7 @@ namespace Beer
 		{
 			DBG_ASSERT(object != NULL, BEER_WIDEN("Object is NULL"));
 
-			/*if (object->getTypeFlag() == Object::TYPE_FWD_PTR)
-			{
-				return static_cast<ForwardPointer*>(object)->getObject();
-			}*/
-
-			return object;
+			return GCObject::get(object)->forward();
 		}
 
 		INLINE Object* getIdentity(StackRef<Object> object)
@@ -128,37 +123,26 @@ namespace Beer
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
-			Object* realReceiver = getIdentity(receiver);
-
-			/*if (realReceiver->getTypeFlag() == Object::TYPE_FWD_PTR)
-			{
-				ret = static_cast<ForwardPointer*>(realReceiver)->getObject()->getChildren()[index];
-			}
-			else
-			{
-				ret = realReceiver->getChildren()[index];
-			}*/
-
-			ret = realReceiver->getChildren()[index];
+			ret = getIdentity(receiver)->getChildren()[index];
 		}
 
+		// deprecated 
 		INLINE void setChild(StackRef<Object> receiver, StackRef<Object> child, int64 index)
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
 			receiver->getChildren()[index] = *child;
-
-			/*AlignedHeap* heap = mNurseryGC->getAllocHeap();
-
-			if (!heap->contains(obj))
-			{
-				mRS.add(child);
-			}*/
 		}
 
-		INLINE void threadSuspended(Thread* thread)
+		INLINE void setChild(Object* obj, Object* oldChild, Object* newChild)
 		{
-			int s = 1;
+
+		}
+
+		// call this when all threads are suspended
+		INLINE void threadsSuspended()
+		{
+			
 		}
 	};
 
