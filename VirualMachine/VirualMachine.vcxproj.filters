@@ -436,6 +436,7 @@
     <ClInclude Include="sources\InitVMTask.h">
       <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
+    <ClInclude Include="sources\GCObject.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">

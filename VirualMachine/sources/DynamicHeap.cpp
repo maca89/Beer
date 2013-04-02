@@ -2,13 +2,12 @@
 #include "DynamicHeap.h"
 
 #include "Object.h"
-#include "Integer.h"
+#include "GCObject.h"
 
 using namespace Beer;
 
 DynamicHeap::DynamicHeap(size_t initialSize)
-	:	Heap(),
-		mInitialSize(initialSize)
+	:	mInitialSize(initialSize)
 {
 }
 
@@ -24,38 +23,21 @@ void DynamicHeap::init()
 
 Object* DynamicHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 {
-	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount);
+	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount/* + sizeof(GCObject)*/);
 
-	Object* obj = reinterpret_cast<Object*>(::HeapAlloc(mHandle, 0, size));
-	memset(obj, 0, size);
+	Object* obj = reinterpret_cast<Object*>(reinterpret_cast<byte*>(::HeapAlloc(mHandle, 0, size))/* + sizeof(GCObject)*/);
 
-	obj->setGCFlag(Object::GC_WHITE);
-	obj->setTypeFlag(Object::TYPE_DIRECT_PTR);
-	obj->setType(NULL);
-	obj->setStaticSize(staticSize);
-		
-	// children array is at the end of object
-	//if(childrenCount > 0)
-	/*{
-		if(!Integer::canBeInlineValue(childrenCount)) // TODO
-		{
-			throw GCException(BEER_WIDEN("Not yet implemented"));
-		}
-
-		Object** children = reinterpret_cast<Object**>(reinterpret_cast<byte*>(obj) + staticSize);
-		memset(children, 0, childrenCount * sizeof(void*));
-		children[0] = Integer::makeInlineValue(childrenCount); // TODO: if cannot be inlined, create full object!!!
-		obj->setChildren(children);
-	}*/
-
+	if (obj)
+	{
+		initObject(obj, staticSize, size);
+	}
+	
 	return obj;
 }
 
-void* DynamicHeap::alloc(uint32 size)
+byte* DynamicHeap::alloc(size_t size)
 {
-	return NULL;
-}
+	byte* obj = reinterpret_cast<byte*>(::HeapAlloc(mHandle, 0, size));
 
-void DynamicHeap::free(Object* obj)
-{
+	return obj;
 }

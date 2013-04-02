@@ -22,6 +22,7 @@ namespace Beer
 		virtual void init();
 
 		virtual Object* alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset);
+		virtual byte* alloc(uint32 size);
 
 	protected:
 		

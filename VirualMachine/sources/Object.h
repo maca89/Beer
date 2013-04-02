@@ -17,7 +17,7 @@ namespace Beer
 	class Object
 	{
 	public:
-		enum GCFlag
+		/*enum GCFlag
 		{
 			GC_WHITE = 0,
 			GC_GRAY = 1,
@@ -28,7 +28,7 @@ namespace Beer
 		{
 			TYPE_DIRECT_PTR = 0,
 			TYPE_FWD_PTR = 1,
-		};
+		};*/
 
 		typedef uint8 InlineValueId;
 
@@ -50,21 +50,14 @@ namespace Beer
 		Class* mType;
 		uint32 mStaticSize; // temporary workaround, TODO
 
-		// GC Header, TODO: move before Object
-		uint8 mGCFlag;
-		uint8 mTypeFlag;
-		//Object* mIdentity; // fwd_ptr, direct_ptr
-		//Object** mChildren;
-
 	public:
-		// deprecated
-		INLINE GCFlag getGCFlag() const { return static_cast<GCFlag>(mGCFlag); }
-		INLINE void setGCFlag(GCFlag value) { mGCFlag = value; }
 
-		// deprecated
-		INLINE TypeFlag getTypeFlag() const { return static_cast<TypeFlag>(mTypeFlag); }
-		INLINE void setTypeFlag(TypeFlag value) { mTypeFlag = value; }
-		
+		INLINE static void initObject(Object* obj, uint32 staticSize, uint32 size)
+		{
+			memset(obj, 0, size);
+			obj->setStaticSize(staticSize);
+		}
+
 		// inline value
 		INLINE static bool isInlineValue(const Object* object)
 		{

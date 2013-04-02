@@ -9,7 +9,7 @@ namespace Beer
 	protected:
 
 		size_t mSize;
-		void * mMemory;
+		byte* mMemory;
 		size_t mFilled;
 
 	public:
@@ -30,9 +30,9 @@ namespace Beer
 		virtual void init();
 		
 		virtual Object* alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset = 0);
-		virtual void* alloc(uint32 size);
+		virtual byte* alloc(uint32 size);
 
-		virtual void free(Object* obj);
+		//virtual void free(Object* obj);
 
 	protected:
 

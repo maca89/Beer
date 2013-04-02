@@ -23,3 +23,16 @@ Object * AllocationBlock::alloc(uint32 staticSize, uint32 childrenCount, int32 p
 
 	return obj;
 }
+
+byte* AllocationBlock::alloc(uint32 size)
+{
+	byte* obj = FixedHeap::alloc(size);
+
+	if (!obj)
+	{
+		init();
+		obj = FixedHeap::alloc(size);
+	}
+
+	return obj;
+}

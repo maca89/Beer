@@ -1,41 +1,49 @@
 #pragma once
 
 #include "prereq.h"
-#include "AlignedHeap.h"
+//#include "AlignedHeap.h"
+#include "DynamicHeap.h"
 #include "NativeThread.h"
+#include "HeapThresholdNotify.h"
 
 namespace Beer
-{
-	class NurseryGC : public NativeThread
+{	
+	class VirtualMachine;
+
+	class NurseryGC : public NativeThread, public HeapThresholdNotify
 	{
 	protected:
 
-		AlignedHeap* mAlloc;
-		AlignedHeap* mCollect;
-		AlignedHeap* mPromote;
+		typedef DynamicHeap NurseryHeap;
+
+	protected:
+
+		VirtualMachine* mVM;
+		NurseryHeap* mAlloc;
+		NurseryHeap* mCollect;
+		NurseryHeap* mPromote;
 		size_t mHeapSize;
 		size_t mBlockSize;
 		CRITICAL_SECTION mCS;
 
 	public:
 
-		NurseryGC(uint8 nurseryBitSize, size_t blockSize);
+		NurseryGC(size_t initSize, size_t blockSize);
 		~NurseryGC();
 
-		void init();
+		void init(VirtualMachine* vm);
 
-		INLINE AlignedHeap* getAllocHeap()
+		INLINE Heap* getAllocHeap()
 		{
 			return mAlloc;
 		}
 
-		Heap* createHeap();
-		
+		Heap* createHeap();		
 
-		INLINE void* alloc(uint32 size)
+		INLINE byte* alloc(uint32 size)
 		{
 			::EnterCriticalSection(&mCS);
-			void* mem = mAlloc->alloc(size);
+			byte* mem = mAlloc->alloc(size);
 			::LeaveCriticalSection(&mCS);
 
 			if (!mem)
@@ -51,6 +59,11 @@ namespace Beer
 
 		void collect();
 
+		// heap threshold notification
+
+
+		void thresholdReached(Heap* heap, size_t threshold);
+		
 	protected:
 
 		virtual void work()
@@ -60,11 +73,11 @@ namespace Beer
 
 		INLINE void switchHeaps()
 		{
-			AlignedHeap* temp = mAlloc;
+			NurseryHeap* temp = mAlloc;
 			mAlloc = mPromote;
 			mPromote = mCollect;
 			mCollect = temp;
-			run();
+			//run();
 		}
 	};
 }

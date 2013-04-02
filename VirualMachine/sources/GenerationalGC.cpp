@@ -2,18 +2,17 @@
 #include "GenerationalGC.h"
 
 #include "AllocationBlock.h"
-#include "Heap.h"
-#include "SimpleMemoryAllocator.h"
+#include "DynamicHeap.h"
 
 using namespace Beer;
 
-GenerationalGC::GenerationalGC(uint8 nurseryBitSize, size_t blockSize)
+GenerationalGC::GenerationalGC(size_t nurserySize, size_t blockSize)
 	:	mState(GC_ALLOC)
 {
-	mNurseryGC = new NurseryGC(nurseryBitSize, blockSize);
+	mNurseryGC = new NurseryGC(nurserySize, blockSize);
 	
-	mMature = new DynamicHeap(1024 * 1024);
-	mPermanent = new DynamicHeap(1024 * 1024);
+	mMature = new MatureHeap(1024 * 1024);
+	mPermanent = new PermanentHeap(1024 * 1024);
 
 	mReferences.push_back(NULL); // 0 => NULL
 	mReferencesNext = 1;
@@ -32,9 +31,9 @@ GenerationalGC::~GenerationalGC()
 	DeleteCriticalSection(&mPermanentCS);
 }
 
-void GenerationalGC::init()
+void GenerationalGC::init(VirtualMachine* vm)
 {
-	mNurseryGC->init();
+	mNurseryGC->init(vm);
 	mMature->init();
 	mPermanent->init();
 }

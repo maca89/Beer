@@ -102,6 +102,7 @@
     <ClInclude Include="sources\Float.h" />
     <ClInclude Include="sources\ForwardPointer.h" />
     <ClInclude Include="sources\FrameInspector.h" />
+    <ClInclude Include="sources\GCObject.h" />
     <ClInclude Include="sources\GenerationalGC.h" />
     <ClInclude Include="sources\Heap.h" />
     <ClInclude Include="sources\InitVMTask.h" />

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "prereq.h"
+#include "GCObject.h"
 
 namespace Beer
 {
@@ -39,16 +40,22 @@ namespace Beer
 		}
 
 		virtual Object* alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset = 0) = 0;
-		virtual void* alloc(uint32 size) = 0;
-
-		virtual void free(Object* obj) = 0;
+		virtual byte* alloc(uint32 size) = 0;
+		
+//		virtual void free(byte* obj) = 0;
 
 	protected:
 
+		INLINE void initObject(Object* obj, uint32 staticSize, uint32 size)
+		{
+			Object::initObject(obj, staticSize, size);
+			GCObject::init(obj, size);
+		}
+
+		// TODO: round to 4 bytes
 		INLINE uint32 roundSize(uint32 size)
 		{
 			return size + (size & 1); // rounds size to the closest bigger even number
 		}
-
 	};
 }

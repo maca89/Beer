@@ -6,13 +6,14 @@
 #include "Object.h"
 #include "StackRef.h"
 #include "RememeberdSet.h"
-#include "ForwardPointer.h"
 #include "DynamicHeap.h"
 
 namespace Beer
 {
 	class AllocationBlock;
-	class Heap;
+
+	typedef DynamicHeap MatureHeap;
+	typedef DynamicHeap PermanentHeap;
 
 	class GenerationalGC
 	{
@@ -34,8 +35,8 @@ namespace Beer
 
 		NurseryGC* mNurseryGC;
 		
-		DynamicHeap* mMature;
-		DynamicHeap* mPermanent;
+		MatureHeap* mMature;
+		PermanentHeap* mPermanent;
 		CRITICAL_SECTION mMatureCS;
 		CRITICAL_SECTION mPermanentCS;
 		ReferenceVector mReferences;
@@ -44,7 +45,7 @@ namespace Beer
 
 	public:
 
-		GenerationalGC(uint8 nurseryBitSize, size_t blockSize);
+		GenerationalGC(size_t nurserySize, size_t blockSize);
 
 		~GenerationalGC();
 
@@ -58,7 +59,7 @@ namespace Beer
 			return mPermanent;
 		}
 
-		void init();
+		void init(VirtualMachine* vm);
 
 		INLINE Heap* createHeap()
 		{
@@ -108,16 +109,16 @@ namespace Beer
 		{
 			DBG_ASSERT(object != NULL, BEER_WIDEN("Object is NULL"));
 
-			if (object->getTypeFlag() == Object::TYPE_FWD_PTR)
+			/*if (object->getTypeFlag() == Object::TYPE_FWD_PTR)
 			{
 				return static_cast<ForwardPointer*>(object)->getObject();
-			}
+			}*/
 
 			return object;
 		}
 
 		INLINE Object* getIdentity(StackRef<Object> object)
-		{
+		{	
 			DBG_ASSERT(*object != NULL, BEER_WIDEN("Object is NULL"));
 
 			return getIdentity(*object);
@@ -129,14 +130,16 @@ namespace Beer
 
 			Object* realReceiver = getIdentity(receiver);
 
-			if (realReceiver->getTypeFlag() == Object::TYPE_FWD_PTR)
+			/*if (realReceiver->getTypeFlag() == Object::TYPE_FWD_PTR)
 			{
 				ret = static_cast<ForwardPointer*>(realReceiver)->getObject()->getChildren()[index];
 			}
 			else
 			{
 				ret = realReceiver->getChildren()[index];
-			}
+			}*/
+
+			ret = realReceiver->getChildren()[index];
 		}
 
 		INLINE void setChild(StackRef<Object> receiver, StackRef<Object> child, int64 index)
@@ -151,6 +154,11 @@ namespace Beer
 			{
 				mRS.add(child);
 			}*/
+		}
+
+		INLINE void threadSuspended(Thread* thread)
+		{
+			int s = 1;
 		}
 	};
 
@@ -197,4 +205,4 @@ namespace Beer
 		INLINE T* operator* () { return get(); }
 		INLINE const T* operator* () const { return get(); }
 	};
-}
+};
