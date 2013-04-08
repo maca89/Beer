@@ -24,6 +24,7 @@
     <ClCompile Include="sources\BytecodeBuilder.cpp" />
     <ClCompile Include="sources\CreateAllEntryPointsTask.cpp" />
     <ClCompile Include="sources\DefaultBytecodeLinker.cpp" />
+    <ClCompile Include="sources\DefaultBytecodeVerifier.cpp" />
     <ClCompile Include="sources\DynamicHeap.cpp" />
     <ClCompile Include="sources\FixedHeap.cpp" />
     <ClCompile Include="sources\FrameInspector.cpp" />
@@ -97,6 +98,7 @@
     <ClInclude Include="sources\BytecodePass.h" />
     <ClInclude Include="sources\CreateAllEntryPointsTask.h" />
     <ClInclude Include="sources\DefaultBytecodeLinker.h" />
+    <ClInclude Include="sources\DefaultBytecodeVerifier.h" />
     <ClInclude Include="sources\DownwardStack.h" />
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />

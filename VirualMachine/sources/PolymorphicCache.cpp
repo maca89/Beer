@@ -9,7 +9,8 @@ using namespace Beer;
 
 void BEER_CALL PolymorphicCache::init(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<String> selector)
 {
-	//thread->getGC()->setChild(receiver, NULL, selector); // TODO
+	//receiver = static_cast<PolymorphicCache*>(thread->getGC()->getIdentity(receiver));
+	//thread->getGC()->setChild(*receiver, receiver->mSelector, *selector); // TODO
 	receiver->mSelector = *selector;
 }
 

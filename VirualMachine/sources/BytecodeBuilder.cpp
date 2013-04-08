@@ -8,6 +8,7 @@
 #include "BytecodeDescriptor.h"
 #include "DefaultBytecodeLinker.h"
 #include "MultipassBytecodeOptimiser.h"
+#include "DefaultBytecodeVerifier.h"
 
 using namespace Beer;
 
@@ -24,6 +25,7 @@ BytecodeBuilder::BytecodeBuilder()
 {
 	mLoader = new DefaultBytecodeLoader(); // TODO
 	mLinker = new DefaultBytecodeLinker(); // TODO
+	mVerifier = new DefaultBytecodeVerifier(); // TODO
 	mCompiler = new DefaultBytecodeCompiler(); // TODO
 	mOptimiser = new MultipassBytecodeOptimiser(); // TODO
 }
@@ -36,7 +38,7 @@ BytecodeBuilder::~BytecodeBuilder()
 	SMART_DELETE(mOptimiser); // TODO
 }
 
-void BytecodeBuilder::build(Thread* thread, StackRef<Method> method, ClassFileDescriptor* klassFile, BytecodeDescriptor* bcDescr)
+void BytecodeBuilder::build(Thread* thread, StackRef<Class> klass, StackRef<Method> method, ClassFileDescriptor* klassFile, BytecodeDescriptor* bcDescr)
 {
 	Bytecode* bc = NULL;
 	byte* data = NULL;
@@ -46,9 +48,8 @@ void BytecodeBuilder::build(Thread* thread, StackRef<Method> method, ClassFileDe
 	TemporaryBytecode tmpBc;
 
 	mLoader->load(thread, bcDescr, tmpBc);
-	//mVerifier->verify(thread, klassFile, tmpBc);
-
-	mLinker->link(thread, method, klassFile, tmpBc, tmpBc); // new Bytecode(data, dataLength, instrCount);
+	mLinker->link(thread, method, klassFile, tmpBc, tmpBc);
+	mVerifier->verify(thread, klass, method, tmpBc);
 	mOptimiser->optimise(thread, method, tmpBc, tmpBc);
 	
 	mCompiler->compile(thread, method, tmpBc); // TODO: return fn pointer

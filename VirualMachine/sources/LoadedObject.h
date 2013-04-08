@@ -49,7 +49,7 @@ namespace Beer
 		MethodDescriptor* getMethod(uint16 i);
 
 		void makeProperty(Thread* thread, StackRef<Property> ret, ClassLoader* loader, AttributeDescriptor* attrDescr);
-		Method* makeMethod(Thread* thread, ClassLoader* loader, MethodDescriptor* methodDescr);
+		Method* makeMethod(Thread* thread, StackRef<Class> klass, ClassLoader* loader, MethodDescriptor* methodDescr);
 		void makeParam(Thread* thread, StackRef<Param> ret, ClassLoader* loader, ParamDescriptor* paramDescr);
 
 		const char_t* getParentClassName(Thread* thread, uint16 i);

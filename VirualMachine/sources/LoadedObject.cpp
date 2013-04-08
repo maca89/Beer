@@ -176,7 +176,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
 		MethodDescriptor* methodDescr = getMethod(i);
-		Method* method = makeMethod(thread, loader, methodDescr);
+		Method* method = makeMethod(thread, klassOnStack, loader, methodDescr);
 
 		StackRef<String> str(frame, frame->stackPush());
 		str = method->getName();
@@ -280,7 +280,7 @@ void LoadedObjectInitializer::makeParam(Thread* thread, StackRef<Param> ret, Cla
 	}
 }
 
-Method* LoadedObjectInitializer::makeMethod(Thread* thread, ClassLoader* loader, MethodDescriptor* methodDescr)
+Method* LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Class> klass, ClassLoader* loader, MethodDescriptor* methodDescr)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -339,7 +339,7 @@ Method* LoadedObjectInitializer::makeMethod(Thread* thread, ClassLoader* loader,
 	{
 		// bytecode
 		BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
-		thread->getVM()->getBytecodeBuilder()->build(thread, methodOnStack, mClassFile, bcDescr);
+		thread->getVM()->getBytecodeBuilder()->build(thread, klass, methodOnStack, mClassFile, bcDescr);
 	}
 
 	frame->stackPop(); // pop methodOnStack

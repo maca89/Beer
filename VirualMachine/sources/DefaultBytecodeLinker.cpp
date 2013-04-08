@@ -31,15 +31,26 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 		{
 			case BEER_INSTR_NOP:
 			case BEER_INSTR_POP:
-			case BEER_INSTR_CLONE:
 			case BEER_FILL_OPCODE_TABLE:
 				ostream.write<uint8>(opcode);
 				break;
 
 			case BEER_INSTR_PUSH_BOOL:
-			case BEER_INSTR_PUSH_CHAR:// TODO: 16bit
-				ostream.write<uint8>(opcode);
-				ostream.write(istream.read<uint8>());
+				{
+					ostream.write<uint8>(opcode);
+					
+					Boolean* value = Boolean::makeInlineValue(istream.read<uint8>() == 1);
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
+				}
+				break;
+
+			case BEER_INSTR_PUSH_CHAR:
+				{
+					ostream.write<uint8>(opcode);
+					
+					Character* value = Character::makeInlineValue(istream.read<uint8>()); // TODO: 16bit
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
+				}
 				break;
 
 			case BEER_INSTR_TOP:
@@ -64,9 +75,10 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 			case BEER_INSTR_JMP_TRUE:
 			case BEER_INSTR_JMP_FALSE:
 			case BEER_INSTR_MOVE_TOP:
-			case BEER_INSTR_LOAD_THIS:
 			case BEER_INSTR_LOAD:
+			case BEER_INSTR_LOAD_THIS:
 			case BEER_INSTR_ASSIGN:
+			case BEER_INSTR_ASSIGN_THIS:
 				ostream.write<uint8>(opcode);
 				ostream.write(istream.read<uint16>());
 				break;
@@ -74,16 +86,13 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 			case BEER_INSTR_PUSH_STRING:
 				{
 					ostream.write<uint8>(opcode);
-					// TODO: load from classfile pool
-					const char16* cstring = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
-					Reference<String> str = String::gTranslate(thread, cstring);
-					
-					StackRef<String> value(frame, frame->stackPush(
-						*str
-					));
+					// TODO: use method's pool for reusing constants
 
-					ostream.write<uint16>(method->storeToPool(thread, value));
-					frame->stackPop(); // pop value
+					StringDescriptor* stringDescr = classFile->getDescriptor<StringDescriptor>(istream.read<int32>());
+					String* value = thread->createConstantString(stringDescr->getSize());
+					value->copyData(stringDescr->c_str(), stringDescr->getSize());
+
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
 				}
 				break;
 
@@ -127,13 +136,10 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 					StackRef<String> selector(frame, frame->stackPush(
 						*String::gTranslate(thread, cselector)
 					));
-						
 					ostream.write<uint16>(method->storeToPool(thread, selector));
 					
 					StackRef<PolymorphicCache> cache(frame, frame->stackPush());
 					thread->createPolycache(cache, 3);
-					//PolymorphicCache* cache = PolymorphicCache::from(ostream.alloc(PolymorphicCache::countSize(3))); // TODO
-
 					ostream.write<uint16>(method->storeToPool(thread, cache));
 
 					frame->stackMoveTop(-2); // pop selector, cache
@@ -147,49 +153,39 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 			case BEER_INSTR_PUSH_INT8:
 				{
 					ostream.write<uint8>(BEER_INSTR_PUSH_INT64);
+					// TODO: use method's pool for reusing constants
 					
-					StackRef<Integer> value(frame, frame->stackPush());
-					thread->createInteger(value, istream.read<int8>()); // TODO: on permanent heap
-
-					ostream.write<uint16>(method->storeToPool(thread, value));
-					frame->stackPop(); // pop value
+					Integer* value = thread->createConstantInteger(istream.read<int8>());
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
 				}
 				break;
 
 			case BEER_INSTR_PUSH_INT32:
 				{
 					ostream.write<uint8>(BEER_INSTR_PUSH_INT64);
+					// TODO: use method's pool for reusing constants
 					
-					StackRef<Integer> value(frame, frame->stackPush());
-					thread->createInteger(value, istream.read<int32>()); // TODO: on permanent heap
-
-					ostream.write<uint16>(method->storeToPool(thread, value));
-					frame->stackPop(); // pop value
+					Integer* value = thread->createConstantInteger(istream.read<int32>());
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
 				}
 				break;
 			case BEER_INSTR_PUSH_INT64:
 				{
 					ostream.write<uint8>(BEER_INSTR_PUSH_INT64);
+					// TODO: use method's pool for reusing constants
 					
-					StackRef<Integer> value(frame, frame->stackPush());
-					thread->createInteger(value, istream.read<int64>()); // TODO: on permanent heap
-
-					ostream.write<uint16>(method->storeToPool(thread, value));
-					frame->stackPop(); // pop value
+					Integer* value = thread->createConstantInteger(istream.read<int64>());
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
 				}
 				break;
 
 			case BEER_INSTR_PUSH_FLOAT:
 				{
 					ostream.write<uint8>(opcode);
+					// TODO: use method's pool for reusing constants
 					
-					StackRef<Float> value(frame, frame->stackPush());
-					thread->createFloat(value, istream.read<float64>()); // TODO: on permanent heap
-
-					ostream.write<uint16>(method->storeToPool(thread, value));
-					frame->stackPop(); // pop value
-
-					//ostream.write(istream.read<uint64>());
+					Float* value = thread->createConstantFloat(istream.read<float64>());
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
 				}
 				break;
 

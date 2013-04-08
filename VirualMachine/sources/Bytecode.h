@@ -55,11 +55,11 @@ namespace Beer
 
 			// 40: object control
 			#define BEER_INSTR_NEW				40
-			//#define BEER_INSTR_DELETE			41
-			#define BEER_INSTR_CLONE			42
+			//#define BEER_INSTR_CAST			41
 			#define BEER_INSTR_ASSIGN			43
 			#define BEER_INSTR_LOAD				44
 			#define BEER_INSTR_LOAD_THIS		45
+			#define BEER_INSTR_ASSIGN_THIS		46
 
 			// 50: method control
 			#define BEER_INSTR_VIRTUAL_INVOKE	50
@@ -171,7 +171,7 @@ namespace Beer
 		INLINE const Instruction* getInstruction(uint16 offset) const { return reinterpret_cast<const Instruction*>(&mData[offset]); }
 		INLINE Instruction* getInstruction(uint16 offset) { return reinterpret_cast<Instruction*>(&mData[offset]); }
 
-		void printTranslatedInstruction(Thread* thread, Method* method, const Instruction* instr);
+		static void printTranslatedInstruction(Thread* thread, Method* method, byte* ip);
 
 		static void init(Thread* thread); // important!!!
 		static void invokeBytecode(Thread* thread);

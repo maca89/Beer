@@ -4,6 +4,7 @@
 #include "Frame.h"
 #include "Integer.h"
 #include "Float.h"
+#include "String.h"
 #include "GenerationalGC.h"
 #include "TaskContext.h"
 
@@ -72,6 +73,10 @@ namespace Beer
 		void findClass(StackRef<String> name, StackRef<Class> ret);
 		void findMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
 
+		Integer* createConstantInteger(Integer::IntegerData value);
+		Float* createConstantFloat(Float::FloatData value);
+		String* createConstantString(String::LengthData length);
+
 		void createInteger(StackRef<Integer> ret, Integer::IntegerData value);
 		void createFloat(StackRef<Float> ret, Float::FloatData value);
 		void createString(StackRef<String> ret, string value);
@@ -90,6 +95,7 @@ namespace Beer
 		void init();
 
 	protected:
+		Object* staticCreateConstant(Class* klass, int32 staticSize, int32 additionalChildrenCount = 0);
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 	};
 

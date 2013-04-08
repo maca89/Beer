@@ -26,7 +26,6 @@ void BytecodeDescriptor::convert(FileFormatConverter& format, ClassFileDescripto
 			// 0 bytes = 0bit
 			case BEER_INSTR_NOP:
 			case BEER_INSTR_POP:
-			case BEER_INSTR_CLONE:
 			case BEER_INSTR_STACK_INVOKE:
 				break;
 

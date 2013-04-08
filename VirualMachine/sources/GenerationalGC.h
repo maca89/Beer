@@ -7,13 +7,14 @@
 #include "StackRef.h"
 #include "RememeberdSet.h"
 #include "DynamicHeap.h"
+#include "FixedHeap.h"
 
 namespace Beer
 {
 	class AllocationBlock;
 
 	typedef DynamicHeap MatureHeap;
-	typedef DynamicHeap PermanentHeap;
+	typedef FixedHeap PermanentHeap;
 
 	class GenerationalGC
 	{

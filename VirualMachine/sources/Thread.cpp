@@ -84,6 +84,47 @@ void Thread::findMethod(StackRef<Class> klass, StackRef<String> selector, StackR
 	Class::findMethod(this, klass, selector, ret);
 }
 
+Integer* Thread::createConstantInteger(Integer::IntegerData value)
+{
+	if(Integer::canBeInlineValue(value))
+	{
+		return Integer::makeInlineValue(value);
+	}
+
+	Integer* ret = static_cast<Integer*>(staticCreateConstant(
+		mVM->getIntegerClass(), 
+		sizeof(Integer)
+	));
+
+	ret->setNonInlineValue(value);
+
+	return ret;
+}
+
+Float* Thread::createConstantFloat(Float::FloatData value)
+{
+	Float* ret = static_cast<Float*>(staticCreateConstant(
+		mVM->getFloatClass(), 
+		sizeof(Float)
+	));
+
+	ret->setData(value);
+
+	return ret;
+}
+
+String* Thread::createConstantString(String::LengthData length)
+{
+	String* ret = static_cast<String*>(staticCreateConstant(
+		mVM->getStringClass(), 
+		sizeof(String) + sizeof(String::CharacterData) * (static_cast<int32>(length) + 1) // +1 for \0
+	));
+
+	ret->size(length);
+
+	return ret;
+}
+
 void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
 {
 	Frame* frame = getFrame();
@@ -255,6 +296,18 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 	frame->stackPop(); // pop method
 }
 
+Object* Thread::staticCreateConstant(Class* klass, int32 staticSize, int32 additionalChildrenCount)
+{
+	Object* ret = getPermanentHeap()->alloc(
+		staticSize,
+		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + klass->getPropertiesCount() + additionalChildrenCount)
+	);
+
+	ret->setType(klass);
+
+	return ret;
+}
+
 void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount)
 {
 	ret = getHeap()->alloc(
@@ -262,7 +315,7 @@ void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int
 		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + klass->getPropertiesCount() + additionalChildrenCount)
 	);
 
-	Object::setType(this, ret, klass);
+	ret->setType(*klass);
 }
 
 Class* Thread::getType(Object* object)

@@ -25,12 +25,12 @@ void Debugger::printLastOutput()
 	cout << std::endl;
 }
 
-void Debugger::printInstruction(StackRef<Method> method, Bytecode* bc, const Bytecode::Instruction* instr, uint16 programCounter)
+void Debugger::printInstruction(StackRef<Method> method, Bytecode* bc, Bytecode::Instruction* instr, uint16 programCounter)
 {
 	cout /*<< std::endl*/ << BEER_WIDEN("[Instruction]") << std::endl;
 	cout << std::setw(4);
 	cout << std::setfill(BEER_WIDEN(' ')) << BEER_WIDEN("+") << programCounter << BEER_WIDEN(" ");
-	bc->printTranslatedInstruction(this, *method, instr);
+	bc->printTranslatedInstruction(this, *method, reinterpret_cast<byte*>(instr));
 	cout << std::endl;
 }
 

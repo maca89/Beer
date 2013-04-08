@@ -33,6 +33,7 @@ namespace Beer
 	public:
 		virtual ~BytecodeVerifier() {}
 		// TODO
+		virtual void verify(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const TemporaryBytecode& bc) = 0;
 	};
 
 	class BytecodeLinker

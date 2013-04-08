@@ -35,15 +35,8 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 		{
 			case BEER_INSTR_NOP:
 			case BEER_INSTR_POP:
-			case BEER_INSTR_CLONE:
 			case BEER_FILL_OPCODE_TABLE:
 				ostream.write<uint8>(opcode);
-				break;
-
-			case BEER_INSTR_PUSH_BOOL:
-			case BEER_INSTR_PUSH_CHAR:// TODO: 16bit
-				ostream.write<uint8>(opcode);
-				ostream.write(istream.read<uint8>());
 				break;
 
 			case BEER_INSTR_TOP:
@@ -53,10 +46,10 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 			case BEER_INSTR_JMP_TRUE:
 			case BEER_INSTR_JMP_FALSE:
 			case BEER_INSTR_MOVE_TOP:
-			case BEER_INSTR_LOAD_THIS:
 			case BEER_INSTR_LOAD:
+			case BEER_INSTR_LOAD_THIS:
 			case BEER_INSTR_ASSIGN:
-			case BEER_INSTR_PUSH_STRING:
+			case BEER_INSTR_ASSIGN_THIS:
 				{
 					ostream.write<uint8>(opcode);
 					ostream.write<int16>(istream.read<int16>());
@@ -122,11 +115,14 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 				ostream.write<uint8>(opcode);
 				break;
 				
+			case BEER_INSTR_PUSH_STRING:
+			case BEER_INSTR_PUSH_BOOL:
+			case BEER_INSTR_PUSH_CHAR:
 			case BEER_INSTR_PUSH_FLOAT:
 			case BEER_INSTR_PUSH_INT64:
 				{
 					ostream.write<uint8>(opcode);
-					ostream.write<uint16>(istream.read<uint16>());
+					ostream.write<int32>(istream.read<int32>());
 				}
 				break;
 

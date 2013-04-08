@@ -22,8 +22,10 @@ namespace Beer
 		{
 			FLAG_VALUE_TYPE = 0x01,
 			FLAG_INTERFACE = 0x02,
+			FLAG_ABSTRACT = 0x04,//TODO
+			FLAG_SEALED = 0x08,//TODO
 
-			FLAG_ENTRYPOINT = 0x04,
+			FLAG_ENTRYPOINT = 0x10,
 		};
 
 		typedef void (*Traverser)(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
@@ -73,6 +75,12 @@ namespace Beer
 		
 		INLINE void markEntryPoint() { markFlag(FLAG_ENTRYPOINT); }
 		INLINE bool isEntryPoint() const { return hasFlag(FLAG_ENTRYPOINT); }
+		
+		INLINE void markAbstract() { markFlag(FLAG_ABSTRACT); }
+		INLINE bool isAbstract() const { return hasFlag(FLAG_ABSTRACT); }
+		
+		INLINE void markSealed() { markFlag(FLAG_SEALED); }
+		INLINE bool isSealed() const { return hasFlag(FLAG_SEALED); }
 
 		INLINE bool hasFlag(uint8 n) const { return (mFlags & n) == n; }
 		INLINE void markFlag(uint8 n) { mFlags |= n; }
