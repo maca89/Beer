@@ -108,7 +108,7 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 					StackRef<Class> klass(frame, frame->stackPush());
 					thread->findClass(name, klass);
 
-					ostream.write<uint16>(method->storeToPool(thread, klass));
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*klass))); // TODO
 					frame->stackMoveTop(-2); // pop name, klass
 				}
 				break;
@@ -119,12 +119,9 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 					ostream.write<uint8>(opcode);
 
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
-					StackRef<String> selector(frame, frame->stackPush(
-						*String::gTranslate(thread, cselector)
-					));
-					
-					ostream.write<uint16>(method->storeToPool(thread, selector));
-					frame->stackPop(); // pop selector
+					String* selector = *String::gTranslate(thread, cselector);
+
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(selector))); // TODO
 				}
 				break;
 				

@@ -38,9 +38,6 @@ void BEER_CALL Array::getLength(Thread* thread, StackRef<Array> receiver, StackR
 
 void BEER_CALL Array::operatorGet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
 	Integer::IntegerData itemIndex = index->getData();
 	BOUNDS_ASSERT(itemIndex, receiver->getSize());
 
@@ -49,9 +46,6 @@ void BEER_CALL Array::operatorGet(Thread* thread, StackRef<Array> receiver, Stac
 
 void BEER_CALL Array::operatorSet(Thread* thread, StackRef<Array> receiver, StackRef<Integer> index, StackRef<Object> object)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
 	Integer::IntegerData itemIndex = index->getData();
 	BOUNDS_ASSERT(itemIndex, receiver->getSize());
 

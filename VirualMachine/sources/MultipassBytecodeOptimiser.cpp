@@ -58,35 +58,25 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 
 			case BEER_INSTR_NEW:
 				{
-					uint16 klassId = istream.read<uint16>();
+					Class* klass = static_cast<Class*>(reinterpret_cast<Object*>(istream.read<int32>()));
+					Class* arrayClass = thread->getVM()->getArrayClass();
 
-					StackRef<Class> klass(frame, frame->stackPush());
-					method->loadFromPool(thread, klassId, klass);
-
-					StackRef<Class> arrayClass(frame, frame->stackPush());
-					thread->getArrayClass(arrayClass);
-
-					if(*klass == *arrayClass)
+					if(klass == arrayClass)
 					{
 						ostream.write<uint8>(BEER_OPTIMAL_ARRAY_ALLOC);
 					}
 					else
 					{
 						ostream.write<uint8>(opcode);
-						ostream.write<uint16>(klassId);
+						ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(klass))); // TODO
 					}
-
-					frame->stackMoveTop(-2); // pop klass, arrayClass
 				}
 				break;
 
 			case BEER_INSTR_VIRTUAL_INVOKE:
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
-					uint16 selectorId = istream.read<uint16>();
-
-					StackRef<String> selector(frame, frame->stackPush());
-					method->loadFromPool(thread, selectorId, selector);
+					String* selector = static_cast<String*>(reinterpret_cast<Object*>(istream.read<int32>()));
 
 					Bytecode::OpCode newOpcode = thread->getVM()->getInlineFunctionTable()->find(selector);
 					if(newOpcode != BEER_INSTR_NOP)
@@ -96,10 +86,8 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 					else
 					{
 						ostream.write<uint8>(opcode);
-						ostream.write<uint16>(selectorId);
+						ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(selector))); // TODO
 					}
-
-					frame->stackPop(); // pop selector
 				}
 				break;
 				

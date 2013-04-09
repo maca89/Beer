@@ -2,6 +2,7 @@
 #include "DefaultBytecodeVerifier.h"
 #include "BytecodeInputStream.h"
 #include "Thread.h"
+#include "VirtualMachine.h"
 #include "Bytecode.h"
 #include "Class.h"
 #include "Method.h"
@@ -99,10 +100,9 @@ void DefaultBytecodeVerifier::verify(Thread* thread, StackRef<Class> thisClass, 
 
 			case BEER_INSTR_NEW:
 				{
-					StackRef<Class> klass(frame, frame->stackPush());
-					method->loadFromPool(thread, istream.read<uint16>(), klass);
+					Class* klass = static_cast<Class*>(reinterpret_cast<Object*>(istream.read<int32>()));
 
-					if(klass.isNull())
+					if(klass == NULL)
 					{
 						throw BytecodeException(BEER_WIDEN("Class is NULL"));
 					}
@@ -111,20 +111,26 @@ void DefaultBytecodeVerifier::verify(Thread* thread, StackRef<Class> thisClass, 
 					{
 						throw BytecodeException(BEER_WIDEN("Unable to instance an abstract class or interface"));
 					}
-
-					frame->stackPop(); // pop klass
 				}
 				break;
 
 			case BEER_INSTR_VIRTUAL_INVOKE:
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
-					StackRef<String> selector(frame, frame->stackPush());
-					method->loadFromPool(thread, istream.read<uint16>(), selector);
+					String* selector = static_cast<String*>(reinterpret_cast<Object*>(istream.read<int32>()));
 
 					// TODO: what to check???
 
-					frame->stackPop(); // pop selector
+					if(selector == NULL)
+					{
+						throw BytecodeException(BEER_WIDEN("Selector is NULL"));
+					}
+
+					Class* selectorClass = thread->getType(selector);
+					if(selectorClass != thread->getVM()->getStringClass())
+					{
+						throw BytecodeException(BEER_WIDEN("Selector is not a String"));
+					}
 				}
 				break;
 
