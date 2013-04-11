@@ -31,6 +31,8 @@ namespace Beer
 				gMemory = gMemoryAllocator.malloc(dictLength * sizeof(uint16), 5*1024*1024); // 1MB
 			}
 
+			gMemory = reinterpret_cast<byte*>(gMemory) + reinterpret_cast<int64>(gMemory) % 4; // align to 4
+
 			// allocate dictionary
 			mDict = reinterpret_cast<uint32*>(gMemory);
 			byte* ptr = reinterpret_cast<byte*>(gMemory) + (dictLength * sizeof(uint32));

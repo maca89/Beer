@@ -60,7 +60,5 @@ namespace Beer
 		{
 			thread->createString(ret, strdescr->c_str());
 		}
-
-		
 	};
 };

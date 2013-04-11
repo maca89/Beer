@@ -30,7 +30,7 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 
 	/////////////////////////////////////////////////////////
 	// fix missing value types
-	if(false) {
+	if(true) {
 		StackRef<Integer> index(frame, frame->stackPush());
 		StackRef<Property> prop(frame, frame->stackPush());
 		StackRef<Class> klass(frame, frame->stackPush());
@@ -68,7 +68,7 @@ Class* LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader,
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
-
+	
 	string className = name->c_str();
 	uint16 methodsLength = mClassDescr->getMethodsLength();
 	uint16 propertiesLength = mClassDescr->getAttributesLength();
@@ -132,7 +132,8 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 	StackRef<Class> klassOnStack(frame, frame->stackPush(klass)); // TODO: get rid of
 
 	mClass = klass; // ugly, TODO: get rid of
-
+	
+	uint32 instanceStaticSize = sizeof(Object);
 	uint16 methodStart = 0;
 
 	StackRef<String> className(frame, frame->stackPush());
@@ -152,11 +153,14 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 
 		StackRef<Class> parentClass(frame, frame->stackPush());
 		thread->findClass(parentClassName, parentClass);
-
+		
+		instanceStaticSize = max(instanceStaticSize, parentClass->mInstanceStaticSize); // TODO
 		Class::addParent(thread, klassOnStack, parentClass);
 		
 		frame->stackMoveTop(-2); // pop parentClass, parentClassName
 	}
+
+	klass->mInstanceStaticSize = instanceStaticSize; // TODO
 	
 	// attributes
 	{

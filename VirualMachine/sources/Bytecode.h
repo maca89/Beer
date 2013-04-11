@@ -143,7 +143,10 @@ namespace Beer
 		byte* mData;
 
 		static void* LabelTable[BEER_MAX_OPCODE * sizeof(void*)];
-		
+
+#ifdef BEER_BC_DEBUGGING
+		static std::map<void*, OpCode> LabelTableDebugDictionary;
+#endif // BEER_BC_DEBUGGING
 
 	public:
 		INLINE Bytecode()

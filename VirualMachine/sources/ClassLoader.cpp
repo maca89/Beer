@@ -98,6 +98,7 @@ Class* ClassLoader::createClass(Thread* thread, String* classname, uint32 static
 	klass->mMethodsCount = methods;
 	klass->mParentNext = klass->mMethodNext = klass->mPropertyNext = 0;
 	klass->mTraverser = &Class::DefaultInstanceTraverser;
+	klass->mInstanceStaticSize = sizeof(Object);
 
 	klass->setName(classname);
 	klass->setType(thread->getVM()->getMetaClass());

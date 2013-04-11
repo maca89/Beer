@@ -93,3 +93,17 @@ void PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver,
 		frame->stackPop(); // pop pair
 	}
 }
+
+void BEER_CALL PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<Method> ret)
+{
+	Frame* frame = thread->getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<String> selector(frame, frame->stackPush(
+		receiver->mSelector
+	));
+	
+	find(thread, receiver, klass, selector, ret);
+
+	frame->stackPop(); // pop receiver
+}

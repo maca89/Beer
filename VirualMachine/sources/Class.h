@@ -59,6 +59,7 @@ namespace Beer
 		uint32 mMethodNext;
 
 		Traverser mTraverser;
+		uint32 mInstanceStaticSize;
 		////////////////////////////////////////////////////////////
 
 	public:

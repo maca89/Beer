@@ -187,7 +187,7 @@ namespace Beer
 			return mStack.sp();
 		}
 
-		INLINE Frame* pushFrame(uint32 argsCount, int32 stackSize)
+		NOINLINE Frame* pushFrame(uint32 argsCount, int32 stackSize)
 		{
 			int32 newFrameSize = sizeof(Frame);
 			if(mBonusSpace < newFrameSize)

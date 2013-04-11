@@ -23,27 +23,16 @@ bool TrampolineThread::trampoline()
 		Frame* frame = getFrame();
 		StackRef<Method> method(frame, -1);
 		
-		// return
 		if(method.isNull())
 		{
 			closeFrame();
 			continue;
 		}
 
-		//getVM()->getDebugger()->printFrame(this, frame);
-
 		try
 		{
 		#ifdef BEER_DEBUG_MODE
 			if(mVM->getDebugger()->isEnabled()) mVM->getDebugger()->step(this, frame);
-		#endif // BEER_DEBUG_MODE
-
-		//#ifdef BEER_DEBUG_MODE
-			//Console::getOutput().flush(cout);
-		//#endif // BEER_DEBUG_MODE
-
-		#ifdef BEER_DEBUG_MODE
-			//mVM->getHeap()->collect(); // TODO
 		#endif // BEER_DEBUG_MODE
 
 		#ifdef BEER_MEASURE_PERFORMANCE
@@ -69,11 +58,5 @@ bool TrampolineThread::trampoline()
 	}
 
 	//mVM->getDebugger()->ended();
-
-	//Console::getOutput() << BEER_WIDEN("Exiting Thread\n");
-
-	// flush all output
-	//Console::getOutput().flush(cout);
-
 	return !hasFrame();
 }

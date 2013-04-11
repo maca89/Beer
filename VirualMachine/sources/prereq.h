@@ -8,7 +8,7 @@ namespace Beer
 	#define NOINLINE
 	#define BEER_DEBUG_MODE
 #else
-	#define INLINE __inline
+	#define INLINE __inline __forceinline
 	#define NOINLINE
 #endif
 
@@ -328,6 +328,7 @@ namespace Beer
 		//#define BEER_MEMORY_DEBUGGING
 		//#define BEER_GC_DEBUGGING
 		#define BEER_STACK_DEBUGGING
+		#define BEER_BC_DEBUGGING
 	#endif // BEER_DEBUG_MODE
 
 	// debug asserts

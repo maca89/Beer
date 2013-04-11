@@ -29,5 +29,6 @@ namespace Beer
 		static void BEER_CALL init(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<String> selector);
 		static void BEER_CALL clear(Thread* thread, StackRef<PolymorphicCache> receiver);
 		static void BEER_CALL find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
+		static void BEER_CALL find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<Method> ret);
 	};
 };

@@ -108,12 +108,31 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 					StackRef<Class> klass(frame, frame->stackPush());
 					thread->findClass(name, klass);
 
+					static Reference<String> selectorRef = String::gTranslate(thread, BEER_WIDEN("$Class::createInstance()")); // TODO;
+					StackRef<String> selector(frame, frame->stackPush(*selectorRef));
+
+					StackRef<Method> method(frame, frame->stackPush());
+					Class::findMethod(thread, klass, selector, method);
+					
 					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*klass))); // TODO
-					frame->stackMoveTop(-2); // pop name, klass
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*method))); // TODO
+
+					frame->stackMoveTop(-4); // pop name, klass, selector, method
 				}
 				break;
 
 			case BEER_INSTR_VIRTUAL_INVOKE:
+			//case BEER_INSTR_SPECIAL_INVOKE:
+				{
+					ostream.write<uint8>(opcode);
+
+					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
+					String* selector = *String::gTranslate(thread, cselector);
+
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(selector))); // TODO
+				}
+				break;
+
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
 					ostream.write<uint8>(opcode);

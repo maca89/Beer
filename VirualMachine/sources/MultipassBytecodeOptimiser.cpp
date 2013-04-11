@@ -52,13 +52,14 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 			case BEER_INSTR_ASSIGN_THIS:
 				{
 					ostream.write<uint8>(opcode);
-					ostream.write<int16>(istream.read<int16>());
+					ostream.write<uint16>(istream.read<uint16>());
 				}
 				break;
 
 			case BEER_INSTR_NEW:
 				{
 					Class* klass = static_cast<Class*>(reinterpret_cast<Object*>(istream.read<int32>()));
+					Method* method = static_cast<Method*>(reinterpret_cast<Object*>(istream.read<int32>()));
 					Class* arrayClass = thread->getVM()->getArrayClass();
 
 					if(klass == arrayClass)
@@ -69,6 +70,7 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 					{
 						ostream.write<uint8>(opcode);
 						ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(klass))); // TODO
+						ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(method))); // TODO
 					}
 				}
 				break;

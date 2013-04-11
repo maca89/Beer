@@ -32,6 +32,7 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	metaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
 	metaClass->mParentNext = metaClass->mMethodNext = metaClass->mPropertyNext = 0;
 	metaClass->mTraverser = &MetaClass::DefaultClassTraverser;
+	metaClass->mInstanceStaticSize = sizeof(Class);
 	thread->getVM()->setMetaClass(metaClass);
 
 	// create MetaClass name

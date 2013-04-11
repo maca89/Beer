@@ -100,6 +100,7 @@ Class* TaskInitializer::createClass(Thread* thread, ClassLoader* loader, String*
 
 void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
+	klass->mInstanceStaticSize = sizeof(Task);
 	klass->addParent(thread->getVM()->getObjectClass());
 	
 	loader->addMethod(thread, klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);

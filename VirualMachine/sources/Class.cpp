@@ -13,14 +13,11 @@ using namespace Beer;
 
 void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> propertiesCount(frame, frame->stackPush());
-	Class::getPropertiesCount(thread, receiver, propertiesCount);
+	DBG_ASSERT(receiver->mInstanceStaticSize > 0, BEER_WIDEN("Instance size is zero"));
 
 	ret = thread->getHeap()->alloc<Object>(
-		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
+		receiver->mInstanceStaticSize,
+		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
 
 	if(ret.isNull())
@@ -28,9 +25,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 		throw NotEnoughMemoryException(BEER_WIDEN("Unable to create new instance - Not enough memory"));
 	}
 	
-	Object::setType(thread, ret, receiver);
-
-	frame->stackPop(); // pop propertiesCount
+	ret->setType(*receiver);
 }
 
 void BEER_CALL Class::findMethodIndex(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret1, StackRef<Integer> ret2)

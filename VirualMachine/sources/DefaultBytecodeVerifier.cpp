@@ -101,10 +101,16 @@ void DefaultBytecodeVerifier::verify(Thread* thread, StackRef<Class> thisClass, 
 			case BEER_INSTR_NEW:
 				{
 					Class* klass = static_cast<Class*>(reinterpret_cast<Object*>(istream.read<int32>()));
+					Method* method = static_cast<Method*>(reinterpret_cast<Object*>(istream.read<int32>()));
 
 					if(klass == NULL)
 					{
 						throw BytecodeException(BEER_WIDEN("Class is NULL"));
+					}
+
+					if(method == NULL)
+					{
+						throw BytecodeException(BEER_WIDEN("Class has no method for creating instances"));
 					}
 
 					if(klass->isInterface() || klass->isAbstract())
