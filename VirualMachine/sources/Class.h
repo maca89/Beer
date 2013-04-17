@@ -26,6 +26,10 @@ namespace Beer
 			FLAG_SEALED = 0x08,
 
 			FLAG_ENTRYPOINT = 0x10,
+
+			METHOD_SLOT_CREATE_INSTANCE = 0,
+			METHOD_SLOT_OBJECT_CTOR = 1,
+			METHOD_SLOT_OPERATOR_STRING = 2,
 		};
 
 		typedef void (*Traverser)(TraverseObjectReceiver* receiver, Class* klass, Object* instance);

@@ -232,6 +232,12 @@ namespace Beer
 	{
 		AbstractMethodException(Method* method, string filename = BEER_WIDEN(""), long line = 0);
 	};
+	
+	class Class;
+	struct AbstractClassException : RuntimeException
+	{
+		AbstractClassException(Class* klass, string filename = BEER_WIDEN(""), long line = 0);
+	};
 
 	struct ClassNotFoundException : RuntimeException
 	{

@@ -5,6 +5,8 @@
 #include "Method.h"
 #include "TrampolineThread.h"
 #include "VirtualMachine.h"
+#include "FrameInspector.h"
+#include "GenerationalGC.h"
 
 using namespace Beer;
 
@@ -65,12 +67,33 @@ void TaskScheduler::resumeAll()
 			// dbg, TODO
 			if(isSafePoint())
 			{
+				//////////////////////////////
+				if(false)
+				{
+					if(!mActive.empty())
+					{
+						Task* task = mActive.pop();
+						TrampolineThread* thread = mAvailableThreads.pop();
+						thread->setContext(task->getContext());
+
+						//Frame* frame = task->getContext()->getFrames();
+						FrameInspector::debugPrintFrames(thread);
+					
+						thread->setContext(NULL); // debug
+						mAvailableThreads.push(thread);
+						mActive.push(task);
+					}
+				}
+				//////////////////////////////
+
+
 				mGC->threadsSuspended();
 				while(isSafePoint())
 				{
 					Sleep(40);
 				}
 				//stopSafePoint();
+				afterSafePoint();
 				continue;
 			}
 
@@ -143,4 +166,36 @@ void TaskScheduler::initializeTask(Thread* thread, Task* task)
 
 void TaskScheduler::wait(Task* who, Task* whatFor)
 {
+}
+
+void TaskScheduler::afterSafePoint()
+{
+	updateFramesPointers();
+}
+
+void TaskScheduler::updateFramesPointers()
+{
+	updateFramesPointers(mActive);
+	updateFramesPointers(mWaiting);
+	updateFramesPointers(mDone);
+	updateFramesPointers(mScheduled);
+	//updateFramesPointers(mLocked);
+}
+
+void TaskScheduler::updateFramesPointers(TaskQueue& queue)
+{
+	if(!queue.empty()) for(TaskQueue::iterator it = queue.begin(); it != queue.end(); it++)
+	{
+		Task* task = *it;
+
+		TrampolineThread* thread = mAvailableThreads.pop();
+		thread->setContext(task->getContext());
+
+		//FrameInspector::debugPrintFrames(thread);
+		task->getContext()->updateMovedPointers(mGC);
+		//FrameInspector::debugPrintFrames(thread);
+
+		thread->setContext(NULL); // debug
+		mAvailableThreads.push(thread);
+	}
 }

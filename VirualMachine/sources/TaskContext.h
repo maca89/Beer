@@ -9,6 +9,7 @@ namespace Beer
 {
 	class Frame;
 	class Heap;
+	class GenerationalGC;
 
 	class TaskContext
 	{
@@ -29,6 +30,7 @@ namespace Beer
 		~TaskContext();
 
 		void init(Heap* heap);
+		void updateMovedPointers(GenerationalGC* gc);
 
 		INLINE Frame* getFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
 		INLINE bool hasFrame() { return mRootFrame->stackLength() != 0; }
@@ -52,5 +54,7 @@ namespace Beer
 
 		Frame* allocFrame(Frame* previousFrame, uint32 stackSize, uint32 argsCout);
 		void discardFrame(Frame* previousFrame, Frame* currentFrame);
+
+		Frame* updateFramePointers(GenerationalGC* gc, Frame* frame);
 	};
 };

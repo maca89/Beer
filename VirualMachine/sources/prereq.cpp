@@ -33,6 +33,18 @@ AbstractMethodException::AbstractMethodException(Method* method, string filename
 	mName = BEER_WIDEN("AbstractMethodException");
 }
 
+#undef AbstractClassException
+
+AbstractClassException::AbstractClassException(Class* klass, string filename, long line)
+	: RuntimeException(
+	string(BEER_WIDEN("Class ")) + klass->getName()->c_str() + BEER_WIDEN(" is abstract"), // TODO
+		filename, 
+		line
+	)
+{
+	mName = BEER_WIDEN("AbstractClassException");
+}
+
 
 #undef MethodNotFoundException
 

@@ -191,3 +191,78 @@ StackRef<Method> TaskContext::getMethod()
 {
 	return StackRef<Method>(getFrame(), Frame::INDEX_METHOD);
 }
+
+void TaskContext::updateMovedPointers(GenerationalGC* gc)
+{
+	if(mTopFrame)
+	{
+		Frame* frame = mTopFrame;
+
+		bool first = true;
+
+		while(frame)
+		{
+			Frame* tmp = frame;
+			frame = updateFramePointers(gc, frame);
+			//cout << "updated frame from #" << tmp << " to #" << frame << "\n";
+
+			if(first)
+			{
+				//cout << "updated top frame from #" << mTopFrame << " to #" << frame << "\n";
+				mTopFrame = frame;
+				first = false;
+			}
+
+			if(frame->isStackAllocated())
+			{
+				// go through all the stack allocated, which were already updated
+				while(frame->isStackAllocated())
+				{
+					frame = frame->previousFrame();
+				}
+
+				// pass the first heap allocated, which was already updated
+				frame = frame->previousFrame();
+			}
+		}
+	}
+
+	Frame* newRoot = updateFramePointers(gc, mRootFrame);
+	//cout << "updated root frame from #" << mRootFrame << " to #" << newRoot << "\n";
+	mRootFrame = newRoot;
+}
+
+// very ugly, too much resursive, TODO
+Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
+{
+	//cout << "-------- updating frame #" << frame << " " << (frame->isStackAllocated() ? "[stack allocated]" : "[heap allocated]") << "\n";
+
+	if(frame->isStackAllocated())
+	{
+		Frame* prevFrame = frame->previousFrame();
+		Frame* prevFrameUpdated = updateFramePointers(gc, prevFrame);
+		//cout << "updated frame from #" << prevFrame << " to #" << prevFrameUpdated << "\n";
+		
+		//cout << "updated bp from #" << frame->bp() << " to #" << prevFrameUpdated->sp() << "\n";
+		frame->bp(prevFrameUpdated->sp());
+	}
+	else // heap allocated
+	{
+		Frame* frameUpdated = static_cast<Frame*>(gc, gc->getIdentity(frame));
+		Frame* prevFrame = frame->previousFrame();
+		if(prevFrame)
+		{
+			Frame* prevFrameUpdated = static_cast<Frame*>(gc->getIdentity(prevFrame));
+
+			int64 offset = (reinterpret_cast<byte*>(frame->bp()) - reinterpret_cast<byte*>(frame));
+			void* newBp = reinterpret_cast<byte*>(frameUpdated) + offset;
+			
+			*reinterpret_cast<Frame**>(newBp) = prevFrameUpdated;
+			//cout << "updated bp from #" << frameUpdated->bp() << " to #" << newBp << "\n";
+			frameUpdated->bp(newBp);
+		}
+		frame = frameUpdated;
+	}
+
+	return frame;
+}

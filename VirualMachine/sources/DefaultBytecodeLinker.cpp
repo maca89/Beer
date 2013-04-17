@@ -110,14 +110,10 @@ void DefaultBytecodeLinker::link(Thread* thread, Method* method, ClassFileDescri
 					));
 
 					Class* klass = thread->getVM()->findClass(name);
-
-					static Reference<String> selectorRef = String::gTranslate(thread, BEER_WIDEN("$Class::createInstance()")); // TODO;
-					String* selector = *selectorRef;
-
-					Method* method = klass->findVirtualMethod(selector);
+					Method* method = klass->getMethod(Class::METHOD_SLOT_CREATE_INSTANCE);
 					if(!method)
 					{
-						throw MethodNotFoundException(klass, klass->getSuperClass(), selector);
+						throw AbstractClassException(klass);
 					}
 					
 					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(klass))); // TODO

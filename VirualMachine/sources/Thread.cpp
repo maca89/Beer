@@ -256,33 +256,14 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 	Frame* frame = getFrame();
 	BEER_STACK_CHECK();
 
-	StackRef<Method> method(frame, frame->stackPush(NULL));
-
-	// find method
-	{
-		StackRef<PolymorphicCache> cache(frame, frame->stackPush(
-			mPolycache
-		));
-
-		static Reference<String> selectorRef = String::gTranslate(this, BEER_WIDEN("$Class::createInstance()")); // TODO;
-		StackRef<String> selector(frame, frame->stackPush(
-			*selectorRef
-		));
-
-		PolymorphicCache::find(this, cache, klass, selector, method);
-		frame->stackMoveTop(-2); // pop cache, selector
-	
-		if(method.isNull())
-		{
-			throw MethodNotFoundException(*klass, *klass, *selectorRef);
-		}
-	}
+	Method* method = klass->getMethod(Class::METHOD_SLOT_CREATE_INSTANCE);
+	DBG_ASSERT(method, BEER_WIDEN("Method is NULL"));
 
 	// call method
 	{
 		StackRef<Object> copiedRet(frame, frame->stackPush());
-		klass.push(frame);
-		method.push(frame);
+		frame->stackPush(*klass);
+		frame->stackPush(method);
 
 		openFrame();
 		method->invoke(this); // pops copied class, copied method
@@ -292,8 +273,6 @@ void Thread::createInstance(StackRef<Class> klass, StackRef<Object> ret)
 
 		DBG_ASSERT(!ret.isNull(), BEER_WIDEN("No instance created"));
 	}
-
-	frame->stackPop(); // pop method
 }
 
 Object* Thread::staticCreateConstant(Class* klass, int32 staticSize, int32 additionalChildrenCount)

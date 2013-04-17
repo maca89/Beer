@@ -101,7 +101,7 @@ void FrameInspector::debugPrintFrames(Thread* thread)
 	while(frameInspector.hasFrame())
 	{
 		frame = frameInspector.getFrame();
-		cout << "// alloc:" << (frame->isStackAllocated() ? "stack" : "heap");
+		cout << "// #" << frame << " alloc:" << (frame->isStackAllocated() ? "stack" : "heap");
 		cout << ", pc:" << frame->getProgramCounter();
 		cout << ", offset:" << frame->getFrameOffset();
 		cout << ", stack:" << frame->stackLength();

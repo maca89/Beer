@@ -677,7 +677,6 @@ BEER_BC_LABEL(INSTR_TOP):
 BEER_BC_LABEL(INSTR_STORE):
 	frame->stackStore(BEER_BC_DATA(BEER_BC_WORD), frame->stackTop());
 	frame->stackPop();
-	//thread->getVM()->startSafePoint();
 	BEER_BC_NEXT(BEER_BC_SIZEOF(BEER_BC_WORD));
 
 BEER_BC_LABEL(INSTR_MOVE_TOP):
@@ -790,19 +789,19 @@ BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
 		}
 
 		// set new opcode
-	#if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
-		if(true)
-		{
-			*reinterpret_cast<BEER_BC_OPCODE_TYPE*>(ip - sizeof(BEER_BC_OPCODE_TYPE)) = BEER_OPTIMAL_CACHED_INVOKE; // set opcode
-			*reinterpret_cast<int32*>(ip) = reinterpret_cast<int32>(static_cast<Object*>(method)); // set arg
-		}
-	#elif BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
 		if(false)
 		{
-			*reinterpret_cast<BEER_BC_OPCODE_TYPE*>(ip - sizeof(BEER_BC_OPCODE_TYPE)) = Bytecode::LabelTable[BEER_OPTIMAL_CACHED_INVOKE]; // set opcode
-			*reinterpret_cast<int32*>(ip) = reinterpret_cast<int32>(static_cast<Object*>(method)); // set arg
-		}
+			// set opcode
+
+	#if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
+			*reinterpret_cast<BEER_BC_OPCODE_TYPE*>(ip - sizeof(BEER_BC_OPCODE_TYPE)) = BEER_OPTIMAL_CACHED_INVOKE;
+	#elif BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
+			*reinterpret_cast<BEER_BC_OPCODE_TYPE*>(ip - sizeof(BEER_BC_OPCODE_TYPE)) = Bytecode::LabelTable[BEER_OPTIMAL_CACHED_INVOKE];
 	#endif // BEER_BC_DISPATCH
+
+			// set arg
+			*reinterpret_cast<int32*>(ip) = reinterpret_cast<int32>(static_cast<Object*>(method));
+		}
 		
 		frame->stackPush(method);
 		thread->openFrame();
@@ -1035,6 +1034,7 @@ BEER_BC_LABEL(OPTIMAL_ARRAY_ALLOC):
 		StackRef<Array> instance(frame, frame->stackPush());
 
 		thread->createArray(length, instance);
+		//thread->getVM()->startSafePoint();
 	}
 	BEER_BC_NEXT(0);
 

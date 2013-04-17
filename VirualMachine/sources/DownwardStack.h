@@ -93,12 +93,27 @@ namespace Beer
 			return mSize;
 		}
 
+		INLINE void bp(T* value)
+		{
+			mBp = value;
+		}
+
 		INLINE T* bp()
 		{
 			return mBp;
 		}
 
+		INLINE const T* bp() const
+		{
+			return mBp;
+		}
+
 		INLINE T* sp()
+		{
+			return (bp() - mNext);
+		}
+
+		INLINE const T* sp() const
 		{
 			return (bp() - mNext);
 		}

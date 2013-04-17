@@ -41,12 +41,8 @@ namespace Beer
 		};
 
 	protected:
-		// TODO: flag type
-		
-		//Frame* previous;
 		uint8 mFrameFlags;
 		int16 mFrameOffset;
-		//uint32 mArgsCount;
 		uint16 mVPC;
 		void* mIp;
 		WorkStack mStack;
@@ -177,6 +173,11 @@ namespace Beer
 			mStack.check(count);
 		}
 
+		INLINE void bp(void* value)
+		{
+			return mStack.bp(reinterpret_cast<Object**>(value));
+		}
+
 		INLINE void* bp()
 		{
 			return mStack.bp();
@@ -185,6 +186,18 @@ namespace Beer
 		INLINE void* sp()
 		{
 			return mStack.sp();
+		}
+
+		INLINE Frame* previousFrame()
+		{
+			if(isStackAllocated())
+			{
+				return this - 1;
+			}
+			else
+			{
+				return *reinterpret_cast<Frame**>(bp());
+			}
 		}
 
 		NOINLINE Frame* pushFrame(uint32 argsCount, int32 stackSize)
@@ -201,7 +214,7 @@ namespace Beer
 			newFrame->setStaticSize(sizeof(Frame));
 			newFrame->setType(NULL); // TODO
 
-			void* newBp = reinterpret_cast<byte*>(mStack.sp());
+			void* newBp = reinterpret_cast<byte*>(sp());
 			new(newFrame) Frame(newBp, 0/*argsCount*/, stackSize, mBonusSpace - newFrameSize - (stackSize * sizeof(Object*)));
 			newFrame->markStackAllocated();
 

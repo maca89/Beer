@@ -57,6 +57,10 @@ namespace Beer
 	protected:
 		void initializeTask(Thread* thread, Task* task);
 		void initializeTasks();
+		void afterSafePoint();
+		void updateFramesPointers();
+		void updateFramesPointers(TaskQueue& queue);
+		Frame* updateFramePointers(Frame* frame);
 	};
 
 	
