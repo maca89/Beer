@@ -7,6 +7,8 @@
 
 using namespace Beer;
 
+Boolean* Boolean::False = Boolean::makeInlineValue(false);
+Boolean* Boolean::True = Boolean::makeInlineValue(true);
 
 void BEER_CALL Boolean::init(Thread* thread, StackRef<Boolean> receiver, StackRef<Boolean> ret1)
 {
@@ -50,17 +52,17 @@ Class* BooleanClassInitializer::createClass(Thread* thread, ClassLoader* loader,
 
 void BooleanClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->getObjectClass());
-
+	klass->setSuperClass(thread->getVM()->getObjectClass());
 	klass->markAsValueType();
+	klass->markSealed();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("Boolean"), BEER_WIDEN("Boolean::Boolean()"), &Boolean::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Boolean"), BEER_WIDEN("Boolean::Boolean()"), &Boolean::init, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("!"), BEER_WIDEN("Boolean::!()"), &Boolean::operatorNegation, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Boolean::==(Boolean)"), &Boolean::operatorEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Boolean::!=(Boolean)"), &Boolean::operatorNotEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("&&"), BEER_WIDEN("Boolean::&&(Boolean)"), &Boolean::operatorAnd, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("||"), BEER_WIDEN("Boolean::||(Boolean)"), &Boolean::operatorOr, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("!"), BEER_WIDEN("Boolean::!()"), &Boolean::operatorNegation, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Boolean::==(Boolean)"), &Boolean::operatorEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Boolean::!=(Boolean)"), &Boolean::operatorNotEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("&&"), BEER_WIDEN("Boolean::&&(Boolean)"), &Boolean::operatorAnd, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("||"), BEER_WIDEN("Boolean::||(Boolean)"), &Boolean::operatorOr, 1, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Boolean::createInstance, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Boolean::createInstance, 1, 0);
 }

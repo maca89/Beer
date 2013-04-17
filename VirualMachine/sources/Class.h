@@ -2,7 +2,7 @@
 #include "prereq.h"
 #include "Object.h"
 #include "Frame.h"
-#include "Pair.h"
+#include "Method.h"
 #include "String.h" // TODO
 #include "TraverseObjectReceiver.h"
 #include "Property.h"
@@ -22,8 +22,8 @@ namespace Beer
 		{
 			FLAG_VALUE_TYPE = 0x01,
 			FLAG_INTERFACE = 0x02,
-			FLAG_ABSTRACT = 0x04,//TODO
-			FLAG_SEALED = 0x08,//TODO
+			FLAG_ABSTRACT = 0x04,
+			FLAG_SEALED = 0x08,
 
 			FLAG_ENTRYPOINT = 0x10,
 		};
@@ -52,14 +52,20 @@ namespace Beer
 
 		uint32 mParentsCount;
 		uint32 mPropertiesCount;
-		uint32 mMethodsCount;
+		
+		uint32 mVirtualMethodNext;
+		uint32 mVirtualMethodsCount;
+
+		uint32 mInterfaceMethodNext;
+		uint32 mInterfaceMethodsCount;
 		
 		uint32 mParentNext;
 		uint32 mPropertyNext;
-		uint32 mMethodNext;
 
 		Traverser mTraverser;
 		uint32 mInstanceStaticSize;
+
+		std::map<Class*, uint16> InterfaceOffset;
 		////////////////////////////////////////////////////////////
 
 	public:
@@ -71,7 +77,7 @@ namespace Beer
 		INLINE void markAsValueType() { markFlag(FLAG_VALUE_TYPE); }
 		INLINE bool isValueType() const { return hasFlag(FLAG_VALUE_TYPE); }
 		
-		INLINE void markAsInterface() { markFlag(FLAG_INTERFACE); }
+		INLINE void markInterface() { markFlag(FLAG_INTERFACE); }
 		INLINE bool isInterface() const { return hasFlag(FLAG_INTERFACE); }
 		
 		INLINE void markEntryPoint() { markFlag(FLAG_ENTRYPOINT); }
@@ -99,61 +105,70 @@ namespace Beer
 
 		String* getName();
 		void setName(String* value);
-		
-		Class* getParent(uint32 index);
-		uint32 getParentsCount() const;
-		uint32 getParentNext() const;
-		void addParent(Class* value);
-		void setParent(uint32 index, Class* value);
+
+		static String::LengthData getFQNFromSelector(String* selector);
 		
 		Property* getProperty(uint32 index);
 		uint32 getPropertiesCount() const;
 		uint32 getPropertyNext() const;
 		void addProperty(Property* value);
 		void setProperty(uint32 index, Property* value);
-		
-		Pair* getMethod(uint32 index);
-		uint32 getMethodsCount() const;
-		uint32 getMethodNext() const;
-		void addMethod(Pair* value);
-		void setMethod(uint32 index, Pair* value);
 
-		//bool substituable(Class otherClass); // TODO
+		// parents
+		
+		Class* getParent(uint32 index); // TODO: protected
+		uint32 getParentsCount() const; // deprecated
+
+		Class* getSuperClass();
+		void setSuperClass(Class* klass);
+
+		// interfaces
+
+		uint32 addInterface(Class* interf); // returns index to the list of interfaces
+		Class* getInterface(uint32 index);
+		bool hasInterface(Class* interf);
+		uint32 getInterfacesCount() const;
+		bool findInterfaceIndex(Class* interf, uint32& out_index); // find interface index (not parent index!!!)
+		bool findInterfaceMethodsStart(Class* interf, uint32& out_index); // find methods indices start
+
+		// virtual table
+
+		uint32 getVirtualMethodsCount() const;
+		uint32 getInterfaceMethodsCount() const;
+		
+		Method* getMethod(uint32 index);
+		void setMethod(uint32 index, Method* value);
+		uint32 getMethodsCount() const;
+
+		uint32 addVirtualMethod(Method* method);
+
+		bool findVirtualMethodIndex(String* selector, uint32& out_index);
+		bool findInterfaceMethodIndex(Class* interf, String* selector, uint32& out_index);
+
+		Method* findMethod(String* selector); // deprecated
+		Method* findVirtualMethod(String* selector);
+		Method* findInterfaceMethod(Class* interf, String* selector);
+
+		// 
+
+		bool substituable(Class* otherClass);
 
 		// methods
 
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret);
 
-		static void BEER_CALL findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret);
-		static void BEER_CALL findMethodIndex(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret1, StackRef<Integer> ret2);
 		static void BEER_CALL substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret);
-		
+
 		static void BEER_CALL getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
 		static void BEER_CALL setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value);
-		
-		static void BEER_CALL getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret);
-		static void BEER_CALL getParentsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value);
-
-		static void BEER_CALL getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret);
-		static void BEER_CALL getPropertiesCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value);
-		
-		static void BEER_CALL getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret);
-		static void BEER_CALL getMethodsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value);
-		
-		// shortcut
-		//static void BEER_CALL getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret);
-		static void getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, StackRef<Property> ret);
 
 		// traversers
 		static void DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 
 	protected:
-		static void BEER_CALL incrPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL incrMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
-		static void BEER_CALL incrParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
+		uint32 addInterfaceMethod(Method* method);
+		void setParent(uint32 index, Class* value);
+		//uint32 getInterfaceMethodsStart() const;
 	};
 
 	// inline definitions
@@ -175,11 +190,6 @@ namespace Beer
 		return mPropertyNext < mPropertiesCount;
 	}
 
-	INLINE bool Class::hasMethodFreeSlot() const
-	{
-		return mMethodNext < mMethodsCount;
-	}
-
 	INLINE bool Class::hasParentFreeSlot() const
 	{
 		return mParentNext < mParentsCount;
@@ -199,38 +209,84 @@ namespace Beer
 		setChild(CHILD_ID_CLASS_NAME + 1 + index, value); // +1 for name 
 	}
 
-	INLINE uint32 Class::getParentNext() const
-	{
-		return mParentNext;
-	}
-
 	INLINE uint32 Class::getParentsCount() const
 	{
 		return mParentsCount;
 	}
 
-	// methods
-
-	INLINE Pair* Class::getMethod(uint32 index)
+	INLINE Class* Class::getSuperClass()
 	{
-		BOUNDS_ASSERT(index, mMethodsCount);
-		return static_cast<Pair*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index)); // +1 for name 
+		return getParent(0);
 	}
 
-	INLINE void Class::setMethod(uint32 index, Pair* value)
+	INLINE Class* Class::getInterface(uint32 index)
 	{
-		BOUNDS_ASSERT(index, mMethodsCount);
-		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index, value); // +1 for name 
+		return getParent(1 + index);
+	}
+
+	INLINE uint32 Class::getInterfacesCount() const
+	{
+		return getParentsCount() - 1;
+	}
+
+	// methods
+
+	INLINE uint32 Class::addVirtualMethod(Method* method)
+	{
+		BOUNDS_ASSERT(mVirtualMethodNext, mVirtualMethodsCount);
+		uint32 index = mVirtualMethodNext++;
+		setMethod(index, method);
+		return index;
+	}
+
+	INLINE uint32 Class::addInterfaceMethod(Method* method)
+	{
+		BOUNDS_ASSERT(mInterfaceMethodNext, mInterfaceMethodsCount);
+		uint32 index = mVirtualMethodsCount + (mInterfaceMethodNext++);
+		setMethod(index, method);
+		return index;
+	}
+
+	INLINE Method* Class::getMethod(uint32 index)
+	{
+		BOUNDS_ASSERT(index, getMethodsCount());
+		return static_cast<Method*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index)); // +1 for name 
+	}
+
+	INLINE void Class::setMethod(uint32 index, Method* value)
+	{
+		BOUNDS_ASSERT(index, getMethodsCount());
+		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index, value); // +1 for name
 	}
 	
 	INLINE uint32 Class::getMethodsCount() const
 	{
-		return mMethodsCount;
+		return getVirtualMethodsCount() + getInterfaceMethodsCount();
+	}
+	
+	INLINE uint32 Class::getVirtualMethodsCount() const
+	{
+		return mVirtualMethodsCount;
 	}
 
-	INLINE uint32 Class::getMethodNext() const
+	/*INLINE uint32 Class::getInterfaceMethodsStart() const
 	{
-		return mMethodNext;
+		return getVirtualMethodsCount();
+	}*/
+
+	INLINE bool Class::hasInterface(Class* interf)
+	{
+		uint32 index = 0;
+		if(findInterfaceIndex(interf, index))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	INLINE uint32 Class::getInterfaceMethodsCount() const
+	{
+		return mInterfaceMethodsCount;
 	}
 
 	// properties
@@ -238,13 +294,13 @@ namespace Beer
 	INLINE Property* Class::getProperty(uint32 index)
 	{
 		BOUNDS_ASSERT(index, mPropertiesCount);
-		return static_cast<Property*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + mMethodsCount + index)); // +1 for name 
+		return static_cast<Property*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + getMethodsCount() + index)); // +1 for name 
 	}
 
 	INLINE void Class::setProperty(uint32 index, Property* value)
 	{
 		BOUNDS_ASSERT(index, mPropertiesCount);
-		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + mMethodsCount + index, value); // +1 for name 
+		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + getMethodsCount() + index, value); // +1 for name 
 	}
 	
 	INLINE uint32 Class::getPropertiesCount() const
@@ -267,5 +323,30 @@ namespace Beer
 	INLINE void Class::setName(String* value)
 	{
 		setChild(CHILD_ID_CLASS_NAME, value);
+	}
+
+	INLINE Method* Class::findMethod(String* selector)
+	{
+		return findVirtualMethod(selector);
+	}
+
+	INLINE Method* Class::findVirtualMethod(String* selector)
+	{
+		uint32 index = 0;
+		if(findVirtualMethodIndex(selector, index))
+		{
+			return getMethod(index);
+		}
+		return NULL;
+	}
+
+	INLINE Method* Class::findInterfaceMethod(Class* interf, String* selector)
+	{
+		uint32 index = 0;
+		if(findInterfaceMethodIndex(interf, selector, index))
+		{
+			return getMethod(index);
+		}
+		return NULL;
 	}
 };

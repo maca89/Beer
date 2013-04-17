@@ -38,19 +38,23 @@ BytecodeBuilder::~BytecodeBuilder()
 	SMART_DELETE(mOptimiser); // TODO
 }
 
-void BytecodeBuilder::build(Thread* thread, StackRef<Class> klass, StackRef<Method> method, ClassFileDescriptor* klassFile, BytecodeDescriptor* bcDescr)
+void BytecodeBuilder::build(Thread* thread, Method* method, ClassFileDescriptor* klassFile, BytecodeDescriptor* bcDescr)
 {
-	Bytecode* bc = NULL;
-	byte* data = NULL;
-	uint32 dataLength = 0;
-	uint16 instrCount = 0;
+	method->setBytecode(new Bytecode(klassFile, bcDescr));
+}
 
+void BytecodeBuilder::buildBytecodeMethod(Thread* thread, Method* method)
+{
+	Bytecode* bc = method->getBytecode();
 	TemporaryBytecode tmpBc;
 
-	mLoader->load(thread, bcDescr, tmpBc);
-	mLinker->link(thread, method, klassFile, tmpBc, tmpBc);
-	mVerifier->verify(thread, klass, method, tmpBc);
+	mLoader->load(thread, bc->getDescriptor(), tmpBc);
+	mLinker->link(thread, method, bc->getClassFile(), tmpBc, tmpBc);
+	mVerifier->verify(thread, method, tmpBc);
+
 	mOptimiser->optimise(thread, method, tmpBc, tmpBc);
-	
-	mCompiler->compile(thread, method, tmpBc); // TODO: return fn pointer
+	mCompiler->compile(thread, method, tmpBc, tmpBc);
+
+	bc->setData(tmpBc.data, tmpBc.dataLength);
+	method->bytecodeCompiled();
 }

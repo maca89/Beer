@@ -29,8 +29,9 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	metaClass->mFlags = 0; // deprecated
 	metaClass->mParentsCount = 1;
 	metaClass->mPropertiesCount = 0;
-	metaClass->mMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
-	metaClass->mParentNext = metaClass->mMethodNext = metaClass->mPropertyNext = 0;
+	metaClass->mVirtualMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
+	metaClass->mInterfaceMethodsCount = 0;
+	metaClass->mParentNext = metaClass->mVirtualMethodNext = metaClass->mInterfaceMethodNext = metaClass->mPropertyNext = 0;
 	metaClass->mTraverser = &MetaClass::DefaultClassTraverser;
 	metaClass->mInstanceStaticSize = sizeof(Class);
 	thread->getVM()->setMetaClass(metaClass);
@@ -82,30 +83,30 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	Class* stringClass = classLoader->createClass<Class>(thread, stringClassName, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
 	thread->getVM()->setStringClass(stringClass);
 
-	// init string class
-	StringClassInitializer* stringInit = new StringClassInitializer();
-	stringInit->initClass(thread, classLoader, stringClass);
-	delete stringInit;
-
 	// fix references
 	metaClassName->setType(stringClass); // set class
 	objectClassName->setType(stringClass); // set class
 	stringClassName->setType(stringClass); // set class
 
-	// fix metaclass methods
-	classLoader->addMethod(thread, metaClass, BEER_WIDEN("MetaClass"), BEER_WIDEN("MetaClass::MetaClass()"), &MetaClass::init, 1, 0);
-	//mClassLoader->addMethod(*(metaClass.staticCast<Class>()), BEER_WIDEN("findMethod"), BEER_WIDEN("Class::findMethod(String)"), &MetaClass::findMethod, 1, 1);
-
 	// default Object methods
-	classLoader->addMethod(thread, objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
-	classLoader->addMethod(thread, objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
-	classLoader->addMethod(thread, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
+	classLoader->addVirtualMethod(thread, objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
+	classLoader->addVirtualMethod(thread, objectClass, BEER_WIDEN("Object"), BEER_WIDEN("Object::Object()"), &Object::init, 1, 0);
+	classLoader->addVirtualMethod(thread, objectClass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Object::operatorString, 1, 0);
 	// TODO: getType
 
 	// fix references
-	metaClass->addParent(objectClass);
-	objectClass->addParent(objectClass);
-	methodClass->addParent(objectClass);
+	metaClass->setSuperClass(objectClass);
+	objectClass->setSuperClass(objectClass);
+	methodClass->setSuperClass(objectClass);
+
+	// init string class
+	StringClassInitializer* stringInit = new StringClassInitializer();
+	stringInit->initClass(thread, classLoader, stringClass);
+	delete stringInit;
+
+	// fix metaclass methods
+	classLoader->addVirtualMethod(thread, metaClass, BEER_WIDEN("MetaClass"), BEER_WIDEN("MetaClass::MetaClass()"), &MetaClass::init, 1, 0);
+	//mClassLoader->addMethod(*(metaClass.staticCast<Class>()), BEER_WIDEN("findMethod"), BEER_WIDEN("Class::findMethod(String)"), &MetaClass::findMethod, 1, 1);
 
 	// TODO: fix Method methods
 }
@@ -117,8 +118,9 @@ Class* InitVMTaskInitializer::createClass(Thread* thread, ClassLoader* loader, S
 
 void InitVMTaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->findClass(BEER_WIDEN("Task")));
+	klass->setSuperClass(thread->getVM()->findClass(BEER_WIDEN("Task")));
+	klass->markSealed();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("InitVMTask"), BEER_WIDEN("InitVMTask::InitVMTask()"), &InitVMTask::init, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("work"), BEER_WIDEN("Task::work()"), &InitVMTask::work, 0, 0); // interface method, TODO: second selector
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("InitVMTask"), BEER_WIDEN("InitVMTask::InitVMTask()"), &InitVMTask::init, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &InitVMTask::work, 0, 0);
 }

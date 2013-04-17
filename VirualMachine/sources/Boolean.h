@@ -15,6 +15,9 @@ namespace Beer
 		typedef bool BooleanData;
 		static const int SignatureBits = 4;
 
+		static Boolean* True;
+		static Boolean* False;
+
 	protected:
 		//BooleanData mData; // not used
 

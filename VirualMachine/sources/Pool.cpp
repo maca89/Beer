@@ -80,6 +80,7 @@ void BEER_CALL Pool::copyFrom(Thread* thread, StackRef<Pool> receiver, StackRef<
 
 void Pool::createInstance(Thread* thread, StackRef<Class> receiver, uint16 length, StackRef<Pool> ret)
 {
+	throw Exception(BEER_WIDEN("Not yet implemented"));
 }
 
 void Pool::PoolInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* inst)
@@ -106,5 +107,6 @@ void PoolClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class*
 {
 	klass->setTraverser(&Pool::PoolInstanceTraverser);
 
-	klass->addParent(thread->getVM()->getObjectClass());
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed();
 }

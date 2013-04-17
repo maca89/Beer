@@ -42,7 +42,8 @@ namespace Beer
 		INLINE void setOptimiser(BytecodeOptimiser* pass) { mOptimiser = pass; }
 		INLINE BytecodeOptimiser* getOptimiser() const { return mOptimiser; }
 
-		void build(Thread* thread, StackRef<Class> klass, StackRef<Method> method, ClassFileDescriptor* klassFile, BytecodeDescriptor* bytecodeDescr);
+		void build(Thread* thread, Method* method, ClassFileDescriptor* klassFile, BytecodeDescriptor* bytecodeDescr);
+		void buildBytecodeMethod(Thread* thread, Method* method);
 		//Bytecode* build(Thread* thread, Bytecode* bc);
 	};
 

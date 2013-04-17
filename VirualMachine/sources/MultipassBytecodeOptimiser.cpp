@@ -18,7 +18,7 @@ MultipassBytecodeOptimiser::~MultipassBytecodeOptimiser()
 {
 }
 
-void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc)
+void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -40,8 +40,28 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 				break;
 
 			case BEER_INSTR_TOP:
-			case BEER_INSTR_STORE:
+				{
+					int16 index = istream.read<int16>();
+					if(index == Frame::INDEX_RECEIVER)
+					{
+						ostream.write<uint8>(BEER_INSTR_PUSH_THIS);
+					}
+					else
+					{
+						ostream.write<uint8>(opcode);
+						ostream.write<uint16>(index);
+					}
+				}
+				break;
+
 			case BEER_INSTR_RETURN:
+				{
+					ostream.write<uint8>(opcode);
+					istream.read<uint16>(); // remove operand
+				}
+				break;
+
+			case BEER_INSTR_STORE:
 			case BEER_INSTR_JMP:
 			case BEER_INSTR_JMP_TRUE:
 			case BEER_INSTR_JMP_FALSE:
@@ -81,14 +101,36 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 					String* selector = static_cast<String*>(reinterpret_cast<Object*>(istream.read<int32>()));
 
 					Bytecode::OpCode newOpcode = thread->getVM()->getInlineFunctionTable()->find(selector);
+
+					// inlined method
 					if(newOpcode != BEER_INSTR_NOP)
 					{
 						ostream.write<uint8>(newOpcode);
 					}
+					// virtual method
 					else
 					{
-						ostream.write<uint8>(opcode);
-						ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(selector))); // TODO
+						String::LengthData classNameLength = Class::getFQNFromSelector(selector);
+						String* className = thread->createConstantString(classNameLength);
+						Class* klass = thread->getVM()->findClass(string(selector->c_str(), static_cast<size_t>(classNameLength))); // ugly, TODO: without allocating
+
+						uint32 index = 0;
+						if(!klass->findVirtualMethodIndex(selector, index))
+						{
+							throw MethodNotFoundException(klass, klass, selector);
+						}
+
+						if(opcode == BEER_INSTR_VIRTUAL_INVOKE)
+						{
+							ostream.write<uint8>(opcode);
+							ostream.write<uint32>(index);
+						}
+						else // opcode == BEER_INSTR_SPECIAL_INVOKE
+						{
+							ostream.write<uint8>(opcode);
+							Method* method = klass->getMethod(index);
+							ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(method)));
+						}
 					}
 				}
 				break;
@@ -106,13 +148,27 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, StackRef<Method> metho
 				break;
 				
 			case BEER_INSTR_PUSH_STRING:
-			case BEER_INSTR_PUSH_BOOL:
 			case BEER_INSTR_PUSH_CHAR:
 			case BEER_INSTR_PUSH_FLOAT:
 			case BEER_INSTR_PUSH_INT64:
 				{
 					ostream.write<uint8>(opcode);
 					ostream.write<int32>(istream.read<int32>());
+				}
+				break;
+
+			case BEER_INSTR_PUSH_BOOL:
+				{
+					Boolean* value = static_cast<Boolean*>(reinterpret_cast<Object*>(istream.read<int32>()));
+					
+					if(value->getData() == true)
+					{
+						ostream.write<uint8>(BEER_OPTIMAL_PUSH_TRUE);
+					}
+					else
+					{
+						ostream.write<uint8>(BEER_OPTIMAL_PUSH_FALSE);
+					}
 				}
 				break;
 

@@ -76,6 +76,7 @@ namespace Beer
 		Integer* createConstantInteger(Integer::IntegerData value);
 		Float* createConstantFloat(Float::FloatData value);
 		String* createConstantString(String::LengthData length);
+		String* createConstantString(const String::CharacterData* cstring);
 
 		void createInteger(StackRef<Integer> ret, Integer::IntegerData value);
 		void createFloat(StackRef<Float> ret, Float::FloatData value);

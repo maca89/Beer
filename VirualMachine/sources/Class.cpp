@@ -28,98 +28,132 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 	ret->setType(*receiver);
 }
 
-void BEER_CALL Class::findMethodIndex(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret1, StackRef<Integer> ret2)
+/*uint32 Class::overrideVirtualMethod(Method* method)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	// try myself
+	uint32 index = 0;
+	if(parent->findVirtualMethodIndex(method->getSelector(), index))
 	{
-		StackRef<String> otherSelector(frame, frame->stackPush());
-		StackRef<Pair> pair(frame, frame->stackPush());
-		StackRef<Integer> index(frame, frame->stackPush());
+		setMethod(index, method);
+	}
+	else
+	{
+		throw Exception(BEER_WIDEN("Unable to override such method")); // TODO: better exception
+	}
+	return index;
+}
 
-		for(Integer::IntegerData i = receiver->getMethodsCount() - 1; i >= 0; i--)
+uint32 Class::overrideInterfaceMethod(Class* interf, Method* method)
+{
+	uint32 startIndex = 0;
+
+	for(uint32 interfi = 0; interfi < getInterfacesCount(); interfi++)
+	{
+		Class* myInterf = getInterface(interfi);
+		if(myInterf == interf)
 		{
-			thread->createInteger(index, i);
-			Class::getMethod(thread, receiver, index, pair);
+			break;
+		}
+		else
+		{
+			startIndex += myInterf->getVirtualMethodsCount() - myInterf->getSuperClass()->getVirtualMethodsCount();
+		}
+	}
 
-			if(!pair.isNull())
+	uint32 interfMethodIndex = 0;
+	uint32 myMethodIndex = 0;
+
+	if(interf->findVirtualMethodIndex(method->getSelector(), interfMethodIndex))
+	{
+		myMethodIndex = startIndex + interfMethodIndex - interf->getSuperClass()->getVirtualMethodsCount();
+		setMethod(myMethodIndex, method);
+	}
+	else
+	{
+		throw Exception(BEER_WIDEN("Unable to override such method")); // TODO: better exception
+	}
+
+	return myMethodIndex;
+}*/
+
+bool Class::findVirtualMethodIndex(String* selector, uint32& out_index)
+{
+	for(uint32 methodi = 0; methodi < getMethodsCount(); methodi++)
+	{
+		Method* method = getMethod(methodi); // TODO: getVirtualMethod
+
+		if(method)
+		{
+			if(method->satisfyVirtual(this, selector))
 			{
-				Pair::getFirst(thread, pair, otherSelector);
-			
-				if(selector->compare(*otherSelector) == 0)
+				out_index = methodi;
+				return true;
+			}
+		}
+	}
+
+	if(getSuperClass() != this)
+	{
+		return getSuperClass()->findVirtualMethodIndex(selector, out_index);
+	}
+
+	return false;
+}
+
+bool Class::findInterfaceMethodIndex(Class* interf, String* selector, uint32& out_index)
+{
+	uint32 startIndex = 0;
+	if(findInterfaceMethodsStart(interf, startIndex))
+	{
+		for(uint32 methodi = 0; methodi < interf->getVirtualMethodsCount() - interf->getSuperClass()->getVirtualMethodsCount(); methodi++)
+		{
+			Method* method = getMethod(startIndex + methodi); // TODO: getInterfaceMethod
+
+			if(method)
+			{
+				if(method->satisfyInterface(this, interf, selector))
 				{
-					Pair::getSecond(thread, pair, ret1);
-					ret2 = index;
-					break; // found!
+					out_index = startIndex + methodi;
+					return true;
 				}
 			}
 		}
-
-		frame->stackMoveTop(-3); // pop otherSelector, pair, index
 	}
+
+	return false;
 }
 
-void BEER_CALL Class::findMethod(Thread* thread, StackRef<Class> receiver, StackRef<String> selector, StackRef<Method> ret)
+bool Class::substituable(Class* otherClass)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
+	// is otherClass the same class?
+	if(this == otherClass)
+	{
+		return true;
+	}
 
-	StackRef<Integer> index(frame, frame->stackPush());
-	Class::findMethodIndex(thread, receiver, selector, ret, index);
+	// check parents
+	for(uint32 i = 0; i < getParentsCount(); i++)
+	{
+		Class* parent = getParent(i);
 
-	frame->stackPop(); // pop index
+		// parent of myself
+		if(this == parent)
+		{
+			continue;
+		}
+
+		if(parent->substituable(otherClass))
+		{
+			return true;
+		}
+	}
+
+	// is not substituable
+	return false;
 }
 
 void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	// is otherClass the same class?
-	if(*receiver == *otherClass)
-	{
-		ret = Boolean::makeInlineValue(true);
-		return;
-	}
-
-	// check parents
-	{
-		StackRef<Integer> index(frame, frame->stackPush());
-		StackRef<Class> parent(frame, frame->stackPush());
-		StackRef<Boolean> substituable(frame, frame->stackPush());
-
-		StackRef<Integer> parentsCount(frame, frame->stackPush());
-		Class::getParentsCount(thread, receiver, parentsCount);
-
-		for(uint16 i = 0; i < parentsCount->getData(); i++)
-		{
-			thread->createInteger(index, i);
-			Class::getParent(thread, receiver, index, parent);
-
-			// parent of myself
-			if(*parent == *receiver)
-			{
-				continue;
-			}
-
-			Class::substituable(thread, parent, otherClass, substituable);
-
-			// is parent substituable?
-			if(substituable->getData())
-			{
-				ret = Boolean::makeInlineValue(true);
-				frame->stackMoveTop(-4); // pop index, parent, substituable, parentsCount
-				return;
-			}
-		}
-
-		frame->stackMoveTop(-4); // pop index, parent, substituable, parentsCount
-	}
-
-	// is not substituable
-	ret = Boolean::makeInlineValue(false);
+	ret = Boolean::makeInlineValue(receiver->substituable(*otherClass));
 }
 
 void BEER_CALL Class::getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret)
@@ -132,25 +166,107 @@ void BEER_CALL Class::setName(Thread* thread, StackRef<Class> receiver, StackRef
 	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME, value);
 }
 
-void Class::addParent(Class* klass)
+bool Class::findInterfaceIndex(Class* interf, uint32& out_index)
 {
-	DBG_ASSERT(hasParentFreeSlot(), BEER_WIDEN("Unable to add more parents"));
-
-	// set child
-	setParent(mParentNext++, klass);
-
-	// copy methods
-	if(this != klass)
+	for(uint32 interfi = 0; interfi < getInterfacesCount(); interfi++)
 	{
-		for(uint16 i = 0; i < klass->getMethodsCount(); i++)
+		Class* myInterf = getInterface(interfi);
+		
+		if(myInterf == interf)
 		{
-			Pair* method = klass->getMethod(i);
-			addMethod(method);
+			out_index = interfi;
+			return true;
+		}
+
+		if(myInterf == NULL)
+		{
+			break;
 		}
 	}
 
-	// copy properties
+	return false;
+}
+
+bool Class::findInterfaceMethodsStart(Class* interf, uint32& out_index)
+{
+	uint32 index = getVirtualMethodsCount();
+	for(uint32 interfi = 0; interfi < getInterfacesCount(); interfi++)
 	{
+		Class* myInterf = getInterface(interfi);
+		
+		if(myInterf == interf)
+		{
+			out_index = index;
+			return true;
+		}
+
+		if(myInterf == NULL)
+		{
+			break;
+		}
+
+		index += myInterf->getVirtualMethodsCount() - myInterf->getSuperClass()->getVirtualMethodsCount();
+	}
+
+	return false;
+}
+
+uint32 Class::addInterface(Class* interf)
+{
+	DBG_ASSERT(interf->isInterface(), BEER_WIDEN("Not an interface"));
+	DBG_ASSERT(mParentNext < mParentsCount, BEER_WIDEN("Unable to add more parents"));
+	RUNTIME_ASSERT(!(isInterface() && mParentNext == 0), BEER_WIDEN("First parent of non-interface class must be non-interface class"));
+
+	uint32 interfIndex = 0;
+	if(!findInterfaceIndex(interf, interfIndex))
+	{
+		for(uint16 interfacei = 0; interfacei < interf->getInterfacesCount(); interfacei++)
+		{
+			Class* subInterf = interf->getInterface(interfacei);
+			addInterface(subInterf);
+		}
+
+		interfIndex = mParentNext++;
+		setParent(interfIndex, interf);
+
+		uint16 interfMethodsStart = interf->getSuperClass()->getVirtualMethodsCount(); // skip superclass (probably Object) methods
+		for(uint16 i = interfMethodsStart; i < interf->getVirtualMethodsCount(); i++)
+		{
+			Method* method = interf->getMethod(i);
+			addInterfaceMethod(method);
+		}
+	}
+
+	return interfIndex;
+}
+
+void Class::setSuperClass(Class* klass)
+{
+	DBG_ASSERT(!klass->isInterface(), BEER_WIDEN("Superclass may not be an interface"));
+
+	mParentNext = 0;
+	setParent(mParentNext++, klass);
+	
+	if(this != klass)
+	{
+		mVirtualMethodNext = 0;
+		mInterfaceMethodNext = 0;
+		mPropertyNext = 0;
+
+		// copy methods
+		for(uint16 i = 0; i < klass->getVirtualMethodsCount(); i++)
+		{
+			Method* method = klass->getMethod(i);
+			addVirtualMethod(method);
+		}
+
+		// copy interfaces
+		for(uint16 interfacei = 0; interfacei < klass->getInterfacesCount(); interfacei++)
+		{
+			Class* interf = klass->getInterface(interfacei);
+			addInterface(interf);
+		}
+
 		for(uint16 i = 0; i < klass->getPropertiesCount(); i++)
 		{
 			Property* prop = klass->getProperty(i);
@@ -159,94 +275,10 @@ void Class::addParent(Class* klass)
 	}
 }
 
-void BEER_CALL Class::getParent(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Class> ret)
-{
-	ret = receiver->getParent(static_cast<uint32>(index->getData()));
-}
-
-void BEER_CALL Class::getParentsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mParentsCount); // TODO
-}
-
-void BEER_CALL Class::addParent(Thread* thread, StackRef<Class> receiver, StackRef<Class> value)
-{
-	receiver->addParent(*value);
-}
-
-void Class::addMethod(Pair* value)
-{
-	DBG_ASSERT(hasMethodFreeSlot(), BEER_WIDEN("Unable to add more methods"));
-	setMethod(mMethodNext++, value);
-}
-
-void BEER_CALL Class::getMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Pair> ret)
-{
-	ret = receiver->getMethod(static_cast<uint32>(index->getData()));
-}
-
-/*void Class::getOnlyMethod(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Method> ret)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Pair> pair(frame, frame->stackPush());
-	Class::getMethod(thread, receiver, index, pair);
-
-	Pair::getSecond(thread, pair, ret);
-
-	frame->stackPop(); // pop pair
-}*/
-
-void BEER_CALL Class::getMethodsCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mMethodsCount); // TODO
-}
-
-void BEER_CALL Class::addMethod(Thread* thread, StackRef<Class> receiver, StackRef<Pair> value)
-{
-	receiver->addMethod(*value);
-}
-
 void Class::addProperty(Property* value)
 {
 	DBG_ASSERT(hasPropertyFreeSlot(), BEER_WIDEN("Unable to add more properties"));
 	setProperty(mPropertyNext++, value);
-}
-
-void Class::getProperty(Thread* thread, StackRef<Class> receiver, uint32 index, StackRef<Property> ret)
-{
-	ret = receiver->getProperty(index);
-}
-
-void BEER_CALL Class::getProperty(Thread* thread, StackRef<Class> receiver, StackRef<Integer> index, StackRef<Property> ret)
-{
-	ret = receiver->getProperty(static_cast<uint32>(index->getData()));
-}
-
-void BEER_CALL Class::getPropertiesCount(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mPropertiesCount); // TODO
-}
-
-void BEER_CALL Class::addProperty(Thread* thread, StackRef<Class> receiver, StackRef<Property> value)
-{
-	receiver->addProperty(*value);
-}
-
-void BEER_CALL Class::incrPropertyNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mPropertyNext++); // TODO
-}
-
-void BEER_CALL Class::incrMethodNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mMethodNext++); // TODO
-}
-
-void BEER_CALL Class::incrParentNext(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret)
-{
-	thread->createInteger(ret, receiver->mParentNext++); // TODO
 }
 
 void Class::DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance)
@@ -262,4 +294,22 @@ void Class::DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* kl
 			receiver->traverseObjectPtr(&instance->getChildren()[i]);
 		}
 	}
+}
+
+String::LengthData Class::getFQNFromSelector(String* selector)
+{
+	// TODO: namespaces, TODO: check if valid
+	//bool first = false;
+	String::LengthData i = 0;
+	for(; i < selector->size(); i++)
+	{
+		if(selector->c_str()[i] == ':')
+		{
+			break;
+			//if(first) first = true;
+			//else { break; }
+		}
+	}
+
+	return i;
 }

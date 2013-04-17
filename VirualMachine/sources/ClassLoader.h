@@ -43,24 +43,44 @@ namespace Beer
 		bool canLoadClass(string name);
 		//void unloadClass(string name) // TODO
 
-		Method* addMethod(Thread* thread, Class* klass, Method* method, const char_t* selector);
-		Method* addMethod(Thread* thread, Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+		Method* addVirtualMethod(Thread* thread, Class* klass, Method* method, const char_t* selector);
+		Method* addOverrideMethod(Thread* thread, Class* klass, Method* method, const char_t* selector);
+		Method* addInterfaceMethod(Thread* thread, Class* klass, Class* interf, Method* method, const char_t* selectorSuffix);
 
-		Class* createClass(Thread* thread, String* name, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods);
-		Method* createMethod(Thread* thread, Cb fn, uint16 returns, uint16 params);
+		Method* addVirtualMethod(Thread* thread, Class* klass, const char_t* cname, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+		Method* addOverrideMethod(Thread* thread, Class* klass, const char_t* cname, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+		Method* addInterfaceMethod(Thread* thread, Class* klass, Class* interf, const char_t* cname, const char_t* selector, Cb fn, uint16 returns, uint16 params);
+
+		//Method* addMethod(Thread* thread, Class* klass, Method* method, Class* interf, const char_t* selectorSuffix);
+		//Method* addMethod(Thread* thread, Class* klass, Class* interf, const char_t* name, const char_t* selectorSuffix, Cb fn, uint16 returns, uint16 params);
+
+		Class* createClass(Thread* thread, String* name, uint32 staticSize, uint16 parents, uint16 properties, uint16 virtualMethods, uint16 interfaceMethods);
+		Method* createMethod(Thread* thread, String* name, Cb fn, uint16 returns, uint16 params);
 		void createParam(Thread* thread, StackRef<Param> ret);
 		void createProperty(Thread* thread, StackRef<Property> ret);
-
+		
 		template <typename T>
-		Method* addMethod(Thread* thread, Class* klass, const char_t* name, const char_t* selector, T fn, uint16 returns, uint16 params)
+		Method* addVirtualMethod(Thread* thread, Class* klass, const char_t* cname, const char_t* cselector, T fn, uint16 returns, uint16 params)
 		{
-			return addMethod(thread, klass, name, selector, reinterpret_cast<Cb>(fn), returns, params);
+			return addVirtualMethod(thread, klass, cname, cselector, reinterpret_cast<Cb>(fn), returns, params);
+		}
+		
+		template <typename T>
+		Method* addOverrideMethod(Thread* thread, Class* klass, const char_t* cname, const char_t* cselector, T fn, uint16 returns, uint16 params)
+		{
+			return addOverrideMethod(thread, klass, cname, cselector, reinterpret_cast<Cb>(fn), returns, params);
+		}
+		
+		template <typename T>
+		Method* addInterfaceMethod(Thread* thread, Class* klass, Class* interf, const char_t* cname, const char_t* cselector, T fn, uint16 returns, uint16 params)
+		{
+			return addInterfaceMethod(thread, klass, interf, cname, cselector, reinterpret_cast<Cb>(fn), returns, params);
 		}
 
 		template <typename T>
-		INLINE Class* createClass(Thread* thread, String* name, uint16 parents, uint16 properties, uint16 methods)
+		INLINE Class* createClass(Thread* thread, String* name, uint16 parents, uint16 properties, uint16 virtualMethods, uint16 interfaceMethods = 0)
 		{
-			return createClass(thread, name, sizeof(T), parents, properties, methods);
+			return createClass(thread, name, sizeof(T), parents, properties, virtualMethods, interfaceMethods);
 		}
 
 	protected:

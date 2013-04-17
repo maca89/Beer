@@ -53,6 +53,8 @@ namespace Beer
 
 		String* mName;
 		Pool* mPool;
+		Class* mInterface;
+		String* mSelector;
 
 	public:
 		// time spent
@@ -95,6 +97,12 @@ namespace Beer
 		uint16 getMaxStack() const;
 		void setMaxStack(uint16 value);
 
+		Class* getInterface() const;
+		void setInterface(Class* value);
+
+		String* getSelector() const;
+		void setSelector(String* value);
+
 		INLINE void setFunction(Cb fn)
 		{
 			unmarkBytecode();
@@ -108,6 +116,11 @@ namespace Beer
 			unmarkNative();
 			markBytecode();
 			mBytecode = value;
+			invoke = &Bytecode::buildInvokeBytecode;
+		}
+
+		INLINE void bytecodeCompiled()
+		{
 			invoke = &Bytecode::invokeBytecode;
 		}
 		
@@ -117,6 +130,11 @@ namespace Beer
 		uint16 storeToPool(Thread* thread, StackRef<Object> object);
 		INLINE void updateAtPool(Thread* thread, uint16 index, StackRef<Object> object);
 		void createPool(Thread* thread, uint16 length);
+
+		// virtual table
+
+		bool satisfyVirtual(Class* klass, String* selector);
+		bool satisfyInterface(Class* klass, Class* interf, String* selector);
 
 		// methods
 		
@@ -180,5 +198,25 @@ namespace Beer
 	INLINE void Method::setMaxStack(uint16 value)
 	{
 		mMaxStack = value;
+	}
+
+	INLINE Class* Method::getInterface() const
+	{
+		return mInterface;
+	}
+
+	INLINE void Method::setInterface(Class* value)
+	{
+		mInterface = value;
+	}
+
+	INLINE String* Method::getSelector() const
+	{
+		return mSelector;
+	}
+
+	INLINE void Method::setSelector(String* value)
+	{
+		mSelector = value;
 	}
 };

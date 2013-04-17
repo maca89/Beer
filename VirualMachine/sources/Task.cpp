@@ -43,7 +43,8 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 		NULL_ASSERT(*klass); // TODO
 
 		// find method
-		Class::findMethod(thread2, klass, selector, method);
+		method = klass->findVirtualMethod(*selector);
+		//Class::findMethod(thread2, klass, selector, method);
 		frame->stackMoveTop(-2); // pop class, selector
 	}
 
@@ -101,21 +102,22 @@ Class* TaskInitializer::createClass(Thread* thread, ClassLoader* loader, String*
 void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
 	klass->mInstanceStaticSize = sizeof(Task);
-	klass->addParent(thread->getVM()->getObjectClass());
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markAbstract();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);
 	
 	// TODO: abstract run
 
 	// TODO: Task::schedule(TaskScheduler)
-	loader->addMethod(thread, klass, BEER_WIDEN("schedule"), BEER_WIDEN("Task::schedule()"), &Task::schedule, 0, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("await"), BEER_WIDEN("Task::await()"), &Task::await, 0, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("schedule"), BEER_WIDEN("Task::schedule()"), &Task::schedule, 0, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("await"), BEER_WIDEN("Task::await()"), &Task::await, 0, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("getCompleted"), BEER_WIDEN("Task::getCompleted()"), &Task::getCompleted, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("getCanceled"), BEER_WIDEN("Task::getCanceled()"), &Task::getCanceled, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("getFailed"), BEER_WIDEN("Task::getFailed()"), &Task::getFailed, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("getId"), BEER_WIDEN("Task::getId()"), &Task::getId, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getCompleted"), BEER_WIDEN("Task::getCompleted()"), &Task::getCompleted, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getCanceled"), BEER_WIDEN("Task::getCanceled()"), &Task::getCanceled, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getFailed"), BEER_WIDEN("Task::getFailed()"), &Task::getFailed, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getId"), BEER_WIDEN("Task::getId()"), &Task::getId, 0, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &Task::abstractRun, 0, 0)
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &Task::abstractRun, 0, 0)
 		->markAbstract();
 }

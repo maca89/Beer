@@ -94,26 +94,26 @@ Class* FloatClassInitializer::createClass(Thread* thread, ClassLoader* loader, S
 
 void FloatClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->getObjectClass());
-
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed();
 	klass->markAsValueType();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("Float::Float()"), &Float::init, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Float::Integer()"), &Float::operatorInteger, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Float::String()"), &Float::operatorString, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("Float::Float()"), &Float::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Float::Integer()"), &Float::operatorInteger, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("Float::+(Float)"), &Float::operatorAdd, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Float::-(Float)"), &Float::operatorSub, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("*"), BEER_WIDEN("Float::*(Float)"), &Float::operatorMul, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("/"), BEER_WIDEN("Float::/(Float)"), &Float::operatorDiv, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Float::-()"), &Float::operatorMinus, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("Float::+(Float)"), &Float::operatorAdd, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Float::-(Float)"), &Float::operatorSub, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("*"), BEER_WIDEN("Float::*(Float)"), &Float::operatorMul, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("/"), BEER_WIDEN("Float::/(Float)"), &Float::operatorDiv, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Float::-()"), &Float::operatorMinus, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Float::==(Float)"), &Float::operatorEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Float::!=(Float)"), &Float::operatorNotEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("<"), BEER_WIDEN("Float::<(Float)"), &Float::operatorSmaller, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("<="), BEER_WIDEN("Float::<=(Float)"), &Float::operatorSmallerEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN(">"), BEER_WIDEN("Float::>(Float)"), &Float::operatorGreater, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN(">="), BEER_WIDEN("Float::>=(Float)"), &Float::operatorGreaterEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Float::==(Float)"), &Float::operatorEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Float::!=(Float)"), &Float::operatorNotEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("<"), BEER_WIDEN("Float::<(Float)"), &Float::operatorSmaller, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("<="), BEER_WIDEN("Float::<=(Float)"), &Float::operatorSmallerEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN(">"), BEER_WIDEN("Float::>(Float)"), &Float::operatorGreater, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN(">="), BEER_WIDEN("Float::>=(Float)"), &Float::operatorGreaterEqual, 1, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Float::createInstance, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Float::operatorString, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Float::createInstance, 1, 0);
 }

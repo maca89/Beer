@@ -73,8 +73,9 @@ Class* CreateAllEntryPointsTaskInitializer::createClass(Thread* thread, ClassLoa
 
 void CreateAllEntryPointsTaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->findClass(BEER_WIDEN("Task")));
+	klass->setSuperClass(thread->getVM()->findClass(BEER_WIDEN("Task")));
+	klass->markSealed();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("CreateAllEntryPointsTask"), BEER_WIDEN("CreateAllEntryPointsTask::CreateAllEntryPointsTask()"), &CreateAllEntryPointsTask::init, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &CreateAllEntryPointsTask::run, 0, 0); // interface method, TODO: second selector
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("CreateAllEntryPointsTask"), BEER_WIDEN("CreateAllEntryPointsTask::CreateAllEntryPointsTask()"), &CreateAllEntryPointsTask::init, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &CreateAllEntryPointsTask::run, 0, 0); // interface method, TODO: second selector
 }

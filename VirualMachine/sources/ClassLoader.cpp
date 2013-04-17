@@ -82,21 +82,24 @@ bool ClassLoader::canLoadClass(string name)
 	return hasClassInitializer(name);
 }
 
-Class* ClassLoader::createClass(Thread* thread, String* classname, uint32 staticSize, uint16 parents, uint16 properties, uint16 methods)
+Class* ClassLoader::createClass(Thread* thread, String* classname, uint32 staticSize, uint16 parents, uint16 properties, uint16 virtualMethods, uint16 interfaceMethods)
 {
 	// TODO
 	//mVM->getMetaClass()->invoke(BEER_WIDEN("Class::createInstance"), );
 
 	Class* klass = thread->getPermanentHeap()->alloc<Class>(
 		staticSize, 
-		Object::OBJECT_CHILDREN_COUNT + 1 + parents + methods + properties // +1 for name
+		Object::OBJECT_CHILDREN_COUNT + 1 + parents + virtualMethods + interfaceMethods + properties // +1 for name
 	);
 	
 	klass->mFlags = 0;
 	klass->mParentsCount = parents;
 	klass->mPropertiesCount = properties;
-	klass->mMethodsCount = methods;
-	klass->mParentNext = klass->mMethodNext = klass->mPropertyNext = 0;
+	klass->mVirtualMethodNext = 0;
+	klass->mVirtualMethodsCount = virtualMethods;
+	klass->mInterfaceMethodNext = 0;
+	klass->mInterfaceMethodsCount = interfaceMethods;
+	klass->mParentNext = klass->mVirtualMethodNext = klass->mInterfaceMethodNext = klass->mPropertyNext = 0;
 	klass->mTraverser = &Class::DefaultInstanceTraverser;
 	klass->mInstanceStaticSize = sizeof(Object);
 
@@ -115,13 +118,12 @@ Class* ClassLoader::createClass(Thread* thread, String* classname, uint32 static
 	return klass;
 }
 
-Method* ClassLoader::createMethod(Thread* thread, Cb fn, uint16 returns, uint16 params)
+Method* ClassLoader::createMethod(Thread* thread, String* name, Cb fn, uint16 returns, uint16 params)
 {
 	Method* method = thread->getPermanentHeap()->alloc<Method>(
 		Method::METHOD_CHILDREN_COUNT + returns + params
 	);
 
-	// init flags, TODO: is it really needed?
 	method->setFlags(0);
 	method->setMaxStack(20); // default value, TODO: get rid of
 	method->setBytecode(NULL);
@@ -130,55 +132,73 @@ Method* ClassLoader::createMethod(Thread* thread, Cb fn, uint16 returns, uint16 
 	method->setReturnsCount(returns);
 	method->setParamsCount(params);
 	method->setType(thread->getVM()->getMethodClass());
+	method->setName(name);
 	
 	return method;
 }
 
-Method* ClassLoader::addMethod(Thread* thread, Class* klass, const char_t* name, const char_t* selector, Cb fn, uint16 returns, uint16 params)
+Method* ClassLoader::addVirtualMethod(Thread* thread, Class* klass, Method* method, const char_t* cselector)
 {
-	Method* method = createMethod(thread, fn, returns, params);
-
-	// set name
-	{
-		Frame* frame = thread->getFrame();
-		BEER_STACK_CHECK();
-
-		StackRef<String> nameOnStack(frame, frame->stackPush());
-		thread->createString(nameOnStack, name); // TODO: constant
-
-		method->setName(*nameOnStack);
-		frame->stackPop(); // pop nameOnStack
-	}
-
-	addMethod(thread, klass, method, selector);
+	method->setSelector(thread->createConstantString(cselector));
+	klass->addVirtualMethod(method);
 	return method;
 }
 
-Method* ClassLoader::addMethod(Thread* thread, Class* klass, Method* method, const char_t* selector)
+Method* ClassLoader::addOverrideMethod(Thread* thread, Class* klass, Method* method, const char_t* cselector)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
+	uint32 index = 0;
+	String* selector = thread->createConstantString(cselector);
 	
-	StackRef<Pair> pair(frame, frame->stackPush());
-
-	// create pair
+	if(klass->findVirtualMethodIndex(selector, index))
 	{
-		StackRef<String> selectorOnStack(frame, frame->stackPush());
-		thread->createString(selectorOnStack, selector); // TODO: constant
-
-		StackRef<Method> methodOnStack(frame, frame->stackPush(
-			method
-		));
-
-		thread->createPair(selectorOnStack, methodOnStack, pair);
-		frame->stackPop(); // pop methodOnStack
-		frame->stackPop(); // pop selectorOnStack
+		method->setSelector(selector);
+		klass->setMethod(index, method);
+		//klass->addOverrideMethod(parent, method);
+	}
+	else
+	{
+		klass->findVirtualMethodIndex(selector, index);
+		throw Exception(BEER_WIDEN("Unable to override such method"));
 	}
 
-	klass->addMethod(*pair);
-	frame->stackPop(); // pop pair
+	return method;
+}
+
+Method* ClassLoader::addInterfaceMethod(Thread* thread, Class* klass, Class* interf, Method* method, const char_t* cselector)
+{
+	uint32 index = 0;
+	String* selector = thread->createConstantString(cselector);
+	
+	if(klass->findInterfaceMethodIndex(interf, selector, index))
+	{
+		method->setSelector(selector);
+		klass->setMethod(index, method);
+		//klass->addOverrideMethod(parent, method);
+	}
+	else
+	{
+		throw Exception(BEER_WIDEN("Unable to override such method"));
+	}
 
 	return method;
+}
+
+Method* ClassLoader::addVirtualMethod(Thread* thread, Class* klass, const char_t* cname, const char_t* selector, Cb fn, uint16 returns, uint16 params)
+{
+	Method* method = createMethod(thread, thread->createConstantString(cname), fn, returns, params);
+	return addVirtualMethod(thread, klass, method, selector);
+}
+
+Method* ClassLoader::addOverrideMethod(Thread* thread, Class* klass, const char_t* cname, const char_t* selector, Cb fn, uint16 returns, uint16 params)
+{
+	Method* method = createMethod(thread, thread->createConstantString(cname), fn, returns, params);
+	return addOverrideMethod(thread, klass, method, selector);
+}
+
+Method* ClassLoader::addInterfaceMethod(Thread* thread, Class* klass, Class* interf, const char_t* cname, const char_t* selector, Cb fn, uint16 returns, uint16 params)
+{
+	Method* method = createMethod(thread, thread->createConstantString(cname), fn, returns, params);
+	return addInterfaceMethod(thread, klass, interf, method, selector);
 }
 
 void ClassLoader::createParam(Thread* thread, StackRef<Param> ret)

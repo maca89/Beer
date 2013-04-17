@@ -169,7 +169,7 @@ namespace Beer
 
 		INLINE uint32 stackLength() 
 		{
-			return mStack.length();// - frameOffset;
+			return mStack.length();// - mFrameOffset;
 		}
 
 		INLINE void stackCheck(int32 count) // must be signed !!!

@@ -18,7 +18,7 @@ namespace Beer
 	class DefaultBytecodeCompiler : public BytecodeCompiler
 	{
 	public:
-		virtual void compile(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc);
+		virtual void compile(Thread* thread, Method* method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc);
 	};
 
 	class Bytecode //: public Object
@@ -50,8 +50,9 @@ namespace Beer
 			#define BEER_INSTR_PUSH_STRING		25
 			#define BEER_INSTR_PUSH_CHAR		26
 			#define BEER_INSTR_PUSH_BOOL		27
-			//#define BEER_INSTR_PUSH_STRUCT	28
-			//#define BEER_INSTR_PUSH_FUNC		29
+			#define BEER_INSTR_PUSH_THIS		28
+			//#define BEER_INSTR_PUSH_STRUCT	29
+			//#define BEER_INSTR_PUSH_FUNC		30
 
 			// 40: object control
 			#define BEER_INSTR_NEW				40
@@ -95,9 +96,11 @@ namespace Beer
 			// optimalised instructions - the numbers may change!
 			#define BEER_OPTIMAL_ARRAY_ALLOC			(BEER_INSTR_SIZE + 18)
 			#define BEER_OPTIMAL_CACHED_INVOKE			(BEER_INSTR_SIZE + 19)
+			#define BEER_OPTIMAL_PUSH_TRUE				(BEER_INSTR_SIZE + 20)
+			#define BEER_OPTIMAL_PUSH_FALSE				(BEER_INSTR_SIZE + 21)
 			
 			// important
-			#define BEER_FILL_OPCODE_TABLE				(BEER_OPTIMAL_CACHED_INVOKE + 1)
+			#define BEER_FILL_OPCODE_TABLE				(BEER_OPTIMAL_PUSH_FALSE + 1)
 			#define BEER_MAX_OPCODE						BEER_FILL_OPCODE_TABLE
 		};
 
@@ -142,6 +145,10 @@ namespace Beer
 		uint32 mDataSize;
 		byte* mData;
 
+		// TODO: get rid of these
+		ClassFileDescriptor* mClassFile;
+		BytecodeDescriptor* mDescr;
+
 		static void* LabelTable[BEER_MAX_OPCODE * sizeof(void*)];
 
 #ifdef BEER_BC_DEBUGGING
@@ -149,16 +156,23 @@ namespace Beer
 #endif // BEER_BC_DEBUGGING
 
 	public:
-		INLINE Bytecode()
-			: mData(NULL), mDataSize(0)
+		/*INLINE Bytecode()
+			: mData(NULL), mDataSize(0), mClassFile(NULL), mDescr(NULL)
 		{
+		}*/
+
+		INLINE Bytecode(byte data[], uint32 dataSize)
+			: mClassFile(NULL), mDescr(NULL)
+		{
+			mDataSize = dataSize;
+			mData = data;
 		}
 
-		INLINE Bytecode(byte data[], uint32 size)
-			: mData(data), mDataSize(size)
+		INLINE Bytecode(ClassFileDescriptor* klassFile, BytecodeDescriptor* descr)
+			: mData(NULL), mDataSize(NULL)
 		{
-			mDataSize = size;
-			mData = data;
+			mClassFile = klassFile;
+			mDescr = descr;
 		}
 
 		INLINE ~Bytecode()
@@ -168,8 +182,12 @@ namespace Beer
 
 		INLINE const void* getData() const { return mData; }
 		INLINE uint32 getDataLength() const { return mDataSize; }
-
 		INLINE void* getData() { return mData; }
+
+		// TODO: get rid of these
+		INLINE ClassFileDescriptor* getClassFile() const { return mClassFile; };
+		INLINE BytecodeDescriptor* getDescriptor() const { return mDescr; }
+		INLINE void setData(byte data[], uint32 dataSize) { mData = data; mDataSize = dataSize; }
 
 		INLINE const Instruction* getInstruction(uint16 offset) const { return reinterpret_cast<const Instruction*>(&mData[offset]); }
 		INLINE Instruction* getInstruction(uint16 offset) { return reinterpret_cast<Instruction*>(&mData[offset]); }
@@ -178,5 +196,6 @@ namespace Beer
 
 		static void init(Thread* thread); // important!!!
 		static void invokeBytecode(Thread* thread);
+		static void buildInvokeBytecode(Thread* thread);
 	};
 };

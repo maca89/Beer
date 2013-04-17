@@ -33,28 +33,28 @@ namespace Beer
 	public:
 		virtual ~BytecodeVerifier() {}
 		// TODO
-		virtual void verify(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const TemporaryBytecode& bc) = 0;
+		virtual void verify(Thread* thread, Method* method, const TemporaryBytecode& bc) = 0;
 	};
 
 	class BytecodeLinker
 	{
 	public:
 		virtual ~BytecodeLinker() {}
-		virtual void link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, const TemporaryBytecode& bc, TemporaryBytecode& out_bc) = 0;
+		virtual void link(Thread* thread, Method* method, ClassFileDescriptor* classFile, const TemporaryBytecode& bc, TemporaryBytecode& out_bc) = 0;
 	};
 
 	class BytecodeOptimiser
 	{
 	public:
 		virtual ~BytecodeOptimiser() {}
-		virtual void optimise(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc) = 0;
+		virtual void optimise(Thread* thread, Method* method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc) = 0;
 	};
 
 	class BytecodeCompiler
 	{
 	public:
 		virtual ~BytecodeCompiler() {}
-		virtual void compile(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc) = 0;
+		virtual void compile(Thread* thread, Method* method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc) = 0;
 	};
 
 	/*class BytecodeExecuter : public BytecodePass

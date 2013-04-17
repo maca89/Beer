@@ -123,13 +123,14 @@ Class* ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, S
 void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
 	klass->setTraverser(&Array::ArrayInstanceTraverser);
-
-	klass->addParent(thread->getVM()->getObjectClass());
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("getLength"), BEER_WIDEN("Array::getLength()"), &Array::getLength, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("get"), BEER_WIDEN("Array::get(Integer)"), &Array::operatorGet, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("set"), BEER_WIDEN("Array::set(Integer,Integer)"), &Array::operatorSet, 0, 2);
-	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Array::String()"), &Array::operatorString, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Array::createInstance, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getLength"), BEER_WIDEN("Array::getLength()"), &Array::getLength, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("get"), BEER_WIDEN("Array::get(Integer)"), &Array::operatorGet, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("set"), BEER_WIDEN("Array::set(Integer,Integer)"), &Array::operatorSet, 0, 2);
+
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Array::createInstance, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Array::operatorString, 1, 0);
 }

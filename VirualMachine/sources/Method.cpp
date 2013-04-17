@@ -9,6 +9,70 @@
 using namespace Beer;
 
 
+bool Method::satisfyVirtual(Class* klass, String* selector)
+{
+	String* mySelector = getSelector();
+
+	if(mySelector->compare(selector) == 0)
+	{
+		return true;
+	}
+
+	String::LengthData i = 0, j = 0;
+	bool first = false;
+
+	// ugly, TODO
+	for(; i < mySelector->size(); i++)
+	{
+		if(mySelector->c_str()[i] == ':')
+		{
+			if(!first) first = true;
+			else { i++; break; }
+		}
+		else first = false;
+	}
+
+	first = false;
+
+	// ugly, TODO
+	for(; j < selector->size(); j++)
+	{
+		if(selector->c_str()[j] == ':')
+		{
+			if(!first) first = true;
+			else { j++; break; }
+		}
+		else first = false;
+	}
+
+	//const String::CharacterData* className = selector
+
+	if(strcmp(&mySelector->c_str()[i], &selector->c_str()[j]) != 0)
+	{
+		return false;
+	}
+
+	if(klass->substituable(getInterface())) // klass == getInterface()
+	{
+		return true;
+	}
+
+	/*size_t match = string(selector->c_str()).find(string(klass->getName()->c_str()));
+	if(match == 0)
+	{
+		return true;
+	}*/
+
+	return false;
+}
+
+bool Method::satisfyInterface(Class* klass, Class* interf, String* selector)
+{
+	String* mySelector = getSelector();
+	return /*getInterface() == interf &&*/ mySelector->compare(selector) == 0;
+	// TODO
+}
+
 
 void Method::loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret)
 {

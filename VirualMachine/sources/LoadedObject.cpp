@@ -30,35 +30,28 @@ void BEER_CALL LoadedObject::createInstance(Thread* thread, StackRef<Class> rece
 
 	/////////////////////////////////////////////////////////
 	// fix missing value types
-	if(true) {
-		StackRef<Integer> index(frame, frame->stackPush());
-		StackRef<Property> prop(frame, frame->stackPush());
-		StackRef<Class> klass(frame, frame->stackPush());
-
-		StackRef<Integer> propertiesCount(frame, frame->stackPush());
-		Class::getPropertiesCount(thread, receiver, propertiesCount);
-
-		for(uint32 i = 0; i < propertiesCount->getData(); i++)
+	if(true)
+	{
+		for(uint32 i = 0; i < receiver->getPropertiesCount(); i++)
 		{
-			thread->createInteger(index, i);
-			Class::getProperty(thread, receiver, index, prop);
+			Property* prop = receiver->getProperty(i);
 		
-			if(!prop.isNull())
+			if(prop)
 			{
-				Property::getPropertyType(thread, prop, klass);
+				Class* type = prop->getPropertyType();
 
-				if(klass->isValueType())
+				if(type->isValueType())
 				{
+					StackRef<Class> klass(frame, frame->stackPush(type)); // push child
 					StackRef<Object> child(frame, frame->stackPush()); // push child
 					thread->createInstance(klass, child);
 
 					Object::setChild(thread, ret, Object::OBJECT_CHILDREN_COUNT + i, child);
 					frame->stackPop(); // pop child
+					frame->stackPop(); // pop klass
 				}
 			}
 		}
-
-		frame->stackMoveTop(-4); // pop index, prop, class, propertiesCount
 	}
 	/////////////////////////////////////////////////////////
 }
@@ -70,58 +63,106 @@ Class* LoadedObjectInitializer::createClass(Thread* thread, ClassLoader* loader,
 	BEER_STACK_CHECK();
 	
 	string className = name->c_str();
-	uint16 methodsLength = mClassDescr->getMethodsLength();
-	uint16 propertiesLength = mClassDescr->getAttributesLength();
+	uint32 virtualMethods = 0;
+	uint32 interfaceMethods = 0;
+	uint32 parentsCount = 0;
+	uint32 propertiesLength = mClassDescr->getAttributesLength();
 
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
 		MethodDescriptor* methodDescr = getMethod(i);
-		if(methodDescr->isOverride())
+		if(!methodDescr->isOverride())
 		{
-			methodsLength += 1; // will have to save two times with two selectors
+			virtualMethods += 1;
 		}
 	}
+
+	Class* superClass = NULL;
+	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
+	{
+		StackRef<String> parentClassName(frame, frame->stackPush());
+		getParentClassName(thread, parentClassName, i);
+
+		Class* parent = thread->getVM()->findClass(parentClassName);
+
+		if(!parent->isInterface())
+		{
+			superClass = parent;
+			parentsCount++;
+			frame->stackPop(); // pop parentClassName
+			break;
+		}
+
+		frame->stackPop(); // pop parentClassName
+	}
+
+	if(superClass == NULL)
+	{
+		superClass = thread->getVM()->getObjectClass();
+		parentsCount++;
+	}
+
+	parentsCount += superClass->getInterfacesCount();
+
+	virtualMethods += superClass->getVirtualMethodsCount();
+	interfaceMethods += superClass->getInterfaceMethodsCount();
+	propertiesLength += superClass->getPropertiesCount();
 
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
 		StackRef<String> parentClassName(frame, frame->stackPush());
 		getParentClassName(thread, parentClassName, i);
 
-		StackRef<Class> parent(frame, frame->stackPush());
-		thread->findClass(parentClassName, parent);
+		Class* parent = thread->getVM()->findClass(parentClassName);
 
-		StackRef<Integer> propertiesCount(frame, frame->stackPush());
-		Class::getPropertiesCount(thread, parent, propertiesCount);
+		if(!parent->isInterface() && parent != superClass)
+		{
+			throw Exception(BEER_WIDEN("Unable to inherit from more than 1 non-interface class")); // TODO: better exception
+		}
 
-		StackRef<Integer> methodsCount(frame, frame->stackPush());
-		Class::getMethodsCount(thread, parent, methodsCount);
+		if(parent->isSealed())
+		{
+			throw Exception(BEER_WIDEN("Unable to inherit from sealed class")); // TODO: better exception
+		}
 
-		propertiesLength += static_cast<uint16>(propertiesCount->getData());
-		methodsLength += static_cast<uint16>(methodsCount->getData());
+		if(parent->isInterface())
+		{
+			if(!superClass->hasInterface(parent))
+			{
+				// TODO: virtual multiple inheritance of interfaces!!!!!!!!!!!
+				interfaceMethods += parent->getMethodsCount() - parent->getSuperClass()->getVirtualMethodsCount();
+				parentsCount += 1 + parent->getInterfacesCount(); // TODO: probably more parents than needed if virtual inheritance from interfaces
+			}
+		}
+		// else is a super class => resolved elsewhere
+		
 
-		frame->stackMoveTop(-4); // pop parentClassName, parent, propertiesCount, methodsCount
+		frame->stackMoveTop(-1); // pop parentClassName
 	}
 
-	if(mClassDescr->getParentsLength() == 0)
-	{
-		StackRef<Class> objectKlass(frame, frame->stackPush());
-		thread->getObjectClass(objectKlass);
-
-		StackRef<Integer> methodsCount(frame, frame->stackPush());
-		Class::getMethodsCount(thread, objectKlass, methodsCount);
-
-		methodsLength += static_cast<uint16>(methodsCount->getData());
-
-		frame->stackMoveTop(-2); // pop objectKlass, methodsCount
-	}
-
-	return loader->createClass<Class>(
+	Class* klass = loader->createClass<Class>(
 		thread, 
 		name, // classDescr->getName(classFile)->c_str()
-		mClassDescr->getParentsLength() == 0 ? 1 : mClassDescr->getParentsLength() /*+ (name.compare(BEER_WIDEN("Main")) == 0 ? 1 : 0)*/, // + 1 for Object, TODO: Main in classfile
+		parentsCount,
 		propertiesLength, 
-		methodsLength + 1 // +1 for createInstance
+		virtualMethods,
+		interfaceMethods
 	);
+
+	if(mClassDescr->isAbstract())
+	{
+		// let's say its an interface
+		if(propertiesLength == 0 && superClass == thread->getVM()->getObjectClass())
+		{
+			klass->markInterface();
+		}
+		else
+		{
+			klass->markAbstract();
+		}
+	}
+
+	return klass;
 }
 
 void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass) // TODO: add parents properties into properties size
@@ -129,35 +170,54 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	StackRef<Class> klassOnStack(frame, frame->stackPush(klass)); // TODO: get rid of
-
 	mClass = klass; // ugly, TODO: get rid of
 	
 	uint32 instanceStaticSize = sizeof(Object);
 	uint16 methodStart = 0;
 
-	StackRef<String> className(frame, frame->stackPush());
-	
-	className = klass->getName();
+	Class* superClass = NULL;
 
-	if(mClassDescr->getParentsLength() == 0)
-	{
-		klass->addParent(thread->getVM()->getObjectClass());
-	}
-
-	// parents
+	// find super class
 	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
 	{
 		StackRef<String> parentClassName(frame, frame->stackPush());
 		getParentClassName(thread, parentClassName, i);
 
-		StackRef<Class> parentClass(frame, frame->stackPush());
-		thread->findClass(parentClassName, parentClass);
+		Class* parent = thread->getVM()->findClass(parentClassName);
+
+		if(!parent->isInterface())
+		{
+			superClass = parent;
+			frame->stackPop(); // pop parentClassName
+			break;
+		}
+
+		frame->stackPop(); // pop parentClassName
+	}
+
+	if(superClass == NULL)
+	{
+		superClass = thread->getVM()->getObjectClass();
+	}
+
+	klass->setSuperClass(superClass);
+
+	// find interfaces
+	for(uint16 i = 0; i < mClassDescr->getParentsLength(); i++)
+	{
+		StackRef<String> parentClassName(frame, frame->stackPush());
+		getParentClassName(thread, parentClassName, i);
 		
-		instanceStaticSize = max(instanceStaticSize, parentClass->mInstanceStaticSize); // TODO
-		Class::addParent(thread, klassOnStack, parentClass);
+		Class* parent = thread->getVM()->findClass(parentClassName);
+
+		if(parent->isInterface())
+		{
+			klass->addInterface(parent);
+		}
 		
-		frame->stackMoveTop(-2); // pop parentClass, parentClassName
+		instanceStaticSize = max(instanceStaticSize, parent->mInstanceStaticSize); // TODO
+		
+		frame->stackPop(); // pop parentClassName
 	}
 
 	klass->mInstanceStaticSize = instanceStaticSize; // TODO
@@ -170,7 +230,7 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 		{
 			AttributeDescriptor* attrDescr = getAtribute(i);
 			makeProperty(thread, prop, loader, attrDescr);
-			Class::addProperty(thread, klassOnStack, prop);
+			klass->addProperty(*prop);
 		}
 
 		frame->stackPop(); // pop property
@@ -179,12 +239,11 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 	// methods
 	for(uint16 i = 0; i < mClassDescr->getMethodsLength(); i++)
 	{
+		StackRef<Class> klassOnStack(frame, frame->stackPush(klass)); // TODO: get rid of
 		MethodDescriptor* methodDescr = getMethod(i);
 		Method* method = makeMethod(thread, klassOnStack, loader, methodDescr);
 
-		StackRef<String> str(frame, frame->stackPush());
-		str = method->getName();
-		string selector = string() + BEER_WIDEN("::") + str->c_str();
+		string selector = string() + BEER_WIDEN("::") + method->getName()->c_str();
 
 		selector += BEER_WIDEN("(");
 		for(uint16 parami = 0; parami < methodDescr->getParamsLength(); parami++)
@@ -195,20 +254,34 @@ void LoadedObjectInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 		}
 		selector += BEER_WIDEN(")");
 
-		loader->addMethod(thread, klass, method, (string(className->c_str()) + selector).c_str());
-
 		if(methodDescr->isOverride())
 		{
-			string interf = methodDescr->getInterfaceName(mClassFile)->c_str();
-			loader->addMethod(thread, klass, method, (interf + selector).c_str());
+			string interfName = methodDescr->getInterfaceName(mClassFile)->c_str();
+			Class* interf = thread->getVM()->findClass(interfName);
+			
+			if(interf->isInterface())
+			{
+				selector = interfName + selector; //ugly
+				method->setInterface(interf);
+				loader->addInterfaceMethod(thread, klass, interf, method, selector.c_str());
+			}
+			else // overriding parent's method
+			{
+				selector = interfName/*klass->getName()->c_str()*/ + selector; //ugly
+				method->setInterface(interf); //really??
+				loader->addOverrideMethod(thread, klass, method, selector.c_str());
+			}
+		}
+		else
+		{
+			selector = klass->getName()->c_str() + selector;
+			loader->addVirtualMethod(thread, klass, method, selector.c_str());
 		}
 
-		frame->stackPop(); // pop str
+		frame->stackPop(); // pop klassOnStack
 	}
 
-	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &LoadedObject::createInstance, 1, 0);
-
-	frame->stackMoveTop(-2); // pop classname, klassOnStack
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &LoadedObject::createInstance, 1, 0);
 }
 
 AttributeDescriptor* LoadedObjectInitializer::getAtribute(uint16 i)
@@ -289,17 +362,12 @@ Method* LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Class> klas
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
-	Method* method = loader->createMethod(thread, NULL, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
+	Method* method = loader->createMethod(thread, *String::gTranslate(thread, methodDescr->getName(mClassFile)->c_str()), NULL, methodDescr->getReturnsLength(), methodDescr->getParamsLength());
 
 	// TODO: get rid of this
 	StackRef<Method> methodOnStack(frame, frame->stackPush(
 		method
 	));
-
-	// set name
-	method->setName(
-		*String::gTranslate(thread, methodDescr->getName(mClassFile)->c_str())
-	);
 	
 	method->setMaxStack(20); // TODO: methodDescr->getMaxStack()
 
@@ -343,7 +411,7 @@ Method* LoadedObjectInitializer::makeMethod(Thread* thread, StackRef<Class> klas
 	{
 		// bytecode
 		BytecodeDescriptor* bcDescr = mClassFile->getDescriptor<BytecodeDescriptor>(methodDescr->getBytecodeId());
-		thread->getVM()->getBytecodeBuilder()->build(thread, klass, methodOnStack, mClassFile, bcDescr);
+		thread->getVM()->getBytecodeBuilder()->build(thread, method, mClassFile, bcDescr);
 	}
 
 	frame->stackPop(); // pop methodOnStack

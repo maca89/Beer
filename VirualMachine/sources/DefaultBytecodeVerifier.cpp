@@ -11,7 +11,7 @@
 using namespace Beer;
 
 
-void DefaultBytecodeVerifier::verify(Thread* thread, StackRef<Class> thisClass, StackRef<Method> method, const TemporaryBytecode& bc)
+void DefaultBytecodeVerifier::verify(Thread* thread, Method* method, const TemporaryBytecode& bc)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -81,12 +81,13 @@ void DefaultBytecodeVerifier::verify(Thread* thread, StackRef<Class> thisClass, 
 			case BEER_INSTR_LOAD_THIS:
 			case BEER_INSTR_ASSIGN_THIS:
 				{
-					uint16 properti = istream.read<uint16>();
+					int16 properti = istream.read<uint16>();
 
-					if(properti >= thisClass->getPropertiesCount())
+					// TODO
+					/*if(properti >= thisClass->getPropertiesCount())
 					{
 						throw BytecodeException(BEER_WIDEN("Trying to access unknown property"));
-					}
+					}*/
 				}
 				break;
 

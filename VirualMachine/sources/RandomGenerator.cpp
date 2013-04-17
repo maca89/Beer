@@ -9,19 +9,11 @@ using namespace Beer;
 
 void BEER_CALL RandomGenerator::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<RandomGenerator> ret)
 {
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> propertiesCount(frame, frame->stackPush());
-	Class::getPropertiesCount(thread, receiver, propertiesCount);
-
 	ret = thread->getHeap()->alloc<RandomGenerator>(
-		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
+		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount())
 	);
 
 	Object::setType(thread, ret, receiver);
-
-	frame->stackPop(); // pop propertiesCount
 }
 
 void BEER_CALL RandomGenerator::init(Thread* thread, StackRef<RandomGenerator> receiver, StackRef<RandomGenerator> ret)
@@ -78,17 +70,18 @@ Class* RandomGeneratorClassInitializer::createClass(Thread* thread, ClassLoader*
 
 void RandomGeneratorClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->getObjectClass());
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator(Integer)"), &RandomGenerator::initInteger, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator()"), &RandomGenerator::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("RandomGenerator"), BEER_WIDEN("RandomGenerator::RandomGenerator(Integer)"), &RandomGenerator::initInteger, 1, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("RandomGenerator::Integer()"), &RandomGenerator::operatorInteger, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("Boolean"), BEER_WIDEN("RandomGenerator::Boolean()"), &RandomGenerator::operatorBoolean, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("RandomGenerator::Float()"), &RandomGenerator::operatorFloat, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("RandomGenerator::Character()"), &RandomGenerator::operatorCharacter, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("RandomGenerator::Integer()"), &RandomGenerator::operatorInteger, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Boolean"), BEER_WIDEN("RandomGenerator::Boolean()"), &RandomGenerator::operatorBoolean, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("RandomGenerator::Float()"), &RandomGenerator::operatorFloat, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("RandomGenerator::Character()"), &RandomGenerator::operatorCharacter, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("toss"), BEER_WIDEN("RandomGenerator::toss(Float)"), &RandomGenerator::toss, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("toss"), BEER_WIDEN("RandomGenerator::toss(Float)"), &RandomGenerator::toss, 1, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &RandomGenerator::createInstance, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &RandomGenerator::createInstance, 1, 0);
 }

@@ -73,6 +73,23 @@ namespace Beer
 			return &mData;
 		}
 
+		INLINE CharacterData* c_str()
+		{
+			return &mData;
+		}
+
+		INLINE CharacterData at(LengthData i) const
+		{
+			BOUNDS_ASSERT(i, size());
+			return c_str()[i];
+		}
+
+		INLINE CharacterData& at(LengthData i)
+		{
+			BOUNDS_ASSERT(i, size());
+			return c_str()[i];
+		}
+
 		INLINE void copyData(const CharacterData* data)
 		{
 			//CopyMemory(&mData, data, mLength * sizeof(CharacterData));

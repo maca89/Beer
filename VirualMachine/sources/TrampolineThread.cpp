@@ -21,7 +21,7 @@ bool TrampolineThread::trampoline()
 	while(hasFrame() && !mVM->isSafePoint())
 	{
 		Frame* frame = getFrame();
-		StackRef<Method> method(frame, -1);
+		StackRef<Method> method(frame, Frame::INDEX_METHOD);
 		
 		if(method.isNull())
 		{

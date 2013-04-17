@@ -15,6 +15,6 @@ namespace Beer
 		~MultipassBytecodeOptimiser();
 
 		// BytecodeOptimiser
-		virtual void optimise(Thread* thread, StackRef<Method> method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc);
+		virtual void optimise(Thread* thread, Method* method, const TemporaryBytecode& bc, TemporaryBytecode& out_bc);
 	};
 };

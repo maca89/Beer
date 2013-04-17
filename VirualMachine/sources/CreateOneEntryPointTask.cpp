@@ -48,24 +48,23 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 				
 		frame->stackMoveTop(-2); // pop tmpString1, tmpString2
 
-		StackRef<Method> method(frame, frame->stackPush());
-		Class::findMethod(thread, klass, selector, method);
+		Method* method = klass->findVirtualMethod(*selector);
 
-		if(!method.isNull())
+		if(method)
 		{
 			// ugly
 			TrampolineThread thread2(thread->getVM(), thread->getGC());
 
 			thread2.getFrame()->stackPush(); // for return
 			thread2.getFrame()->stackPush(*instance); // push receiver
-			thread2.getFrame()->stackPush(*method); // push method
+			thread2.getFrame()->stackPush(method); // push method
 			thread2.openFrame();
 
 			thread2.trampoline();
 			//instance = thread->getFrame()->stackTop(); // fix main // TODO
 		}
 
-		frame->stackMoveTop(-2); // pop method & selector
+		frame->stackPop(); // selector
 	}
 #endif // BEER_FOLDING_BLOCK
 
@@ -82,7 +81,7 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 			StackRef<String> selector(frame, frame->stackPush()); // TODO
 			thread->createString(selector, BEER_WIDEN("Task::run()")); // why the cast?!, TODO
 
-			Class::findMethod(thread, klass, selector, method);
+			method = klass->findVirtualMethod(*selector);
 
 			if(method.isNull())
 			{
@@ -120,8 +119,9 @@ Class* CreateOneEntryPointTaskInitializer::createClass(Thread* thread, ClassLoad
 
 void CreateOneEntryPointTaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->findClass(BEER_WIDEN("Task")));
+	klass->setSuperClass(thread->getVM()->findClass(BEER_WIDEN("Task")));
+	klass->markSealed();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("CreateOneEntryPointTask"), BEER_WIDEN("CreateOneEntryPointTask::CreateOneEntryPointTask(Class)"), &CreateOneEntryPointTask::init_Class, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &CreateOneEntryPointTask::run, 0, 0); // interface method, TODO: second selector
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("CreateOneEntryPointTask"), BEER_WIDEN("CreateOneEntryPointTask::CreateOneEntryPointTask(Class)"), &CreateOneEntryPointTask::init_Class, 1, 1);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &CreateOneEntryPointTask::run, 0, 0); // interface method, TODO: second selector
 }

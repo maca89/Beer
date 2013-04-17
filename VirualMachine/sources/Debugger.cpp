@@ -5,6 +5,7 @@
 #include "Console.h"
 #include "Property.h"
 #include "Class.h"
+#include "Pair.h"
 
 using namespace Beer;
 
@@ -253,7 +254,7 @@ void Debugger::printObject(StackRef<Object> object)
 				StackRef<String> selector(frame, frame->stackPush());
 				createString(selector, BEER_WIDEN("Object::String()")); // TODO: selector in a pool
 
-				Class::findMethod(this, klass, selector, toStringMethod);
+				toStringMethod = klass->findVirtualMethod(*selector); // TODO
 				frame->stackPop(); // pop selector
 
 				// there should be a method, so no check for NULL
@@ -276,27 +277,17 @@ void Debugger::printObject(StackRef<Object> object)
 				frame->stackMoveTop(-2); // pop result, toStringMethod
 			}
 
-			StackRef<Integer> propertiesCount(frame, frame->stackPush());
-			Class::getPropertiesCount(this, klass, propertiesCount);
-
-			if(propertiesCount->getData() > 0)
+			if(klass->getPropertiesCount() > 0)
 			{
 				cout << " {";
-				for(uint32 i = 0; i < propertiesCount->getData(); i++)
+				for(uint32 i = 0; i < klass->getPropertiesCount(); i++)
 				{
-					StackRef<Property> prop(frame, frame->stackPush());
-					Class::getProperty(this, klass, i, prop);
+					Property* prop = klass->getProperty(i);
 
-					if(!prop.isNull())
+					if(prop)
 					{
 						// print name
-						{
-							StackRef<String> name(frame, frame->stackPush());
-							Property::getPropertyName(this, prop, name);
-
-							cout << name->c_str() << ": ";
-							frame->stackPop(); // pop name
-						}
+						cout << prop->getPropertyName()->c_str() << ": ";
 
 						// print child
 						{
@@ -307,15 +298,11 @@ void Debugger::printObject(StackRef<Object> object)
 							frame->stackPop(); // pop child
 						}
 
-						if(i < propertiesCount->getData() - 1) cout << ", ";
+						if(i < klass->getPropertiesCount() - 1) cout << ", ";
 					}
-
-					frame->stackPop(); // pop prop
 				}
 				cout << "}";
 			}
-
-			frame->stackPop(); // pop propertiesCount
 		}
 		else
 		{
@@ -402,7 +389,7 @@ void Debugger::printFrameStack(Frame* frame)
 		cout << std::endl;
 
 		uint32 vari = 0;
-		for(uint32 i = returnsCount + argsCount + 2; i < frame->stackLength(); i++)
+		for(uint32 i = /*returnsCount + argsCount + 2*/0; i < frame->stackLength(); i++)
 		{
 			StackRef<Method> object(frame, frame->translateAbsolute(i));
 
@@ -418,17 +405,14 @@ void Debugger::printFrameStack(Frame* frame)
 	//cout << std::endl;
 }
 
-void Debugger::printClassMethods(StackRef<Class> klass)
+void Debugger::printClassMethods(StackRef<Class> klassOnStack)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Integer> methodsCount(frame, frame->stackPush());
-	Class::getMethodsCount(this, klass, methodsCount);
+	Class* klass = *klassOnStack;
 
 	cout << "[Class " << ((String*)klass->getChildren()[Class::CHILD_ID_CLASS_NAME])->c_str() << "]" << std::endl;
-	for(uint16 methodi = 0; methodi < methodsCount->getData(); methodi++)
+	for(uint32 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
 	{
+		// TODO
 		/*Pair* definedMethod = klass->getMethod(methodi);
 		if(definedMethod)
 		{
@@ -436,8 +420,6 @@ void Debugger::printClassMethods(StackRef<Class> klass)
 			cout << std::setfill(BEER_WIDEN(' ')) << "+" << methodi << " NOT IMPLEMENTED" << definedMethod->_getFirst<String>()->c_str() << std::endl;// TODO: selector
 		}*/
 	}
-
-	frame->stackPop(); // pop methodsCount
 }
 
 void Debugger::started()
@@ -502,33 +484,15 @@ bool Debugger::catchException(Thread* thread, Frame* frame, const Exception& ex)
 	return false; // TODO
 }
 
-void Debugger::printBytecodeMethods(Class* c)
+void Debugger::printBytecodeMethods(Class* klass)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
+	//TODO
 
-	StackRef<Class> klass(frame, frame->stackPush(c));
+	/*string klassName = klass->getName()->c_str();
+	klassName += BEER_WIDEN("::");
 
-	string klassName;
-
-	// get classname
+	for(Integer::IntegerData i = 0; i < klass->getMethodsCount(); i++)
 	{
-		StackRef<String> name(frame, frame->stackPush());
-		Class::getName(this, klass, name);
-		klassName = name->c_str();
-		klassName += BEER_WIDEN("::");
-		frame->stackPop(); // pop name
-	}
-
-	StackRef<Integer> methodsCount(frame, frame->stackPush());
-	Class::getMethodsCount(this, klass, methodsCount);
-
-	StackRef<Integer> index(frame, frame->stackPush());
-	StackRef<Pair> pair(frame, frame->stackPush());
-
-	for(Integer::IntegerData i = 0; i < methodsCount->getData(); i++)
-	{
-		createInteger(index, i);
 		Class::getMethod(this, klass, index, pair);
 
 		if(!pair.isNull())
@@ -557,12 +521,8 @@ void Debugger::printBytecodeMethods(Class* c)
 					printBytecodeMethod(klass, method);
 				}
 			}
-			
-			frame->stackPop(); // method
 		}
-	}
-
-	frame->stackMoveTop(-4); // pop klass, methodsCount, index, pair
+	}*/
 }
 
 void Debugger::printBytecodeMethod(StackRef<Class> klass, StackRef<Method> method)

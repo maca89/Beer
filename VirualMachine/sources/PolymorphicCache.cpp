@@ -4,6 +4,7 @@
 #include "Method.h"
 #include "Frame.h"
 #include "Thread.h"
+#include "Pair.h"
 
 using namespace Beer;
 
@@ -71,7 +72,8 @@ void PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver,
 	}
 
 	// we must do a lookup
-	Class::findMethod(thread, klass, selector, ret);
+	ret = klass->findVirtualMethod(*selector);
+	//Class::findMethod(thread, klass, selector, ret);
 
 	// save method to cache
 	if(!ret.isNull() && length > 0)

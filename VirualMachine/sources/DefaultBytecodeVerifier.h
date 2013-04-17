@@ -14,6 +14,6 @@ namespace Beer
 		virtual ~DefaultBytecodeVerifier() {}
 
 		// BytecodeVerifier
-		virtual void verify(Thread* thread, StackRef<Class> klass, StackRef<Method> method, const TemporaryBytecode& bc);
+		virtual void verify(Thread* thread, Method* method, const TemporaryBytecode& bc);
 	};
 };

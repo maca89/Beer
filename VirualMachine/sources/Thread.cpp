@@ -8,6 +8,7 @@
 #include "ClassFileLoader.h"
 #include "Pool.h"
 #include "PolymorphicCache.h"
+#include "Pair.h"
 
 using namespace Beer;
 
@@ -81,7 +82,7 @@ void Thread::findClass(StackRef<String> name, StackRef<Class> ret)
 void Thread::findMethod(StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
 {
 	// TODO: global polymorphic cache
-	Class::findMethod(this, klass, selector, ret);
+	ret = klass->findVirtualMethod(*selector);
 }
 
 Integer* Thread::createConstantInteger(Integer::IntegerData value)
@@ -123,6 +124,14 @@ String* Thread::createConstantString(String::LengthData length)
 	ret->size(length);
 
 	return ret;
+}
+
+String* Thread::createConstantString(const String::CharacterData* cstring)
+{
+	String::LengthData length = strlen(cstring);
+	String* str = createConstantString(length);
+	str->copyData(cstring);
+	return str;
 }
 
 void Thread::createInteger(StackRef<Integer> ret, Integer::IntegerData value)
@@ -178,23 +187,14 @@ void Thread::createString(StackRef<Integer> length, StackRef<String> ret)
 
 void Thread::createString(StackRef<String> ret, Integer::IntegerData length)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Class> stringClass(frame, frame->stackPush());
-	getStringClass(stringClass);
-
-	StackRef<Integer> propertiesCount(frame, frame->stackPush());
-	Class::getPropertiesCount(this, stringClass, propertiesCount);
+	Class* stringClass = getVM()->getStringClass();
 
 	ret = getHeap()->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (length + 1)), // +1 for \0
-		static_cast<uint32>(Object::OBJECT_CHILDREN_COUNT + propertiesCount->getData())
+		Object::OBJECT_CHILDREN_COUNT + stringClass->getPropertiesCount()
 	);
 	ret->size(length);
-	Object::setType(this, ret, stringClass);
-
-	frame->stackMoveTop(-2); // pop class, propertiesCount
+	ret->setType(stringClass);
 }
 
 void Thread::createArray(StackRef<Integer> length, StackRef<Array> ret)

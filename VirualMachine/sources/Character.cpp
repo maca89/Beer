@@ -51,16 +51,16 @@ Class* CharacterClassInitializer::createClass(Thread* thread, ClassLoader* loade
 
 void CharacterClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->getObjectClass());
-
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed();
 	klass->markAsValueType();
 	
-	loader->addMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("Character::Character()"), &Character::init, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Character::String()"), &Character::operatorString, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Character::Integer()"), &Character::operatorInteger, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("Character::Character()"), &Character::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Character::Integer()"), &Character::operatorInteger, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Character::==(Character)"), &Character::operatorEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Character::!=(Character)"), &Character::operatorNotEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Character::==(Character)"), &Character::operatorEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Character::!=(Character)"), &Character::operatorNotEqual, 1, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("Character"), BEER_WIDEN("$Class::createInstance()"), &Character::createInstance, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Character::operatorString, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Character::createInstance, 1, 0);
 }

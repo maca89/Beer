@@ -79,19 +79,20 @@ Class* FileWriterClassInitializer::createClass(Thread* thread, ClassLoader* load
 
 void FileWriterClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->getObjectClass());
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed(); // TODO
 
-	loader->addMethod(thread, klass, BEER_WIDEN("FileWriter"), BEER_WIDEN("FileWriter::FileWriter()"), &FileWriter::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("FileWriter"), BEER_WIDEN("FileWriter::FileWriter()"), &FileWriter::init, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("open"), BEER_WIDEN("FileWriter::open(String)"), &FileWriter::open, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("close"), BEER_WIDEN("FileWriter::close()"), &FileWriter::close, 0, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("open"), BEER_WIDEN("FileWriter::open(String)"), &FileWriter::open, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("close"), BEER_WIDEN("FileWriter::close()"), &FileWriter::close, 0, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Integer)"), &FileWriter::writeInteger, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Float)"), &FileWriter::writeFloat, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(String)"), &FileWriter::writeString, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Boolean)"), &FileWriter::writeBoolean, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Array)"), &FileWriter::writeArray, 0, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("writeln"), BEER_WIDEN("FileWriter::writeln()"), &FileWriter::writeLn, 0, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Integer)"), &FileWriter::writeInteger, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Float)"), &FileWriter::writeFloat, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(String)"), &FileWriter::writeString, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Boolean)"), &FileWriter::writeBoolean, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("write"), BEER_WIDEN("FileWriter::write(Array)"), &FileWriter::writeArray, 0, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("writeln"), BEER_WIDEN("FileWriter::writeln()"), &FileWriter::writeLn, 0, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("writeFailed"), BEER_WIDEN("FileWriter::writeFailed()"), &FileWriter::writeFailed, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("writeFailed"), BEER_WIDEN("FileWriter::writeFailed()"), &FileWriter::writeFailed, 1, 0);
 }

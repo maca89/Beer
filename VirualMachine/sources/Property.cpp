@@ -5,22 +5,42 @@
 using namespace Beer;
 
 
-void BEER_CALL Property::getPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> ret)
+Class* Property::getPropertyType()
 {
-	Object::getChild(thread, receiver, CHILD_ID_PROPERTY_TYPE, ret);
+	return static_cast<Class*>(getChild(CHILD_ID_PROPERTY_TYPE));
 }
 
-void BEER_CALL Property::setPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> type)
+void Property::setPropertyType(Class* value)
 {
-	Object::setChild(thread, receiver, CHILD_ID_PROPERTY_TYPE, type);
+	setChild(CHILD_ID_PROPERTY_TYPE, value);
+}
+
+String* Property::getPropertyName()
+{
+	return static_cast<String*>(getChild(CHILD_ID_PROPERTY_NAME));
+}
+
+void Property::setPropertyName(String* value)
+{
+	setChild(CHILD_ID_PROPERTY_NAME, value);
+}
+
+void BEER_CALL Property::getPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> ret)
+{
+	ret = receiver->getPropertyType();
+}
+
+void BEER_CALL Property::setPropertyType(Thread* thread, StackRef<Property> receiver, StackRef<Class> value)
+{
+	receiver->setPropertyType(*value);
 }
 
 void BEER_CALL Property::getPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> ret)
 {
-	Object::getChild(thread, receiver, CHILD_ID_PROPERTY_NAME, ret);
+	ret = receiver->getPropertyName();
 }
 
-void BEER_CALL Property::setPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> type)
+void BEER_CALL Property::setPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> value)
 {
-	Object::setChild(thread, receiver, CHILD_ID_PROPERTY_NAME, type);
+	receiver->setPropertyName(*value);
 }

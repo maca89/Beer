@@ -113,31 +113,30 @@ Class* IntegerClassInitializer::createClass(Thread* thread, ClassLoader* loader,
 
 void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->addParent(thread->getVM()->getObjectClass());
-
+	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->markSealed();
 	klass->markAsValueType();
 
-	loader->addMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Integer::Integer()"), &Integer::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Integer::Integer()"), &Integer::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("Integer::Float()"), &Integer::operatorFloat, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("Integer::Float()"), &Integer::operatorFloat, 1, 0);
-	loader->addMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Integer::String()"), &Integer::operatorString, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("Integer::+(Integer)"), &Integer::operatorAdd, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Integer::-(Integer)"), &Integer::operatorSub, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("*"), BEER_WIDEN("Integer::*(Integer)"), &Integer::operatorMul, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("%"), BEER_WIDEN("Integer::%(Integer)"), &Integer::operatorMod, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("/"), BEER_WIDEN("Integer::/(Integer)"), &Integer::operatorDiv, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Integer::-()"), &Integer::operatorMinus, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("Integer::+(Integer)"), &Integer::operatorAdd, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Integer::-(Integer)"), &Integer::operatorSub, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("*"), BEER_WIDEN("Integer::*(Integer)"), &Integer::operatorMul, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("%"), BEER_WIDEN("Integer::%(Integer)"), &Integer::operatorMod, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("/"), BEER_WIDEN("Integer::/(Integer)"), &Integer::operatorDiv, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("-"), BEER_WIDEN("Integer::-()"), &Integer::operatorMinus, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Integer::==(Integer)"), &Integer::operatorEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Integer::!=(Integer)"), &Integer::operatorNotEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("<"), BEER_WIDEN("Integer::<(Integer)"), &Integer::operatorSmaller, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("<="), BEER_WIDEN("Integer::<=(Integer)"), &Integer::operatorSmallerEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN(">"), BEER_WIDEN("Integer::>(Integer)"), &Integer::operatorGreater, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN(">="), BEER_WIDEN("Integer::>=(Integer)"), &Integer::operatorGreaterEqual, 1, 1);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("=="), BEER_WIDEN("Integer::==(Integer)"), &Integer::operatorEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("!="), BEER_WIDEN("Integer::!=(Integer)"), &Integer::operatorNotEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("<"), BEER_WIDEN("Integer::<(Integer)"), &Integer::operatorSmaller, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN("<="), BEER_WIDEN("Integer::<=(Integer)"), &Integer::operatorSmallerEqual, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN(">"), BEER_WIDEN("Integer::>(Integer)"), &Integer::operatorGreater, 1, 1);
-	loader->addMethod(thread, klass, BEER_WIDEN(">="), BEER_WIDEN("Integer::>=(Integer)"), &Integer::operatorGreaterEqual, 1, 1);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("abs"), BEER_WIDEN("Integer::abs()"), &Integer::abs, 1, 0);
 
-	loader->addMethod(thread, klass, BEER_WIDEN("abs"), BEER_WIDEN("Integer::abs()"), &Integer::abs, 1, 0);
-
-	loader->addMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Integer::createInstance, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("String"), BEER_WIDEN("Object::String()"), &Integer::operatorString, 1, 0);
+	loader->addOverrideMethod(thread, klass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Integer::createInstance, 1, 0);
 }
 

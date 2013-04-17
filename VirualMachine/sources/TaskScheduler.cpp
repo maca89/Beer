@@ -122,7 +122,8 @@ void TaskScheduler::initializeTask(Thread* thread, Task* task)
 		StackRef<String> selector(frame, frame->stackPush()); // TODO
 		thread->createString(selector, BEER_WIDEN("Task::run()")); // TODO: cache
 
-		Class::findMethod(thread, klass, selector, method);
+		method = klass->findVirtualMethod(*selector);
+		//Class::findMethod(thread, klass, selector, method);
 
 		if(method.isNull())
 		{

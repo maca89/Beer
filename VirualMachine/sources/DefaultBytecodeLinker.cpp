@@ -13,13 +13,17 @@
 using namespace Beer;
 
 
-void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassFileDescriptor* classFile, const TemporaryBytecode& bc, TemporaryBytecode& out_bc)
+void DefaultBytecodeLinker::link(Thread* thread, Method* method, ClassFileDescriptor* classFile, const TemporaryBytecode& bc, TemporaryBytecode& out_bc)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
 
 	BytecodeInputStream istream(bc.data, bc.dataLength);
 	BytecodeOutputStream ostream(bc.instrCount);
+
+	/*typedef std::map<int64, Integer*> IntegerCache;
+	typedef std::map<int64, Integer*> IntegerCache;
+	IntegerCache intCache;*/
 
 	while(!istream.end())
 	{
@@ -89,7 +93,7 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 					// TODO: use method's pool for reusing constants
 
 					StringDescriptor* stringDescr = classFile->getDescriptor<StringDescriptor>(istream.read<int32>());
-					String* value = thread->createConstantString(stringDescr->getSize());
+					String* value = thread->createConstantString(stringDescr->getSize() - 1);
 					value->copyData(stringDescr->c_str(), stringDescr->getSize());
 
 					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value))); // TODO
@@ -105,34 +109,25 @@ void DefaultBytecodeLinker::link(Thread* thread, StackRef<Method> method, ClassF
 						*String::gTranslate(thread, cstring)
 					));
 
-					StackRef<Class> klass(frame, frame->stackPush());
-					thread->findClass(name, klass);
+					Class* klass = thread->getVM()->findClass(name);
 
 					static Reference<String> selectorRef = String::gTranslate(thread, BEER_WIDEN("$Class::createInstance()")); // TODO;
-					StackRef<String> selector(frame, frame->stackPush(*selectorRef));
+					String* selector = *selectorRef;
 
-					StackRef<Method> method(frame, frame->stackPush());
-					Class::findMethod(thread, klass, selector, method);
+					Method* method = klass->findVirtualMethod(selector);
+					if(!method)
+					{
+						throw MethodNotFoundException(klass, klass->getSuperClass(), selector);
+					}
 					
-					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*klass))); // TODO
-					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*method))); // TODO
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(klass))); // TODO
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(method))); // TODO
 
-					frame->stackMoveTop(-4); // pop name, klass, selector, method
+					frame->stackPop(); // pop name
 				}
 				break;
 
 			case BEER_INSTR_VIRTUAL_INVOKE:
-			//case BEER_INSTR_SPECIAL_INVOKE:
-				{
-					ostream.write<uint8>(opcode);
-
-					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
-					String* selector = *String::gTranslate(thread, cselector);
-
-					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(selector))); // TODO
-				}
-				break;
-
 			case BEER_INSTR_SPECIAL_INVOKE:
 				{
 					ostream.write<uint8>(opcode);

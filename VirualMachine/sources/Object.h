@@ -38,7 +38,7 @@ namespace Beer
 			// #1 children count
 			// #2 class
 			OBJECT_CHILDREN_COUNT = 0,
-			OBJECT_METHODS_COUNT = 6,
+			OBJECT_METHODS_COUNT = 3, // TODO: add cloneShallow, cloneDeep, getType
 
 			//CHILD_ID_CLASS = 1,
 		};
