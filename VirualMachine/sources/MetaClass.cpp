@@ -22,6 +22,6 @@ void MetaClass::DefaultClassTraverser(TraverseObjectReceiver* receiver, Class* k
 
 	for(uint32 i = 0; i < childrenCount; i++)
 	{
-		//receiver->traverseObjectPtr(&instance->getChildren()[i]);
+		receiver->traverseObjectPtr(&instance->getChildren()[i]);
 	}
 }

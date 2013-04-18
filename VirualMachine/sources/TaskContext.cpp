@@ -186,7 +186,10 @@ void TaskContext::updateMovedPointers(GenerationalGC* gc)
 {
 	if(mTopFrame)
 	{
-		Frame* frame = mTopFrame;
+
+		mTopFrame = updateFramePointers(gc, mTopFrame);
+
+		/*Frame* frame = mTopFrame;
 
 		bool first = true;
 
@@ -214,7 +217,7 @@ void TaskContext::updateMovedPointers(GenerationalGC* gc)
 				// pass the first heap allocated, which was already updated
 				frame = frame->previousFrame();
 			}
-		}
+		}*/
 	}
 }
 
@@ -238,18 +241,20 @@ Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
 	else // heap allocated
 	{
 		frameUpdated = static_cast<Frame*>(gc, gc->getIdentity(frame));
-		Frame* prevFrame = frame->previousFrame();
+		
+		int64 offset = (reinterpret_cast<byte*>(frameUpdated->bp()) - reinterpret_cast<byte*>(frame));
+		void* newBp = reinterpret_cast<byte*>(frameUpdated) + offset;
+
+		Frame* prevFrame = frameUpdated->previousFrame();
+		
 		if(prevFrame)
 		{
-			Frame* prevFrameUpdated = static_cast<Frame*>(gc->getIdentity(prevFrame));
-
-			int64 offset = (reinterpret_cast<byte*>(frame->bp()) - reinterpret_cast<byte*>(frame));
-			void* newBp = reinterpret_cast<byte*>(frameUpdated) + offset;
-			
+			Frame* prevFrameUpdated = updateFramePointers(gc, prevFrame);
 			*reinterpret_cast<Frame**>(newBp) = prevFrameUpdated;
-			//cout << "updated bp from #" << frameUpdated->bp() << " to #" << newBp << "\n";
-			frameUpdated->bp(newBp);
 		}
+
+		//cout << "updated bp from #" << frameUpdated->bp() << " to #" << newBp << "\n";
+		frameUpdated->bp(newBp);
 	}
 
 	return frameUpdated;

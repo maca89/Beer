@@ -68,8 +68,6 @@ namespace Beer
 
 		Traverser mTraverser;
 		uint32 mInstanceStaticSize;
-
-		std::map<Class*, uint16> InterfaceOffset;
 		////////////////////////////////////////////////////////////
 
 	public:

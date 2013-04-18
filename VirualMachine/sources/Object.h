@@ -13,23 +13,10 @@ namespace Beer
 	template <typename T>
 	class StackRef;
 
-	#pragma pack(push, 1)
+	//#pragma pack(push, 1)
 	class Object
 	{
 	public:
-		/*enum GCFlag
-		{
-			GC_WHITE = 0,
-			GC_GRAY = 1,
-			GC_BLACK = 2,
-		};
-
-		enum TypeFlag
-		{
-			TYPE_DIRECT_PTR = 0,
-			TYPE_FWD_PTR = 1,
-		};*/
-
 		typedef uint8 InlineValueId;
 
 		enum
@@ -95,7 +82,7 @@ namespace Beer
 		static void BEER_CALL setType(Thread* thread, StackRef<Object> receiver, StackRef<Class> param);
 		static void BEER_CALL getType(Thread* thread, StackRef<Object> receiver, StackRef<Class> ret);
 	};
-	#pragma pack(pop)
+	//#pragma pack(pop)
 
 
 	// inlined methods

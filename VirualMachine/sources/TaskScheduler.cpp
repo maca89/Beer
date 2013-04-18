@@ -202,14 +202,16 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 			TrampolineThread* thread = mAvailableThreads.pop();
 			thread->setContext(task->getContext());
 
-			Frame* oldTop = task->getContext()->getFrame();
-			//Frame* oldRoot = task->getContext()->getRootFrame();
+			//Frame* oldTop = task->getContext()->getFrame();
+			//Frame* oldHeapAllocated = oldTop;
+			//while(oldHeapAllocated->isStackAllocated()) { oldHeapAllocated = oldHeapAllocated->previousFrame(); }
 
 			//FrameInspector::debugPrintFrames(thread);
 			task->getContext()->updateMovedPointers(mGC);
 			
-			Frame* newTop = task->getContext()->getFrame();
-			//Frame* newRoot = task->getContext()->getRootFrame();
+			//Frame* newTop = task->getContext()->getFrame();
+			//Frame* newHeapAllocated = newTop;
+			//while(newHeapAllocated->isStackAllocated()) { newHeapAllocated = newHeapAllocated->previousFrame(); }
 
 			//FrameInspector::debugPrintFrames(thread);
 

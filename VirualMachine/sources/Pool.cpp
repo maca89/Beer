@@ -87,15 +87,12 @@ void Pool::PoolInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass,
 {
 	Class::DefaultInstanceTraverser(receiver, klass, inst);
 
-	/*Array* instance = static_cast<Array*>(inst);
+	Pool* pool = static_cast<Pool*>(inst);
 
-	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mItemType));
-
-	Pool::LengthData length = instance->getSize();
-	for(Array::LengthData i = 0; i < length; i++)
+	for(uint16 i = 0; i < pool->mNext; i++)
 	{
-		receiver->traverseObjectPtr(&instance->getChildren()[OBJECT_CHILDREN_COUNT + i]);
-	}*/
+		receiver->traverseObjectPtr(&pool->getChildren()[CHILD_ID_POOL_START + i]);
+	}
 }
 
 Class* PoolClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)

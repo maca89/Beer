@@ -17,6 +17,7 @@ Class* PairClassInitializer::createClass(Thread* thread, ClassLoader* loader, St
 void PairClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
 	klass->setSuperClass(thread->getVM()->getObjectClass());
+	//klass->setTraverser(&Pair::PairInstanceTraverser); // no need, traversed by default
 	klass->markSealed();
 
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Pair"), BEER_WIDEN("Pair::Pair()"), &Pair::init, 1, 0);

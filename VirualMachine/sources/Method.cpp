@@ -317,9 +317,11 @@ void Method::MethodTraverser(TraverseObjectReceiver* receiver, Class* klass, Obj
 
 	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mName));
 	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mPool));
+	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mInterface));
+	receiver->traverseObjectPtr(reinterpret_cast<Object**>(&instance->mSelector));
 
 	uint32 childrenCount = Method::METHOD_CHILDREN_COUNT + instance->getParamsCount() + instance->getReturnsCount();
-	for(uint32 i = 0; i < childrenCount; i++)
+	for(uint32 i = OBJECT_CHILDREN_COUNT; i < childrenCount; i++)
 	{
 		receiver->traverseObjectPtr(&instance->getChildren()[i]);
 	}
