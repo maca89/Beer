@@ -35,7 +35,7 @@ namespace Beer
 		State mState;
 
 		NurseryGC* mNurseryGC;
-		
+
 		MatureHeap* mMature;
 		PermanentHeap* mPermanent;
 		CRITICAL_SECTION mMatureCS;
@@ -53,6 +53,11 @@ namespace Beer
 		INLINE State getState() const
 		{
 			return mState;
+		}
+
+		INLINE Heap* getMatureHeap()
+		{
+			return mMature;
 		}
 
 		INLINE Heap* getPermanentHeap()
@@ -76,7 +81,7 @@ namespace Beer
 			DBG_ASSERT(id < mReferences.size(), BEER_WIDEN("Tried to reference an unreferenced object"));
 			return mReferences[id];
 		}
-		
+
 		template <typename T>
 		INLINE T* translate(const ReferenceId& ref)
 		{
@@ -124,6 +129,21 @@ namespace Beer
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
+#ifdef BEER_DEBUG_MODE
+			{
+				GCObject* gcObj = GCObject::get(*receiver);
+
+				byte* start = reinterpret_cast<byte*>(gcObj) + sizeof(GCObject);
+				byte* end = start + gcObj->getSize() - sizeof(GCObject);
+
+				byte* child = reinterpret_cast<byte*>(receiver->getChildren()) + index * sizeof(Object*);
+
+				if (start < child && end < child)
+				{
+					throw GCException(BEER_WIDEN("Accessing child outside of an object"));
+				}
+			}
+#endif
 			ret = getIdentity(receiver)->getChildren()[index];
 		}
 
@@ -132,6 +152,21 @@ namespace Beer
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
+#ifdef BEER_DEBUG_MODE
+			{
+				GCObject* gcObj = GCObject::get(*receiver);
+
+				byte* start = reinterpret_cast<byte*>(gcObj) + sizeof(GCObject);
+				byte* end = start + gcObj->getSize() - sizeof(GCObject);
+
+				byte* child = reinterpret_cast<byte*>(receiver->getChildren()) + index * sizeof(Object*);
+
+				if (start < child && end < child)
+				{
+					throw GCException(BEER_WIDEN("Storing child outside of an object"));
+				}
+			}
+#endif
 			receiver->getChildren()[index] = *child;
 		}
 
@@ -143,7 +178,7 @@ namespace Beer
 		// call this when all threads are suspended
 		INLINE void threadsSuspended()
 		{
-			
+			mNurseryGC->threadsSuspended();
 		}
 	};
 

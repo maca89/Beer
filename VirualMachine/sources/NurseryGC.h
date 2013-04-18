@@ -3,10 +3,13 @@
 #include "prereq.h"
 #include "NativeThread.h"
 #include "NotifyHeap.h"
+#include <queue>
+#include "TaskScheduler.h"
 
 namespace Beer
 {	
 	class VirtualMachine;
+	class GenerationalGC;
 
 	class NurseryGC : public NativeThread, public HeapThresholdNotify
 	{
@@ -17,16 +20,19 @@ namespace Beer
 	protected:
 
 		VirtualMachine* mVM;
+		GenerationalGC* mGC;
 		NurseryHeap* mAlloc;
 		NurseryHeap* mCollect;
 		NurseryHeap* mPromote;
 		size_t mHeapSize;
 		size_t mBlockSize;
+		size_t mCollectionCount;
 		CRITICAL_SECTION mCS;
+		HANDLE mThreadsSuspendedEvent;
 
 	public:
 
-		NurseryGC(size_t initSize, size_t blockSize);
+		NurseryGC(GenerationalGC* gc, size_t initSize, size_t blockSize);
 		~NurseryGC();
 
 		void init(VirtualMachine* vm);
@@ -44,29 +50,20 @@ namespace Beer
 			byte* mem = mAlloc->alloc(size);
 			::LeaveCriticalSection(&mCS);
 
-			if (!mem)
-			{
-				switchHeaps();
-				::EnterCriticalSection(&mCS);
-				mem = mAlloc->alloc(size);
-				::LeaveCriticalSection(&mCS);
-			}
-
 			return mem;
 		}
 
+		// not used
 		void collect();
-
 
 		// heap threshold notification
 		void thresholdReached(Heap* heap, size_t threshold);
-		
+
+		void threadsSuspended();
+			
 	protected:
 
-		virtual void work()
-		{
-
-		}
+		virtual void work();
 
 		INLINE void switchHeaps()
 		{
@@ -74,7 +71,8 @@ namespace Beer
 			mAlloc = mPromote;
 			mPromote = mCollect;
 			mCollect = temp;
-			//run();
+
+			mAlloc->clear();
 		}
 	};
 }

@@ -9,7 +9,7 @@ using namespace Beer;
 GenerationalGC::GenerationalGC(size_t nurserySize, size_t blockSize)
 	:	mState(GC_ALLOC)
 {
-	mNurseryGC = new NurseryGC(nurserySize, blockSize);
+	mNurseryGC = new NurseryGC(this, nurserySize, blockSize);
 	
 	mMature = new MatureHeap(1024 * 1024);
 	mPermanent = new PermanentHeap(1024 * 1024);
@@ -41,10 +41,12 @@ void GenerationalGC::init(VirtualMachine* vm)
 Object* GenerationalGC::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
 {
 	EnterCriticalSection(&mMatureCS);
+	
+	Object* obj = mMature->alloc(staticSize, childrenCount, preOffset);
 
 	LeaveCriticalSection(&mMatureCS);
 
-	return NULL;
+	return obj;
 }
 
 void GenerationalGC::collect()

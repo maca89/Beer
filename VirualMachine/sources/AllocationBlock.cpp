@@ -17,8 +17,21 @@ Object * AllocationBlock::alloc(uint32 staticSize, uint32 childrenCount, int32 p
 
 	if (!obj)
 	{
-		init();
-		obj = FixedHeap::alloc(staticSize, childrenCount, preOffset);
+		uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount + sizeof(GCObject));
+		
+		if (size > mLargeObject)
+		{
+			obj = reinterpret_cast<Object*>(mGC->alloc(size));
+
+			initObject(obj, staticSize, size);
+		}
+		else
+		{
+			init();
+			obj = FixedHeap::alloc(staticSize, childrenCount, preOffset);
+		}
+
+		if (!obj) throw NotEnoughMemoryException(BEER_WIDEN("Cannot allocate"));
 	}
 
 	return obj;
@@ -32,6 +45,8 @@ byte* AllocationBlock::alloc(uint32 size)
 	{
 		init();
 		obj = FixedHeap::alloc(size);
+
+		if (!obj) throw NotEnoughMemoryException(BEER_WIDEN("Cannot allocate"));
 	}
 
 	return obj;

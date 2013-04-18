@@ -187,6 +187,7 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 	if(!queue.empty()) for(TaskQueue::iterator it = queue.begin(); it != queue.end(); it++)
 	{
 		Task* task = *it;
+		task = static_cast<Task*>(mGC->getIdentity(task));
 
 		TrampolineThread* thread = mAvailableThreads.pop();
 		thread->setContext(task->getContext());

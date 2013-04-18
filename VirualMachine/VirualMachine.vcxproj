@@ -28,6 +28,7 @@
     <ClCompile Include="sources\DynamicHeap.cpp" />
     <ClCompile Include="sources\FixedHeap.cpp" />
     <ClCompile Include="sources\FrameInspector.cpp" />
+    <ClCompile Include="sources\GCObjectTraverser.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
     <ClCompile Include="sources\InitVMTask.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
@@ -47,6 +48,7 @@
     <ClCompile Include="sources\Float.cpp" />
     <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
     <ClCompile Include="sources\Pair.cpp" />
+    <ClCompile Include="sources\ChildrenForwarder.cpp" />
     <ClCompile Include="sources\PolymorphicCache.cpp" />
     <ClCompile Include="sources\Method.cpp" />
     <ClCompile Include="sources\AttributeDescriptor.cpp" />
@@ -90,6 +92,7 @@
     <ClCompile Include="sources\VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sources\GCObjectTraverser.h" />
     <ClInclude Include="sources\AllocationBlock.h" />
     <ClInclude Include="sources\ArrayStack.h" />
     <ClInclude Include="sources\Boolean.h" />
@@ -130,6 +133,7 @@
     <ClInclude Include="sources\NurseryGC.h" />
     <ClInclude Include="sources\ObjectInspector.h" />
     <ClInclude Include="sources\CreateOneEntryPointTask.h" />
+    <ClInclude Include="sources\ChildrenForwarder.h" />
     <ClInclude Include="sources\TaskContext.h" />
     <ClInclude Include="sources\TaskScheduler.h" />
     <ClInclude Include="sources\TraverseObjectReceiver.h" />

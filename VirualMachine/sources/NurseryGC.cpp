@@ -3,22 +3,29 @@
 
 #include "AllocationBlock.h"
 #include "VirtualMachine.h"
+#include "GCObjectTraverser.h"
 
 using namespace Beer;
 
-NurseryGC::NurseryGC(size_t initSize, size_t blockSize)
-	:	mVM(NULL),
-		mBlockSize(blockSize)
+NurseryGC::NurseryGC(GenerationalGC* gc, size_t initSize, size_t blockSize)
+	:	mGC(gc),
+	mVM(NULL),
+	mBlockSize(blockSize),
+	mCollectionCount(0)
 {
-	mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
-	mCollect = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
-	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.75f), this);
-
-	/*mAlloc = new NurseryHeap(initSize);
-	mCollect = new NurseryHeap(initSize);
-	mPromote = new NurseryHeap(initSize);*/
+	mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.05f), this);
+	mCollect = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.05f), this);
+	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.05f), this);
 
 	::InitializeCriticalSection(&mCS);
+	mThreadsSuspendedEvent = ::CreateEvent(NULL, false, false, NULL);
+
+	if (!mThreadsSuspendedEvent)
+	{
+		throw GCException(BEER_WIDEN("Could not create event object"));
+	}
+
+	run();
 }
 
 NurseryGC::~NurseryGC()
@@ -28,6 +35,7 @@ NurseryGC::~NurseryGC()
 	delete mPromote;
 
 	::DeleteCriticalSection(&mCS);
+	::CloseHandle(mThreadsSuspendedEvent);
 }
 
 void NurseryGC::init(VirtualMachine* vm)
@@ -48,10 +56,34 @@ Heap* NurseryGC::createHeap()
 
 void NurseryGC::thresholdReached(Heap* heap, size_t threshold)
 {
-	ThreadSet& threads = mVM->getThreads();
+	//mVM->startSafePoint();
+}
 
-	/*for (ThreadSet::iterator it = threads.begin(); it != threads.end(); it++)
+void NurseryGC::threadsSuspended()
+{
+	::SetEvent(mThreadsSuspendedEvent);
+}
+
+void NurseryGC::work()
+{
+	while (true)
 	{
-		(*it)->setSaveSuspend(true);
-	}*/
+		DWORD res = ::WaitForSingleObject(mThreadsSuspendedEvent, INFINITE);
+
+		if (res == WAIT_OBJECT_0)
+		{
+			switchHeaps();
+
+			GCObjectTraverser traverser(mCollect, mGC->getMatureHeap());
+			traverser.traverseObjects(mVM->getScheduler());
+
+			mVM->stopSafePoint();
+
+			mCollectionCount++;
+		}
+		else
+		{
+			throw GCException(BEER_WIDEN("Waiting for thread suspended event failed"));
+		}
+	}
 }

@@ -193,6 +193,12 @@
     <ClCompile Include="sources\DefaultBytecodeVerifier.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
+    <ClCompile Include="sources\GCObjectTraverser.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ChildrenForwarder.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -450,6 +456,12 @@
     </ClInclude>
     <ClInclude Include="sources\DefaultBytecodeVerifier.h">
       <Filter>Headers\Bytecode</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\GCObjectTraverser.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ChildrenForwarder.h">
+      <Filter>Headers\GarbageCollector</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -48,6 +48,11 @@ namespace Beer
 			mPtrFlag = reinterpret_cast<Object*>(reinterpret_cast<ptrdiff_t>(getPtr()) | flag);
 		}
 
+		INLINE bool hasFlag(GCFlag flag) const
+		{
+			return getFlag() == flag;
+		}
+
 		INLINE Object* getPtr() const
 		{
 			return reinterpret_cast<Object*>(reinterpret_cast<ptrdiff_t>(mPtrFlag) & 0xFFFFFFFC); // first 30 bits are forward pointer

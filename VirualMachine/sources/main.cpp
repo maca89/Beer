@@ -184,7 +184,7 @@ int __cdecl main(int argc, const char** argv)
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
-	GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 32 * 1024);
+	GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
 	
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
 	VirtualMachine* vm = new VirtualMachine(gc);

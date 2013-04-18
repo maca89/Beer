@@ -1032,7 +1032,7 @@ BEER_BC_LABEL(OPTIMAL_ARRAY_ALLOC):
 	{
 		StackRef<Integer> length(frame, frame->stackTopIndex());
 		StackRef<Array> instance(frame, frame->stackPush());
-
+		
 		thread->createArray(length, instance);
 		//thread->getVM()->startSafePoint();
 	}

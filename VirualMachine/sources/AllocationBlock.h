@@ -11,11 +11,13 @@ namespace Beer
 	{
 	protected:
 
+		const uint32 mLargeObject;
 		NurseryGC * mGC;
 
 	public:
 		INLINE AllocationBlock(size_t size, NurseryGC * gc)
 			:	FixedHeap(size),
+				mLargeObject(static_cast<uint32>(0.5f * size)),
 				mGC(gc)
 		{ }
 		

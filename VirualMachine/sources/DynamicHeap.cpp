@@ -19,6 +19,8 @@ DynamicHeap::~DynamicHeap()
 void DynamicHeap::init()
 {
 	mHandle = ::HeapCreate(0, mInitialSize, 0);
+
+	if (!mHandle) throw NotEnoughMemoryException(BEER_WIDEN("Cannot create private heap"));
 }
 
 Object* DynamicHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
@@ -31,6 +33,10 @@ Object* DynamicHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOff
 	{
 		initObject(obj, staticSize, size);
 	}
+	else
+	{
+		throw NotEnoughMemoryException(BEER_WIDEN("Cannot allocate from private heap"));		
+	}
 	
 	return obj;
 }
@@ -38,6 +44,11 @@ Object* DynamicHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOff
 byte* DynamicHeap::alloc(size_t size)
 {
 	byte* obj = reinterpret_cast<byte*>(::HeapAlloc(mHandle, 0, size));
+
+	if (!obj)
+	{
+		throw NotEnoughMemoryException(BEER_WIDEN("Cannot allocate from private heap"));		
+	}
 
 	return obj;
 }

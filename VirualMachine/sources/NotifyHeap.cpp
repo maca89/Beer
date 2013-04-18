@@ -48,7 +48,6 @@ Object* NotifyHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffs
 		if (mNotify) mNotify->thresholdReached(this, mThreshold);
 	}
 
-
 	return obj;
 }
 
@@ -70,4 +69,14 @@ byte* NotifyHeap::alloc(uint32 size)
 	}
 
 	return obj;
+}
+
+void NotifyHeap::clear()
+{
+	mFilled = 0;
+	mThresholdReached = false;
+
+#ifdef BEER_DEBUG_MODE	
+	::memset(mMemory, 0, mSize);
+#endif
 }

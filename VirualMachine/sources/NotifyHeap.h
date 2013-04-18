@@ -31,12 +31,19 @@ namespace Beer
 
 		virtual ~NotifyHeap();
 
-		void init();
+		virtual void init();
 
 		virtual Object* alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset = 0);
 		virtual byte* alloc(uint32 size);
 
+		void clear();
+
 		//virtual void free(Object* obj);
+
+		INLINE bool contains(byte* ptr)
+		{
+			return mMemory <= ptr && (mMemory + mSize) >= ptr;
+		}
 
 	protected:
 
