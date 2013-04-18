@@ -11,6 +11,7 @@ namespace Beer
 {
 	//class Object;
 	class Method;
+	class TraverseObjectReceiver;
 
 	typedef DownwardStack<Object*> WorkStack;
 	//typedef ArrayStack<Object*> WorkStack;
@@ -255,6 +256,14 @@ namespace Beer
 			return index - mFrameOffset;
 		}
 
+		INLINE void* getNewFrameStart()
+		{
+			return getDynamicDataStart(sizeof(Frame));
+		}
+
+		// traversers
+		static void FrameTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
+
 	protected:
 		INLINE int32 translateRelative(int32 index)
 		{
@@ -270,11 +279,6 @@ namespace Beer
 		INLINE bool isTopFrame(Frame* frame)
 		{
 			return getNewFrameStart() == frame;
-		}
-
-		INLINE void* getNewFrameStart()
-		{
-			return getDynamicDataStart(sizeof(Frame));
 		}
 
 		// mChildren version

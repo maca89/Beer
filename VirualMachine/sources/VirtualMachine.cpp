@@ -131,6 +131,8 @@ void VirtualMachine::init()
 
 			frame->stackPop(); // pop taskOnStack
 		}
+
+		fixFramesClasses(); // temporary
 	}
 
 	// preloading of some classes
@@ -225,4 +227,8 @@ Class* VirtualMachine::findClass(string name)
 Class* VirtualMachine::findClass(StackRef<String> name)
 {
 	return findClass(name->c_str());
+}
+
+void VirtualMachine::fixFramesClasses()
+{
 }

@@ -23,7 +23,7 @@ void Thread::init()
 	mHeap = mGC->createHeap();
 
 	// just a temporary solution, TODO
-	mTemporaryContext.init(mHeap);
+	mTemporaryContext.init(mHeap, getVM()->getFrameClass());
 	setContext(&mTemporaryContext);
 
 	// init cache, TODO

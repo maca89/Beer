@@ -173,6 +173,59 @@ void printBytecodes(VirtualMachine *vm)
 	}
 }
 
+typedef InterlockedQueue<int> Queue;
+
+void testExpectQueueSize(Queue& q, int expected)
+{
+	int count = 0;
+
+	for(Queue::iterator it = q.begin(); it != q.end(); it++)
+	{
+		count++;
+	}
+
+	if(expected == 0) assert(q.empty());
+	else assert(!q.empty());
+
+	assert(count == expected);
+}
+
+void testQueue()
+{
+	Queue q;
+	testExpectQueueSize(q, 0);
+
+	q.push(42);
+	testExpectQueueSize(q, 1);
+
+	q.push(15);
+	testExpectQueueSize(q, 2);
+
+	q.pop();
+	testExpectQueueSize(q, 1);
+
+	q.pop();
+	testExpectQueueSize(q, 0);
+
+	q.push(42);
+	testExpectQueueSize(q, 1);
+
+	q.push(15);
+	testExpectQueueSize(q, 2);
+
+	q.push(38);
+	testExpectQueueSize(q, 3);
+
+	q.pop();
+	testExpectQueueSize(q, 2);
+
+	q.pop();
+	testExpectQueueSize(q, 1);
+
+	q.pop();
+	testExpectQueueSize(q, 0);
+}
+
 int __cdecl main(int argc, const char** argv)
 {
 	// set UTF-16 support
@@ -184,7 +237,8 @@ int __cdecl main(int argc, const char** argv)
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
-	GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
+	GenerationalGC* gc = new GenerationalGC(320 * 1024 * 1024, 8 * 1024);
+	//GenerationalGC* gc = new GenerationalGC(512 * 1024, 8 * 1024);
 	
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
 	VirtualMachine* vm = new VirtualMachine(gc);

@@ -56,7 +56,7 @@ Heap* NurseryGC::createHeap()
 
 void NurseryGC::thresholdReached(Heap* heap, size_t threshold)
 {
-	//mVM->startSafePoint();
+	mVM->startSafePoint();
 }
 
 void NurseryGC::threadsSuspended()

@@ -63,7 +63,7 @@ namespace Beer
 
 			INLINE bool operator==(const iterator& it)
 			{
-				return (mCurrent.node == it.mCurrent.node) && (mCurrent.node != NULL);// && (mCurrent.node->next.node != it.mCurrent.node->next.node);
+				return (mCurrent.node == it.mCurrent.node);
 			}
 
 			INLINE bool operator!=(const iterator& it)

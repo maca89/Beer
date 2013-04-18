@@ -8,7 +8,7 @@
 using namespace Beer;
 
 TaskContext::TaskContext()
-	: mHeap(NULL), mRootFrame(NULL), mTopFrame(NULL), mFramesCount(0)
+	: mHeap(NULL), /*mRootFrame(NULL),*/ mTopFrame(NULL), mFramesCount(0), mFrameClass(NULL)
 {
 	
 }
@@ -17,21 +17,22 @@ TaskContext::~TaskContext()
 {
 }
 
-void TaskContext::init(Heap* heap)
+void TaskContext::init(Heap* heap, Class* frameClass)
 {
-	mRootFrame = NULL;
+	//mRootFrame = NULL;
 	mTopFrame = NULL;
 	mHeap = heap;
+	mFrameClass = frameClass;
 
 	// just a temporary solution, TODO
 	
-	mRootFrame = allocFrame(NULL, 250, 0);
-	Frame* frame = allocFrame(NULL, 30, 2);
+	//mRootFrame = allocFrame(NULL, 250, 0);
+	mTopFrame = allocFrame(NULL, 30, 2);
 	//frame->setFrameOffset(2);
-	frame->stackPush(); // simulate receiver
-	frame->stackPush(); // simulate method
-	mRootFrame->stackPush(frame);
-	fetchTopFrame();
+	mTopFrame->stackPush(); // simulate receiver
+	mTopFrame->stackPush(); // simulate method
+	//mRootFrame->stackPush(frame);
+	//fetchTopFrame();
 	mFramesCount++;
 }
 
@@ -52,6 +53,7 @@ Frame* TaskContext::allocFrame(Frame* previousFrame, uint32 stackSize, uint32 ar
 		*reinterpret_cast<Frame**>(bp) = previousFrame;
 		new(frame) Frame(bp, argsCount, stackSize, DEFAULT_FRAME_SPACE);
 		frame->markHeapAllocated();
+		//frame->setType(mFrameClass); // TODO
 		//cout << "frame " << frame << " allocated on heap\n";
 	}
 	else
@@ -78,16 +80,6 @@ void TaskContext::discardFrame(Frame* previousFrame, Frame* currentFrame)
 	{
 		//cout << "frame " << currentFrame << " will be collected by GC\n";
 	}
-}
-
-Frame* TaskContext::getPreviousFrame()
-{
-	if(mRootFrame->stackLength() > 1)
-	{
-		return mRootFrame->stackTop<Frame>(mRootFrame->stackTopIndex() - 1);
-	}
-	
-	return NULL;
 }
 
 Frame* TaskContext::openFrame()
@@ -126,8 +118,7 @@ Frame* TaskContext::openFrame()
 		newFrame->stackPush(oldFrame->stackTop(oldFrame->stackTopIndex())); // copy method
 	}
 
-	mRootFrame->stackPush(newFrame);
-	fetchTopFrame();
+	mTopFrame = newFrame;
 	mFramesCount++;
 	return getFrame();
 }
@@ -182,7 +173,6 @@ void TaskContext::closeFrame()
 #endif // BEER_STACK_DEBUGGING
 
 	discardFrame(previousFrame, currentFrame);
-	mRootFrame->stackPop();
 	mTopFrame = previousFrame;
 	mFramesCount--;
 }
@@ -226,15 +216,12 @@ void TaskContext::updateMovedPointers(GenerationalGC* gc)
 			}
 		}
 	}
-
-	Frame* newRoot = updateFramePointers(gc, mRootFrame);
-	//cout << "updated root frame from #" << mRootFrame << " to #" << newRoot << "\n";
-	mRootFrame = newRoot;
 }
 
 // very ugly, too much resursive, TODO
 Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
 {
+	Frame* frameUpdated = frame;
 	//cout << "-------- updating frame #" << frame << " " << (frame->isStackAllocated() ? "[stack allocated]" : "[heap allocated]") << "\n";
 
 	if(frame->isStackAllocated())
@@ -243,12 +230,14 @@ Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
 		Frame* prevFrameUpdated = updateFramePointers(gc, prevFrame);
 		//cout << "updated frame from #" << prevFrame << " to #" << prevFrameUpdated << "\n";
 		
+		frameUpdated = reinterpret_cast<Frame*>(prevFrameUpdated->getNewFrameStart());
+
 		//cout << "updated bp from #" << frame->bp() << " to #" << prevFrameUpdated->sp() << "\n";
-		frame->bp(prevFrameUpdated->sp());
+		frameUpdated->bp(prevFrameUpdated->sp());
 	}
 	else // heap allocated
 	{
-		Frame* frameUpdated = static_cast<Frame*>(gc, gc->getIdentity(frame));
+		frameUpdated = static_cast<Frame*>(gc, gc->getIdentity(frame));
 		Frame* prevFrame = frame->previousFrame();
 		if(prevFrame)
 		{
@@ -261,8 +250,7 @@ Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
 			//cout << "updated bp from #" << frameUpdated->bp() << " to #" << newBp << "\n";
 			frameUpdated->bp(newBp);
 		}
-		frame = frameUpdated;
 	}
 
-	return frame;
+	return frameUpdated;
 }

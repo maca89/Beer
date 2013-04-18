@@ -62,7 +62,7 @@ void TaskScheduler::resumeAll()
 	{
 		initializeTasks();
 
-		while(!mActive.empty())
+		//while(!mActive.empty())
 		{
 			// dbg, TODO
 			if(isSafePoint())
@@ -130,7 +130,7 @@ void TaskScheduler::schedule(Task* task)
 void TaskScheduler::initializeTask(Thread* thread, Task* task)
 {
 	TaskContext* context = task->getContext();
-	context->init(thread->getHeap());
+	context->init(thread->getHeap(), thread->getVM()->getFrameClass());
 
 	Frame* frame = context->getFrame();
 	StackRef<Method> receiver(frame, frame->stackPush(task)); // push receiver
@@ -175,6 +175,12 @@ void TaskScheduler::afterSafePoint()
 
 void TaskScheduler::updateFramesPointers()
 {
+	bool activeEmpty = mActive.empty();
+	bool waitingEmpty = mWaiting.empty();
+	bool doneEmpty = mDone.empty();
+	//bool scheduledEmpty = mScheduled.empty();
+	//empty = mLocked.empty();
+
 	updateFramesPointers(mActive);
 	updateFramesPointers(mWaiting);
 	updateFramesPointers(mDone);
@@ -184,19 +190,38 @@ void TaskScheduler::updateFramesPointers()
 
 void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 {
-	if(!queue.empty()) for(TaskQueue::iterator it = queue.begin(); it != queue.end(); it++)
+	TaskQueue newQueue;
+
+	while(!queue.empty())
 	{
-		Task* task = *it;
+		Task* task = queue.pop();
 		task = static_cast<Task*>(mGC->getIdentity(task));
 
-		TrampolineThread* thread = mAvailableThreads.pop();
-		thread->setContext(task->getContext());
+		if(task->getContext()->hasFrame())
+		{
+			TrampolineThread* thread = mAvailableThreads.pop();
+			thread->setContext(task->getContext());
 
-		//FrameInspector::debugPrintFrames(thread);
-		task->getContext()->updateMovedPointers(mGC);
-		//FrameInspector::debugPrintFrames(thread);
+			Frame* oldTop = task->getContext()->getFrame();
+			//Frame* oldRoot = task->getContext()->getRootFrame();
 
-		thread->setContext(NULL); // debug
-		mAvailableThreads.push(thread);
+			//FrameInspector::debugPrintFrames(thread);
+			task->getContext()->updateMovedPointers(mGC);
+			
+			Frame* newTop = task->getContext()->getFrame();
+			//Frame* newRoot = task->getContext()->getRootFrame();
+
+			//FrameInspector::debugPrintFrames(thread);
+
+			thread->setContext(NULL); // debug
+			mAvailableThreads.push(thread);
+		}
+
+		newQueue.push(task);
+	}
+
+	while(!newQueue.empty())
+	{
+		queue.push(newQueue.pop());
 	}
 }

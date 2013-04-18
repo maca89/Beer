@@ -22,10 +22,18 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	ClassLoader* classLoader = thread->getVM()->getClassLoader();
 
 	// create MetaClass
+	String* metaClassName = thread->getPermanentHeap()->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 9 for "MetaClass", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+
+	metaClassName->size(9); // 9 for "MetaClass"
+	metaClassName->copyData(BEER_WIDEN("MetaClass"));
+
 	MetaClass* metaClass = thread->getPermanentHeap()->alloc<MetaClass>(
 		Class::CLASS_CHILDREN_COUNT + 1 + 2 + Object::OBJECT_METHODS_COUNT // 1 parent, 2 methods
 	);
-
+	
 	metaClass->mFlags = 0; // deprecated
 	metaClass->mParentsCount = 1;
 	metaClass->mPropertiesCount = 0;
@@ -34,27 +42,11 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	metaClass->mParentNext = metaClass->mVirtualMethodNext = metaClass->mInterfaceMethodNext = metaClass->mPropertyNext = 0;
 	metaClass->mTraverser = &MetaClass::DefaultClassTraverser;
 	metaClass->mInstanceStaticSize = sizeof(Class);
+	metaClass->setName(metaClassName); // set name
 	thread->getVM()->setMetaClass(metaClass);
 
-	// create MetaClass name
-	String* metaClassName = thread->getPermanentHeap()->alloc<String>(
-		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (9 + 1)), // 9 for "MetaClass", 1 for "\0"
-		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
-	);
 
-	metaClassName->size(9); // 9 for "MetaClass"
-	metaClassName->copyData(BEER_WIDEN("MetaClass"));
-	metaClass->setName(metaClassName); // set name
-
-	// create Object class name
-	String* objectClassName = thread->getPermanentHeap()->alloc<String>(
-		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Object", 1 for "\0"
-		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
-	);
-	objectClassName->size(6); // 6 for "Object"
-	objectClassName->copyData(BEER_WIDEN("Object"));
-
-	// create Method class name
+	// create Method class
 	String* methodClassName = thread->getPermanentHeap()->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Method", 1 for "\0"
 		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
@@ -62,15 +54,35 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	methodClassName->size(6); // 6 for "Method"
 	methodClassName->copyData(BEER_WIDEN("Method"));
 
-
-	// create Method class
 	Class* methodClass = classLoader->createClass<Class>(thread, methodClassName, 1, 0, Object::OBJECT_METHODS_COUNT + 6); // extends Object, has 6 methods
 	methodClass->setTraverser(&Method::MethodTraverser);
 	thread->getVM()->setMethodClass(methodClass);
 
+
+	// create Frame class
+	String* frameClassName = thread->getPermanentHeap()->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (5 + 1)), // 5 for "Frame", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+	frameClassName->size(5); // 5 for "Frame"
+	frameClassName->copyData(BEER_WIDEN("Frame"));
+
+	Class* frameClass = classLoader->createClass<Class>(thread, frameClassName, 1, 0, Object::OBJECT_METHODS_COUNT); // extends Object, has 0 methods
+	frameClass->setTraverser(&Frame::FrameTraverser);
+	thread->getVM()->setFrameClass(frameClass);
+
+
 	// create Object class
+	String* objectClassName = thread->getPermanentHeap()->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Object", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+	objectClassName->size(6); // 6 for "Object"
+	objectClassName->copyData(BEER_WIDEN("Object"));
+
 	Class* objectClass = classLoader->createClass<Class>(thread, objectClassName, 1, 0, Object::OBJECT_METHODS_COUNT); // extends Object, has 6 methods
 	thread->getVM()->setObjectClass(objectClass);
+
 
 	// create String class
 	String* stringClassName = thread->getPermanentHeap()->alloc<String>(
@@ -83,10 +95,13 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	Class* stringClass = classLoader->createClass<Class>(thread, stringClassName, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
 	thread->getVM()->setStringClass(stringClass);
 
+
 	// fix references
-	metaClassName->setType(stringClass); // set class
-	objectClassName->setType(stringClass); // set class
-	stringClassName->setType(stringClass); // set class
+	metaClassName->setType(stringClass);
+	objectClassName->setType(stringClass);
+	stringClassName->setType(stringClass);
+	methodClassName->setType(stringClass);
+	frameClassName->setType(stringClass);
 
 	// default Object methods
 	classLoader->addVirtualMethod(thread, objectClass, BEER_WIDEN("createInstance"), BEER_WIDEN("$Class::createInstance()"), &Class::createInstance, 1, 0);
@@ -98,6 +113,7 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	metaClass->setSuperClass(objectClass);
 	objectClass->setSuperClass(objectClass);
 	methodClass->setSuperClass(objectClass);
+	frameClass->setSuperClass(objectClass);
 
 	// init string class
 	StringClassInitializer* stringInit = new StringClassInitializer();

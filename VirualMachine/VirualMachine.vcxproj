@@ -27,6 +27,7 @@
     <ClCompile Include="sources\DefaultBytecodeVerifier.cpp" />
     <ClCompile Include="sources\DynamicHeap.cpp" />
     <ClCompile Include="sources\FixedHeap.cpp" />
+    <ClCompile Include="sources\Frame.cpp" />
     <ClCompile Include="sources\FrameInspector.cpp" />
     <ClCompile Include="sources\GCObjectTraverser.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
