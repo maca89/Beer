@@ -183,7 +183,7 @@ void TaskScheduler::updateFramesPointers()
 }
 
 
-#include "TraverseObjectReceiver.h"
+/*#include "TraverseObjectReceiver.h"
 class MyTraverseObjectReceiver : public TraverseObjectReceiver
 {
 public:
@@ -192,7 +192,7 @@ public:
 		Object* obj = *ptrToObject;
 		cout << obj << "\n";
 	}
-};
+};*/
 
 void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 {
@@ -213,10 +213,10 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 			//while(oldHeapAllocated->isStackAllocated()) { oldHeapAllocated = oldHeapAllocated->previousFrame(); }
 
 			//FrameInspector::debugPrintFrames(thread);
-			//task->getContext()->updateMovedPointers(mGC);
+			task->getContext()->updateMovedPointers(mGC);
 
-			MyTraverseObjectReceiver myTraverserReceiver;
-			task->getType()->getTraverser()(&myTraverserReceiver, task->getType(), task);
+			//MyTraverseObjectReceiver myTraverserReceiver;
+			//task->getType()->getTraverser()(&myTraverserReceiver, task->getType(), task);
 			
 			//Frame* newTop = task->getContext()->getFrame();
 			//Frame* newHeapAllocated = newTop;
