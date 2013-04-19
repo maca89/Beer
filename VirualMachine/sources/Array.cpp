@@ -122,8 +122,8 @@ Class* ArrayClassInitializer::createClass(Thread* thread, ClassLoader* loader, S
 
 void ArrayClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
-	klass->setTraverser(&Array::ArrayInstanceTraverser);
 	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->setTraverser(&Array::ArrayInstanceTraverser);
 	klass->markSealed();
 	
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Array"), BEER_WIDEN("Array::Array(Integer)"), &Array::init, 1, 1);

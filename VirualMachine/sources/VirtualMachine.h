@@ -55,6 +55,9 @@ namespace Beer
 		Class* mArrayClass;
 		Class* mPoolClass;
 
+		// TODO: get rid of this
+		TaskContext mTemporaryContext;
+
 
 	public:
 		INLINE VirtualMachine(GenerationalGC* gc)

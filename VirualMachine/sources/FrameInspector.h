@@ -29,6 +29,7 @@ namespace Beer
 		StackRef<Object> getObjectRef();
 
 		void nextFrame();
+		void nextInnerFrame();
 		bool hasFrame();
 		Frame* getFrame();
 

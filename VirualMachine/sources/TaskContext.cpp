@@ -53,7 +53,7 @@ Frame* TaskContext::allocFrame(Frame* previousFrame, uint32 stackSize, uint32 ar
 		*reinterpret_cast<Frame**>(bp) = previousFrame;
 		new(frame) Frame(bp, argsCount, stackSize, DEFAULT_FRAME_SPACE);
 		frame->markHeapAllocated();
-		//frame->setType(mFrameClass); // TODO
+		frame->setType(mFrameClass); // TODO
 		//cout << "frame " << frame << " allocated on heap\n";
 	}
 	else
@@ -180,6 +180,23 @@ void TaskContext::closeFrame()
 StackRef<Method> TaskContext::getMethod()
 {
 	return StackRef<Method>(getFrame(), Frame::INDEX_METHOD);
+}
+
+void TaskContext::updateFramesClass(Class* klass)
+{
+	mFrameClass = klass;
+	
+	Frame* frame = mTopFrame;
+
+	while(frame)
+	{
+		if(frame->isHeapAllocated())
+		{
+			frame->setType(klass);
+		}
+		
+		frame = frame->previousFrame();
+	}
 }
 
 void TaskContext::updateMovedPointers(GenerationalGC* gc)

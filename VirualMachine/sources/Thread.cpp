@@ -14,7 +14,7 @@ using namespace Beer;
 
 
 Thread::Thread(VirtualMachine* vm, GenerationalGC * gc)
-	: mVM(vm), mGC(gc), mPolycache(NULL), mContext(NULL)//, mTopFrame(NULL), mRootFrame(NULL)
+	: mVM(vm), mGC(gc), /*mPolycache(NULL),*/ mContext(NULL)//, mTopFrame(NULL), mRootFrame(NULL)
 {
 }
 
@@ -23,15 +23,9 @@ void Thread::init()
 	mHeap = mGC->createHeap();
 
 	// just a temporary solution, TODO
-	mTemporaryContext.init(mHeap, getVM()->getFrameClass());
-	setContext(&mTemporaryContext);
+	//mTemporaryContext.init(mHeap, getVM()->getFrameClass());
+	//setContext(&mTemporaryContext);
 
-	// init cache, TODO
-	Frame* frame = getFrame();
-	StackRef<PolymorphicCache> pcache(frame, frame->stackPush());
-	createPolycache(pcache, CREATE_INSTANCE_CACHE_SIZE);
-	mPolycache = *pcache;
-	frame->stackPop(); // pop pcache
 }
 
 void Thread::loadClassFile(ClassFileLoader* loader, ClassFileDescriptor* classFile)

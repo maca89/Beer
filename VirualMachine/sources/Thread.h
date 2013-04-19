@@ -27,9 +27,7 @@ namespace Beer
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;  // is it needed?
 		Heap* mHeap;
-		PolymorphicCache* mPolycache; // TODO: in Thread's pool
 
-		TaskContext mTemporaryContext;
 		TaskContext* mContext;
 
 		enum

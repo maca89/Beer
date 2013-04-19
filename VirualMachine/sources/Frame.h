@@ -48,10 +48,11 @@ namespace Beer
 		void* mIp;
 		WorkStack mStack;
 		int32 mBonusSpace;
+		bool mHasInnerFrame;
 
 	public:
 		INLINE Frame(void* bp, int16 frameOffset, int32 stackSize, int32 bonusSpace)
-			: mStack(bp, stackSize), mVPC(0), mIp(NULL), mFrameOffset(frameOffset), mBonusSpace(bonusSpace), mFrameFlags(0)
+			: mStack(bp, stackSize), mVPC(0), mIp(NULL), mFrameOffset(frameOffset), mBonusSpace(bonusSpace), mFrameFlags(0), mHasInnerFrame(false)
 		{
 		}
 
@@ -212,25 +213,27 @@ namespace Beer
 			Frame* newFrame = reinterpret_cast<Frame*>(getNewFrameStart());
 			memset(newFrame, 0, newFrameSize); // really??
 
-			newFrame->setStaticSize(sizeof(Frame));
-			newFrame->setType(NULL); // TODO
-
 			void* newBp = reinterpret_cast<byte*>(sp());
 			new(newFrame) Frame(newBp, 0/*argsCount*/, stackSize, mBonusSpace - newFrameSize - (stackSize * sizeof(Object*)));
+			
 			newFrame->markStackAllocated();
+			newFrame->setStaticSize(sizeof(Frame));
+			newFrame->setType(getType()); // TODO
 
+			mHasInnerFrame = true;
 			return newFrame;
 		}
 
 		INLINE bool popFrame(Frame* frame)
 		{
-			uint32 newFrameSize = sizeof(Frame);
+			//uint32 newFrameSize = sizeof(Frame);
 
 			if(isTopFrame(frame))
 			{
 				//free(frameLength);
 
 				//cout << "Frame " << frame << " popped, length:" << frameLength << "\n";
+				mHasInnerFrame = false;
 				return true;
 			}
 			else
@@ -259,6 +262,16 @@ namespace Beer
 		INLINE void* getNewFrameStart()
 		{
 			return getDynamicDataStart(sizeof(Frame));
+		}
+
+		INLINE bool hasInnerFrame() const
+		{
+			return mHasInnerFrame;
+		}
+
+		INLINE Frame* getInnerFrame()
+		{
+			return reinterpret_cast<Frame*>(getNewFrameStart());
 		}
 
 		// traversers

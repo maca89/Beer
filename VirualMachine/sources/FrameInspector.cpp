@@ -39,6 +39,18 @@ void FrameInspector::nextFrame()
 	}
 }
 
+void FrameInspector::nextInnerFrame()
+{
+	if(mFrame->hasInnerFrame())
+	{
+		mFrame->getInnerFrame();
+	}
+	else
+	{
+		mFrame = NULL;
+	}
+}
+
 bool FrameInspector::hasFrame()
 {
 	return mFrame != NULL;

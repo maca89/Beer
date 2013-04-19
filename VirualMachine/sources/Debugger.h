@@ -12,7 +12,7 @@ namespace Beer
 	class Frame;
 	class Class;
 
-	class Debugger : public Thread
+	class Debugger : protected Thread
 	{
 	public:
 		typedef std::list<Object*> ObjectList;
@@ -21,6 +21,9 @@ namespace Beer
 		bool mEnabled;
 		bool mStepping;
 		ObjectList mPrintedObjects;
+		
+		// TODO: get rid of this
+		TaskContext mTemporaryContext;
 
 	public:
 		Debugger(VirtualMachine* vm, GenerationalGC* gc);
@@ -29,6 +32,7 @@ namespace Beer
 		void setEnabled(bool value) { mEnabled = value; }
 		INLINE bool isEnabled() const { return mEnabled; }
 		
+		void init();
 		void started();
 		void step(Thread* thread, Frame* frame);
 		void ended();

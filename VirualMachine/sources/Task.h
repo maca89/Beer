@@ -64,6 +64,9 @@ namespace Beer
 		static void BEER_CALL getId(Thread* thread, StackRef<Task> receiver, StackRef<Integer> ret);
 
 		static void BEER_CALL abstractRun(Thread* thread, StackRef<Task> receiver);
+
+		// traversers
+		static void TaskInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 	};
 
 	class TaskInitializer : public ClassInitializer

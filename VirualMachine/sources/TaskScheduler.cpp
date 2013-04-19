@@ -175,18 +175,24 @@ void TaskScheduler::afterSafePoint()
 
 void TaskScheduler::updateFramesPointers()
 {
-	bool activeEmpty = mActive.empty();
-	bool waitingEmpty = mWaiting.empty();
-	bool doneEmpty = mDone.empty();
-	//bool scheduledEmpty = mScheduled.empty();
-	//empty = mLocked.empty();
-
 	updateFramesPointers(mActive);
 	updateFramesPointers(mWaiting);
 	updateFramesPointers(mDone);
 	updateFramesPointers(mScheduled);
 	//updateFramesPointers(mLocked);
 }
+
+
+#include "TraverseObjectReceiver.h"
+class MyTraverseObjectReceiver : public TraverseObjectReceiver
+{
+public:
+	virtual void traverseObjectPtr(Object** ptrToObject)
+	{
+		Object* obj = *ptrToObject;
+		cout << obj << "\n";
+	}
+};
 
 void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 {
@@ -207,7 +213,10 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 			//while(oldHeapAllocated->isStackAllocated()) { oldHeapAllocated = oldHeapAllocated->previousFrame(); }
 
 			//FrameInspector::debugPrintFrames(thread);
-			task->getContext()->updateMovedPointers(mGC);
+			//task->getContext()->updateMovedPointers(mGC);
+
+			MyTraverseObjectReceiver myTraverserReceiver;
+			task->getType()->getTraverser()(&myTraverserReceiver, task->getType(), task);
 			
 			//Frame* newTop = task->getContext()->getFrame();
 			//Frame* newHeapAllocated = newTop;
@@ -227,3 +236,24 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 		queue.push(newQueue.pop());
 	}
 }
+
+void TaskScheduler::updateFramesClass(Class* klass)
+{
+	updateFramesClass(mActive, klass);
+	updateFramesClass(mWaiting, klass);
+	updateFramesClass(mDone, klass);
+	updateFramesClass(mScheduled, klass);
+	//updateFramesClass(mLocked, klass);
+}
+
+void TaskScheduler::updateFramesClass(TaskQueue& queue, Class* klass)
+{
+	for(TaskQueue::iterator it = queue.begin(); it != queue.end(); it++)
+	{
+		Task* task = *it;
+		task->getContext()->updateFramesClass(klass);
+	}
+}
+
+
+

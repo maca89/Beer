@@ -55,7 +55,6 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	methodClassName->copyData(BEER_WIDEN("Method"));
 
 	Class* methodClass = classLoader->createClass<Class>(thread, methodClassName, 1, 0, Object::OBJECT_METHODS_COUNT + 6); // extends Object, has 6 methods
-	methodClass->setTraverser(&Method::MethodTraverser);
 	thread->getVM()->setMethodClass(methodClass);
 
 
@@ -68,7 +67,6 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	frameClassName->copyData(BEER_WIDEN("Frame"));
 
 	Class* frameClass = classLoader->createClass<Class>(thread, frameClassName, 1, 0, Object::OBJECT_METHODS_COUNT); // extends Object, has 0 methods
-	frameClass->setTraverser(&Frame::FrameTraverser);
 	thread->getVM()->setFrameClass(frameClass);
 
 
@@ -114,6 +112,10 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	objectClass->setSuperClass(objectClass);
 	methodClass->setSuperClass(objectClass);
 	frameClass->setSuperClass(objectClass);
+
+	// must be *after* super class set
+	methodClass->setTraverser(&Method::MethodTraverser);
+	frameClass->setTraverser(&Frame::FrameTraverser);
 
 	// init string class
 	StringClassInitializer* stringInit = new StringClassInitializer();

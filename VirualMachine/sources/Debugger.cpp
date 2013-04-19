@@ -19,6 +19,14 @@ Debugger::~Debugger()
 {
 }
 
+void Debugger::init()
+{
+	this->Thread::init();
+	
+	mTemporaryContext.init(mHeap, getVM()->getFrameClass());
+	setContext(&mTemporaryContext);
+}
+
 void Debugger::printLastOutput()
 {
 	cout << BEER_WIDEN("[LastOutput]") << '\n';

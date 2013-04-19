@@ -246,6 +246,7 @@ void Class::setSuperClass(Class* klass)
 
 	mParentNext = 0;
 	setParent(mParentNext++, klass);
+	setTraverser(klass->getTraverser());
 	
 	if(this != klass)
 	{

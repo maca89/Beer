@@ -37,6 +37,7 @@ namespace Beer
 		Frame* openFrame();
 		void closeFrame();
 		Frame* getPreviousFrame();
+		void updateFramesClass(Class* klass);
 
 		// TODO: get rid of these
 		INLINE void setHeap(Heap* value) { mHeap = value; }

@@ -4,6 +4,7 @@
 #include "VirtualMachine.h"
 #include "LoadedObject.h"
 #include "Debugger.h"
+#include "FrameInspector.h"
 
 using namespace Beer;
 
@@ -94,6 +95,34 @@ void BEER_CALL Task::abstractRun(Thread* thread, StackRef<Task> receiver)
 	throw AbstractMethodException(*method);
 }
 
+void Task::TaskInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* inst)
+{
+	Class::DefaultInstanceTraverser(receiver, klass, inst);
+
+	Task* instance = static_cast<Task*>(inst);
+	TaskContext* context = instance->getContext();
+
+	if(context->hasFrame())
+	{
+		FrameInspector insp;
+		insp.start(context->getFrame());
+		
+		while(insp.hasFrame())
+		{
+			Frame* frame = insp.getFrame();
+
+			if(frame->isHeapAllocated())
+			{
+				Object* o = frame;
+				receiver->traverseObjectPtr(&o);
+				//TODO: fix pointers here
+			}
+
+			insp.nextFrame();
+		}
+	}
+}
+
 Class* TaskInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
 	return loader->createClass<Class>(thread, name, 1, Task::TASK_CHILDREN_COUNT, Task::TASK_METHODS_COUNT);
@@ -103,6 +132,7 @@ void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klas
 {
 	klass->mInstanceStaticSize = sizeof(Task);
 	klass->setSuperClass(thread->getVM()->getObjectClass());
+	klass->setTraverser(&Task::TaskInstanceTraverser);
 	klass->markAbstract();
 	
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Task"), BEER_WIDEN("Task::Task()"), &Task::init, 1, 0);

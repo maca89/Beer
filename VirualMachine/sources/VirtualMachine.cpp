@@ -82,6 +82,9 @@ void VirtualMachine::init()
 	//mGC = new GenerationalGC(27, 32768);
 	//mGC->init();
 
+	mTemporaryContext.init(mHeap, getVM()->getFrameClass());
+	setContext(&mTemporaryContext);
+
 	mDebugger = new Debugger(this, mGC);
 	mDebugger->init();
 
@@ -231,4 +234,5 @@ Class* VirtualMachine::findClass(StackRef<String> name)
 
 void VirtualMachine::fixFramesClasses()
 {
+	mScheduler.updateFramesClass(getFrameClass());
 }

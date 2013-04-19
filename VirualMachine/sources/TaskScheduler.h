@@ -54,6 +54,8 @@ namespace Beer
 		TaskQueue* getDoneQueue();
 		TaskQueue* getScheduledQueue();
 
+		void updateFramesClass(Class* klass);
+
 	protected:
 		void initializeTask(Thread* thread, Task* task);
 		void initializeTasks();
@@ -61,7 +63,8 @@ namespace Beer
 		void updateFramesPointers();
 		void updateFramesPointers(TaskQueue& queue);
 		Frame* updateFramePointers(Frame* frame);
-	};
+		void updateFramesClass(TaskQueue& queue, Class* klass);
+};
 
 	
 	INLINE volatile bool TaskScheduler::isSafePoint() const

@@ -102,8 +102,8 @@ Class* PoolClassInitializer::createClass(Thread* thread, ClassLoader* loader, St
 
 void PoolClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
 {
+	klass->setSuperClass(thread->getVM()->getObjectClass());
 	klass->setTraverser(&Pool::PoolInstanceTraverser);
 
-	klass->setSuperClass(thread->getVM()->getObjectClass());
 	klass->markSealed();
 }
