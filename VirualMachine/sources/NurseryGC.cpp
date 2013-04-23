@@ -13,9 +13,9 @@ NurseryGC::NurseryGC(GenerationalGC* gc, size_t initSize, size_t blockSize)
 	mBlockSize(blockSize),
 	mCollectionCount(0)
 {
-	mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.05f), this);
-	mCollect = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.05f), this);
-	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.05f), this);
+	mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.85f), this);
+	mCollect = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.85f), this);
+	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.85f), this);
 
 	::InitializeCriticalSection(&mCS);
 	mThreadsSuspendedEvent = ::CreateEvent(NULL, false, false, NULL);

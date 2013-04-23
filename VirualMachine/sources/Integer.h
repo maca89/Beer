@@ -5,6 +5,16 @@
 #include "Frame.h"
 
 
+// unsigned 30bit precision [0, 1073741823]
+#define BEER_INLINED_INTEGER_MODE_UNSIGNED 1
+
+// signed 30bit precision [-536870912, +536870911]
+#define BEER_INLINED_INTEGER_MODE_SIGNED 2
+
+//
+#define BEER_INLINED_INTEGER_MODE	BEER_INLINED_INTEGER_MODE_SIGNED
+
+
 namespace Beer
 {
 	class VirtualMachine;
@@ -31,6 +41,7 @@ namespace Beer
 			{
 				return getInlineValue(this);
 			}
+
 			return mData;
 		}
 
@@ -46,10 +57,12 @@ namespace Beer
 			ss >> out;
 		}
 
+		
+#if BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_UNSIGNED
 		INLINE static bool canBeInlineValue(IntegerData data)
 		{
-			// TODO: negative numbers
-			return (data >> (sizeof(IntegerData) * 8 - SignatureBits)) == 0;
+			IntegerData msb = (data >> (sizeof(Integer*) * 8 - SignatureBits));
+			return msb == 0;
 		}
 
 		INLINE static Integer* makeInlineValue(IntegerData data)
@@ -61,6 +74,23 @@ namespace Beer
 		{
 			return reinterpret_cast<IntegerData>(data) >> SignatureBits;
 		}
+#elif BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_SIGNED
+		INLINE static bool canBeInlineValue(IntegerData data)
+		{
+			IntegerData msb = (data >> (sizeof(Integer*) * 8 - SignatureBits - 1));
+			return msb == 0 || msb == -1; // (decimal)-1 == (binary)111...111
+		}
+
+		INLINE static Integer* makeInlineValue(IntegerData data)
+		{
+			return reinterpret_cast<Integer*>((data << SignatureBits) | 1);
+		}
+
+		INLINE static IntegerData getInlineValue(const Integer* data)
+		{
+			return reinterpret_cast<IntegerData>(data) >> SignatureBits;
+		}
+#endif // BEER_INLINED_INTEGER_MODE
 
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 

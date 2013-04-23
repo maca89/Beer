@@ -171,8 +171,36 @@ void printBytecodes(VirtualMachine *vm)
 	}
 }
 
+
+void testInteger()
+{
+#if BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_UNSIGNED
+	assert(Integer::canBeInlineValue(1));
+	assert(Integer::canBeInlineValue(1073741823)); // max
+	assert(!Integer::canBeInlineValue(1073741824)); // max + 1
+	assert(Integer::canBeInlineValue(0)); // min
+	assert(!Integer::canBeInlineValue(-1)); // min - 1
+#elif BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_SIGNED
+
+//#define testassert
+#define testassert assert
+
+	testassert(Integer::canBeInlineValue(0));
+	testassert(Integer::canBeInlineValue(1));
+	testassert(Integer::canBeInlineValue(-1));
+	testassert(Integer::canBeInlineValue(536870911)); // max
+	testassert(!Integer::canBeInlineValue(536870912)); // max + 1
+	testassert(Integer::canBeInlineValue(-536870912)); // min
+	testassert(!Integer::canBeInlineValue(-536870913)); // min - 1
+	
+#endif // BEER_INLINED_INTEGER_MODE
+}
+
 int __cdecl main(int argc, const char** argv)
 {
+	
+	//testInteger();
+
 	// set UTF-16 support
 	_setmode( _fileno(stdout), _O_U16TEXT);
 
@@ -182,8 +210,8 @@ int __cdecl main(int argc, const char** argv)
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
-	GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
-	//GenerationalGC* gc = new GenerationalGC(320 * 1024 * 1024, 8 * 1024);
+	//GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
+	GenerationalGC* gc = new GenerationalGC(320 * 1024 * 1024, 8 * 1024);
 	//GenerationalGC* gc = new GenerationalGC(512 * 1024, 8 * 1024);
 	
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();

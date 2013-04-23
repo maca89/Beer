@@ -226,18 +226,13 @@ Reference<String> StringPool::translate(Thread* thread, const char16* str)
 	StringMap::iterator it = mStrings.find(str);
 	if(it == mStrings.end())
 	{
-		uint32 length = strlen(str);
-		
 		Frame* frame = thread->getFrame();
+		BEER_STACK_CHECK();
+
+		uint32 length = strlen(str);
 
 		StackRef<String> strOnStack(frame, frame->stackPush());
-
-		StackRef<Integer> lengthOnStack(frame, frame->stackPush());
-		thread->createInteger(lengthOnStack, length);
-
-		// TODO: why the cast??
-		thread->createString(lengthOnStack, strOnStack);
-		frame->stackPop(); // pop lengthOnStack
+		thread->createString(strOnStack, length);
 
 		strOnStack->copyData(str, length);
 
