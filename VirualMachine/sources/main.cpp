@@ -8,7 +8,6 @@
 #include "Thread.h"
 #include "MyClassFileLoader.h"
 
-
 using namespace Beer;
 
 struct Settings
@@ -35,7 +34,6 @@ struct Settings
 		heapSize(10*1024*1024)
 	{}
 };
-
 
 bool loadFile(string filename, byte** out_data, uint32& out_length)
 {
@@ -171,59 +169,6 @@ void printBytecodes(VirtualMachine *vm)
 		Class* klass = it->second;
 		vm->getDebugger()->printBytecodeMethods(klass);
 	}
-}
-
-typedef InterlockedQueue<int> Queue;
-
-void testExpectQueueSize(Queue& q, int expected)
-{
-	int count = 0;
-
-	for(Queue::iterator it = q.begin(); it != q.end(); it++)
-	{
-		count++;
-	}
-
-	if(expected == 0) assert(q.empty());
-	else assert(!q.empty());
-
-	assert(count == expected);
-}
-
-void testQueue()
-{
-	Queue q;
-	testExpectQueueSize(q, 0);
-
-	q.push(42);
-	testExpectQueueSize(q, 1);
-
-	q.push(15);
-	testExpectQueueSize(q, 2);
-
-	q.pop();
-	testExpectQueueSize(q, 1);
-
-	q.pop();
-	testExpectQueueSize(q, 0);
-
-	q.push(42);
-	testExpectQueueSize(q, 1);
-
-	q.push(15);
-	testExpectQueueSize(q, 2);
-
-	q.push(38);
-	testExpectQueueSize(q, 3);
-
-	q.pop();
-	testExpectQueueSize(q, 2);
-
-	q.pop();
-	testExpectQueueSize(q, 1);
-
-	q.pop();
-	testExpectQueueSize(q, 0);
 }
 
 int __cdecl main(int argc, const char** argv)

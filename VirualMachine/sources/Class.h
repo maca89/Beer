@@ -27,6 +27,9 @@ namespace Beer
 
 			FLAG_ENTRYPOINT = 0x10,
 
+			CLASS_METHODS_COUNT = OBJECT_METHODS_COUNT + 2, // substituable, getName
+			CLASS_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + CLASS_METHODS_COUNT,
+
 			METHOD_SLOT_CREATE_INSTANCE = 0,
 			METHOD_SLOT_OBJECT_CTOR = 1,
 			METHOD_SLOT_OPERATOR_STRING = 2,
@@ -38,37 +41,29 @@ namespace Beer
 		enum
 		{
 			// children order (not including those of Object parent class):
-			// #1 name
-			// #2 parents[]
-			// #3 methods[]
-			// #4 properties[]
-			CLASS_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 1,
-
-			CHILD_ID_CLASS_NAME = OBJECT_CHILDREN_COUNT,
+			// #1 interfaces[]
+			// #2 methods[]
+			// #3 properties[]
 		};
 
 		friend class MetaClass;
 
-		////////////////////////////////////////////////////////////
-		////             Initialized by ClassLoader             ////
-		////////////////////////////////////////////////////////////
+	//protected:
 		uint8 mFlags;
+		Class* mSuperClass;
+		String* mName;
+		uint32 mInstanceStaticSize;
+		Traverser mTraverser;
 
-		uint32 mParentsCount;
+		uint32 mInterfacesCount;
 		uint32 mPropertiesCount;
-		
-		uint32 mVirtualMethodNext;
 		uint32 mVirtualMethodsCount;
-
-		uint32 mInterfaceMethodNext;
 		uint32 mInterfaceMethodsCount;
 		
-		uint32 mParentNext;
+		uint32 mInterfaceNext;
 		uint32 mPropertyNext;
-
-		Traverser mTraverser;
-		uint32 mInstanceStaticSize;
-		////////////////////////////////////////////////////////////
+		uint32 mVirtualMethodNext;
+		uint32 mInterfaceMethodNext;
 
 	public:
 
@@ -103,7 +98,7 @@ namespace Beer
 
 		bool hasPropertyFreeSlot() const;
 		bool hasMethodFreeSlot() const;
-		bool hasParentFreeSlot() const;
+		//bool hasParentFreeSlot() const;
 
 		String* getName();
 		void setName(String* value);
@@ -118,8 +113,8 @@ namespace Beer
 
 		// parents
 		
-		Class* getParent(uint32 index); // TODO: protected
-		uint32 getParentsCount() const; // deprecated
+		//Class* getParent(uint32 index); // TODO: protected
+		//uint32 getParentsCount() const; // deprecated
 
 		Class* getSuperClass();
 		void setSuperClass(Class* klass);
@@ -151,25 +146,26 @@ namespace Beer
 		Method* findVirtualMethod(String* selector);
 		Method* findInterfaceMethod(Class* interf, String* selector);
 
+		// instance
+
+		uint32 getInstanceStaticSize() const;
+
 		// 
 
 		bool substituable(Class* otherClass);
 
-		// methods
+		// static methods
 
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret);
-
 		static void BEER_CALL substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret);
-
 		static void BEER_CALL getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret);
-		static void BEER_CALL setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value);
 
 		// traversers
 		static void DefaultInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 
 	protected:
 		uint32 addInterfaceMethod(Method* method);
-		void setParent(uint32 index, Class* value);
+		//void setParent(uint32 index, Class* value);
 		//uint32 getInterfaceMethodsStart() const;
 	};
 
@@ -192,43 +188,27 @@ namespace Beer
 		return mPropertyNext < mPropertiesCount;
 	}
 
-	INLINE bool Class::hasParentFreeSlot() const
+	/*INLINE bool Class::hasInterfaceFreeSlot() const
 	{
 		return mParentNext < mParentsCount;
-	}
+	}*/
 
 	// parents
 
-	INLINE Class* Class::getParent(uint32 index)
-	{
-		BOUNDS_ASSERT(index, mParentsCount);
-		return static_cast<Class*>(getChild(CHILD_ID_CLASS_NAME + 1 + index)); // +1 for name 
-	}
-
-	INLINE void Class::setParent(uint32 index, Class* value)
-	{
-		BOUNDS_ASSERT(index, mParentsCount);
-		setChild(CHILD_ID_CLASS_NAME + 1 + index, value); // +1 for name 
-	}
-
-	INLINE uint32 Class::getParentsCount() const
-	{
-		return mParentsCount;
-	}
-
 	INLINE Class* Class::getSuperClass()
 	{
-		return getParent(0);
+		return mSuperClass;
 	}
 
 	INLINE Class* Class::getInterface(uint32 index)
 	{
-		return getParent(1 + index);
+		BOUNDS_ASSERT(index, mInterfacesCount);
+		return static_cast<Class*>(getChild(OBJECT_CHILDREN_COUNT + index));
 	}
 
 	INLINE uint32 Class::getInterfacesCount() const
 	{
-		return getParentsCount() - 1;
+		return mInterfacesCount;
 	}
 
 	// methods
@@ -252,13 +232,13 @@ namespace Beer
 	INLINE Method* Class::getMethod(uint32 index)
 	{
 		BOUNDS_ASSERT(index, getMethodsCount());
-		return static_cast<Method*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index)); // +1 for name 
+		return static_cast<Method*>(getChild(OBJECT_CHILDREN_COUNT + getInterfacesCount() + index));
 	}
 
 	INLINE void Class::setMethod(uint32 index, Method* value)
 	{
 		BOUNDS_ASSERT(index, getMethodsCount());
-		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + index, value); // +1 for name
+		setChild(OBJECT_CHILDREN_COUNT + mInterfacesCount + index, value);
 	}
 	
 	INLINE uint32 Class::getMethodsCount() const
@@ -270,11 +250,6 @@ namespace Beer
 	{
 		return mVirtualMethodsCount;
 	}
-
-	/*INLINE uint32 Class::getInterfaceMethodsStart() const
-	{
-		return getVirtualMethodsCount();
-	}*/
 
 	INLINE bool Class::hasInterface(Class* interf)
 	{
@@ -296,13 +271,13 @@ namespace Beer
 	INLINE Property* Class::getProperty(uint32 index)
 	{
 		BOUNDS_ASSERT(index, mPropertiesCount);
-		return static_cast<Property*>(getChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + getMethodsCount() + index)); // +1 for name 
+		return static_cast<Property*>(getChild(OBJECT_CHILDREN_COUNT + getInterfacesCount() + getMethodsCount() + index));
 	}
 
 	INLINE void Class::setProperty(uint32 index, Property* value)
 	{
 		BOUNDS_ASSERT(index, mPropertiesCount);
-		setChild(CHILD_ID_CLASS_NAME + 1 + mParentsCount + getMethodsCount() + index, value); // +1 for name 
+		setChild(OBJECT_CHILDREN_COUNT + getInterfacesCount() + getMethodsCount() + index, value);
 	}
 	
 	INLINE uint32 Class::getPropertiesCount() const
@@ -319,12 +294,12 @@ namespace Beer
 
 	INLINE String* Class::getName()
 	{
-		return static_cast<String*>(getChild(CHILD_ID_CLASS_NAME));
+		return mName;
 	}
 
 	INLINE void Class::setName(String* value)
 	{
-		setChild(CHILD_ID_CLASS_NAME, value);
+		mName = value;
 	}
 
 	INLINE Method* Class::findMethod(String* selector)
@@ -350,5 +325,12 @@ namespace Beer
 			return getMethod(index);
 		}
 		return NULL;
+	}
+
+	// instance
+
+	INLINE uint32 Class::getInstanceStaticSize() const
+	{
+		return mInstanceStaticSize;
 	}
 };

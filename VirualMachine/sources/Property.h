@@ -15,11 +15,15 @@ namespace Beer
 	public:
 		enum
 		{
-			PROPERTY_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT + 2, // type, name
-			
-			CHILD_ID_PROPERTY_TYPE = OBJECT_CHILDREN_COUNT,
-			CHILD_ID_PROPERTY_NAME = OBJECT_CHILDREN_COUNT + 1,
+			PROPERTY_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT,
+			PROPERTY_METHODS_COUNT = OBJECT_METHODS_COUNT + 4,
 		};
+
+	protected:
+		Class* mPropertyType;
+		String* mPropertyName;
+
+	public:
 
 		Class* getPropertyType();
 		void setPropertyType(Class* value);
@@ -32,10 +36,30 @@ namespace Beer
 
 		static void BEER_CALL getPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> ret);
 		static void BEER_CALL setPropertyName(Thread* thread, StackRef<Property> receiver, StackRef<String> name);
+
+		// traversers
+		static void PropertyTraverser(TraverseObjectReceiver* receiver, Class* klass, Object* instance);
 	};
 
 	// inlined methods
 	
-	
-	
+	INLINE Class* Property::getPropertyType()
+	{
+		return mPropertyType;
+	}
+
+	INLINE void Property::setPropertyType(Class* value)
+	{
+		mPropertyType = value;
+	}
+
+	INLINE String* Property::getPropertyName()
+	{
+		return mPropertyName;
+	}
+
+	INLINE void Property::setPropertyName(String* value)
+	{
+		mPropertyName = value;
+	}
 };

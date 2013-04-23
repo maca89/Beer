@@ -7,6 +7,20 @@
 
 using namespace Beer;
 
+/*uint32 Object::getStaticSize()
+{
+	if(getType() == NULL)
+	{
+		int a = 0;
+	}
+
+	if(mStaticSize != getType()->getInstanceStaticSize())
+	{
+		uint32 instanceStaticSize = getType()->getInstanceStaticSize();
+		int a = 0;
+	}
+	return mStaticSize;
+}*/
 
 void BEER_CALL Object::init(Thread* thread, StackRef<Object> receiver, StackRef<Object> ret1)
 {

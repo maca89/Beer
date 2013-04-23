@@ -26,6 +26,7 @@ namespace Beer
 		enum
 		{
 			METHOD_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT,
+			METHOD_METHODS_COUNT = OBJECT_METHODS_COUNT + 6,
 		};
 
 		typedef void (*InvokeMethod)(Thread*);

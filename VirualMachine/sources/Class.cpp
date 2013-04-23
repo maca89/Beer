@@ -28,53 +28,6 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 	ret->setType(*receiver);
 }
 
-/*uint32 Class::overrideVirtualMethod(Method* method)
-{
-	uint32 index = 0;
-	if(parent->findVirtualMethodIndex(method->getSelector(), index))
-	{
-		setMethod(index, method);
-	}
-	else
-	{
-		throw Exception(BEER_WIDEN("Unable to override such method")); // TODO: better exception
-	}
-	return index;
-}
-
-uint32 Class::overrideInterfaceMethod(Class* interf, Method* method)
-{
-	uint32 startIndex = 0;
-
-	for(uint32 interfi = 0; interfi < getInterfacesCount(); interfi++)
-	{
-		Class* myInterf = getInterface(interfi);
-		if(myInterf == interf)
-		{
-			break;
-		}
-		else
-		{
-			startIndex += myInterf->getVirtualMethodsCount() - myInterf->getSuperClass()->getVirtualMethodsCount();
-		}
-	}
-
-	uint32 interfMethodIndex = 0;
-	uint32 myMethodIndex = 0;
-
-	if(interf->findVirtualMethodIndex(method->getSelector(), interfMethodIndex))
-	{
-		myMethodIndex = startIndex + interfMethodIndex - interf->getSuperClass()->getVirtualMethodsCount();
-		setMethod(myMethodIndex, method);
-	}
-	else
-	{
-		throw Exception(BEER_WIDEN("Unable to override such method")); // TODO: better exception
-	}
-
-	return myMethodIndex;
-}*/
-
 bool Class::findVirtualMethodIndex(String* selector, uint32& out_index)
 {
 	for(uint32 methodi = 0; methodi < getMethodsCount(); methodi++)
@@ -131,24 +84,25 @@ bool Class::substituable(Class* otherClass)
 	}
 
 	// check parents
-	for(uint32 i = 0; i < getParentsCount(); i++)
+	for(uint32 i = 0; i < getInterfacesCount(); i++)
 	{
-		Class* parent = getParent(i);
+		Class* interf = getInterface(i);
 
-		// parent of myself
-		if(this == parent)
-		{
-			continue;
-		}
-
-		if(parent->substituable(otherClass))
+		if(interf == otherClass)
 		{
 			return true;
 		}
 	}
 
-	// is not substituable
-	return false;
+	// parent of myself
+	if(this == getSuperClass())
+	{
+		// is not substituable
+		return false;
+	}
+
+	// check parent
+	return getSuperClass()->substituable(otherClass);
 }
 
 void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, StackRef<Class> otherClass, StackRef<Boolean> ret)
@@ -158,12 +112,7 @@ void BEER_CALL Class::substituable(Thread* thread, StackRef<Class> receiver, Sta
 
 void BEER_CALL Class::getName(Thread* thread, StackRef<Class> receiver, StackRef<String> ret)
 {
-	Object::getChild(thread, receiver, CHILD_ID_CLASS_NAME, ret);
-}
-
-void BEER_CALL Class::setName(Thread* thread, StackRef<Class> receiver, StackRef<String> value)
-{
-	Object::setChild(thread, receiver, CHILD_ID_CLASS_NAME, value);
+	ret = receiver->getName();
 }
 
 bool Class::findInterfaceIndex(Class* interf, uint32& out_index)
@@ -214,8 +163,7 @@ bool Class::findInterfaceMethodsStart(Class* interf, uint32& out_index)
 uint32 Class::addInterface(Class* interf)
 {
 	DBG_ASSERT(interf->isInterface(), BEER_WIDEN("Not an interface"));
-	DBG_ASSERT(mParentNext < mParentsCount, BEER_WIDEN("Unable to add more parents"));
-	RUNTIME_ASSERT(!(isInterface() && mParentNext == 0), BEER_WIDEN("First parent of non-interface class must be non-interface class"));
+	DBG_ASSERT(mInterfaceNext < mInterfacesCount, BEER_WIDEN("Unable to add more parents"));
 
 	uint32 interfIndex = 0;
 	if(!findInterfaceIndex(interf, interfIndex))
@@ -226,8 +174,8 @@ uint32 Class::addInterface(Class* interf)
 			addInterface(subInterf);
 		}
 
-		interfIndex = mParentNext++;
-		setParent(interfIndex, interf);
+		interfIndex = mInterfaceNext++;
+		setChild(OBJECT_CHILDREN_COUNT + interfIndex, interf);
 
 		uint16 interfMethodsStart = interf->getSuperClass()->getVirtualMethodsCount(); // skip superclass (probably Object) methods
 		for(uint16 i = interfMethodsStart; i < interf->getVirtualMethodsCount(); i++)
@@ -244,8 +192,9 @@ void Class::setSuperClass(Class* klass)
 {
 	DBG_ASSERT(!klass->isInterface(), BEER_WIDEN("Superclass may not be an interface"));
 
-	mParentNext = 0;
-	setParent(mParentNext++, klass);
+
+	mSuperClass = klass;
+	mInterfaceNext = 0;
 	setTraverser(klass->getTraverser());
 	
 	if(this != klass)

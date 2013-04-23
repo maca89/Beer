@@ -420,7 +420,7 @@ void Debugger::printClassMethods(StackRef<Class> klassOnStack)
 {
 	Class* klass = *klassOnStack;
 
-	cout << "[Class " << ((String*)klass->getChildren()[Class::CHILD_ID_CLASS_NAME])->c_str() << "]" << std::endl;
+	cout << "[Class " << klass->getName()->c_str() << "]" << std::endl;
 	for(uint32 methodi = 0; methodi < klass->getMethodsCount(); methodi++)
 	{
 		// TODO

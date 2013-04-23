@@ -25,7 +25,7 @@ namespace Beer
 			// #1 children count
 			// #2 class
 			OBJECT_CHILDREN_COUNT = 0,
-			OBJECT_METHODS_COUNT = 3, // TODO: add cloneShallow, cloneDeep, getType
+			OBJECT_METHODS_COUNT = 3, // createInstance, init, operatorString, TODO: cloneShallow, cloneDeep, getType
 
 			//CHILD_ID_CLASS = 1,
 		};
@@ -51,11 +51,11 @@ namespace Beer
 			return (reinterpret_cast<InlineValueId>(object) & 1);
 		}
 
-		INLINE void setStaticSize(uint32 value) { mStaticSize = value; }
-		INLINE uint32 getStaticSize() { return mStaticSize; }
+		void setStaticSize(uint32 value);
+		uint32 getStaticSize() const;
 
 		void setType(Class* value);
-		Class* getType();
+		Class* getType() const;
 		
 		void* getDynamicDataStart();
 		void* getDynamicDataStart(uint32 staticSize);
@@ -108,14 +108,14 @@ namespace Beer
 		mType = value;
 	}
 	
-	INLINE Class* Object::getType()
+	INLINE Class* Object::getType() const
 	{
 		return mType;
 	}
 
 	INLINE void* Object::getDynamicDataStart()
 	{
-		return getDynamicDataStart(mStaticSize);
+		return getDynamicDataStart(getStaticSize());
 	}
 
 	INLINE void* Object::getDynamicDataStart(uint32 staticSize)
@@ -142,4 +142,25 @@ namespace Beer
 	{
 		return getChildren()[index];
 	}
+
+	INLINE void Object::setStaticSize(uint32 value)
+	{
+		mStaticSize = value;
+	}
+
+	INLINE uint32 Object::getStaticSize() const
+	{
+		return mStaticSize;
+	}
+
+/*#include "Class.h"
+
+	NOINLINE uint32 Object::getStaticSize()
+	{
+		if(m_StaticSize != getType()->getInstanceStaticSize())
+		{
+			int a = 0;
+		}
+		return m_StaticSize;
+	}*/
 };

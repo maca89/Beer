@@ -89,22 +89,20 @@ Class* ClassLoader::createClass(Thread* thread, String* classname, uint32 static
 
 	Class* klass = thread->getPermanentHeap()->alloc<Class>(
 		staticSize, 
-		Object::OBJECT_CHILDREN_COUNT + 1 + parents + virtualMethods + interfaceMethods + properties // +1 for name
+		Object::OBJECT_CHILDREN_COUNT + (parents - 1) + virtualMethods + interfaceMethods + properties
 	);
 	
 	klass->mFlags = 0;
-	klass->mParentsCount = parents;
+	klass->mInterfacesCount = parents - 1;
 	klass->mPropertiesCount = properties;
-	klass->mVirtualMethodNext = 0;
 	klass->mVirtualMethodsCount = virtualMethods;
-	klass->mInterfaceMethodNext = 0;
 	klass->mInterfaceMethodsCount = interfaceMethods;
-	klass->mParentNext = klass->mVirtualMethodNext = klass->mInterfaceMethodNext = klass->mPropertyNext = 0;
+	klass->mInterfaceNext = klass->mVirtualMethodNext = klass->mInterfaceMethodNext = klass->mPropertyNext = 0;
 	klass->mTraverser = &Class::DefaultInstanceTraverser;
 	klass->mInstanceStaticSize = sizeof(Object);
 
-	klass->setName(classname);
 	klass->setType(thread->getVM()->getMetaClass());
+	klass->setName(classname);
 
 	// TODO: where??
 	thread->getVM()->addClass(thread, klass);

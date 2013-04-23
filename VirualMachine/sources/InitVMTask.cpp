@@ -31,18 +31,21 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	metaClassName->copyData(BEER_WIDEN("MetaClass"));
 
 	MetaClass* metaClass = thread->getPermanentHeap()->alloc<MetaClass>(
-		Class::CLASS_CHILDREN_COUNT + 1 + 2 + Object::OBJECT_METHODS_COUNT // 1 parent, 2 methods
+		Object::OBJECT_CHILDREN_COUNT + 0 + Class::CLASS_METHODS_COUNT + 0 + 0
 	);
 	
-	metaClass->mFlags = 0; // deprecated
-	metaClass->mParentsCount = 1;
+	metaClass->mFlags = 0;
+	metaClass->mInterfacesCount = 0;
 	metaClass->mPropertiesCount = 0;
 	metaClass->mVirtualMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
 	metaClass->mInterfaceMethodsCount = 0;
-	metaClass->mParentNext = metaClass->mVirtualMethodNext = metaClass->mInterfaceMethodNext = metaClass->mPropertyNext = 0;
+	metaClass->mInterfaceNext = metaClass->mVirtualMethodNext = metaClass->mInterfaceMethodNext = metaClass->mPropertyNext = 0;
 	metaClass->mTraverser = &MetaClass::DefaultClassTraverser;
 	metaClass->mInstanceStaticSize = sizeof(Class);
+
+	metaClass->setType(metaClass);
 	metaClass->setName(metaClassName); // set name
+
 	thread->getVM()->setMetaClass(metaClass);
 
 
@@ -54,8 +57,22 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	methodClassName->size(6); // 6 for "Method"
 	methodClassName->copyData(BEER_WIDEN("Method"));
 
-	Class* methodClass = classLoader->createClass<Class>(thread, methodClassName, 1, 0, Object::OBJECT_METHODS_COUNT + 6); // extends Object, has 6 methods
+	Class* methodClass = classLoader->createClass<Class>(thread, methodClassName, 1, Method::METHOD_CHILDREN_COUNT, Method::METHOD_METHODS_COUNT);
+	methodClass->setStaticSize(sizeof(Method));
 	thread->getVM()->setMethodClass(methodClass);
+
+
+	// create Property class
+	String* propertyClassName = thread->getPermanentHeap()->alloc<String>(
+		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (8 + 1)), // 8 for "Property", 1 for "\0"
+		Object::OBJECT_CHILDREN_COUNT + 0 // TODO: size
+	);
+	propertyClassName->size(8); // 8 for "Property"
+	propertyClassName->copyData(BEER_WIDEN("Property"));
+
+	Class* propertyClass = classLoader->createClass<Class>(thread, propertyClassName, 1, Property::PROPERTY_CHILDREN_COUNT, Property::PROPERTY_METHODS_COUNT);
+	propertyClass->setStaticSize(sizeof(Property));
+	thread->getVM()->setPropertyClass(propertyClass);
 
 
 	// create Frame class
@@ -99,6 +116,7 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	objectClassName->setType(stringClass);
 	stringClassName->setType(stringClass);
 	methodClassName->setType(stringClass);
+	propertyClassName->setType(stringClass);
 	frameClassName->setType(stringClass);
 
 	// default Object methods
@@ -111,10 +129,12 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 	metaClass->setSuperClass(objectClass);
 	objectClass->setSuperClass(objectClass);
 	methodClass->setSuperClass(objectClass);
+	propertyClass->setSuperClass(objectClass);
 	frameClass->setSuperClass(objectClass);
 
 	// must be *after* super class set
 	methodClass->setTraverser(&Method::MethodTraverser);
+	propertyClass->setTraverser(&Property::PropertyTraverser);
 	frameClass->setTraverser(&Frame::FrameTraverser);
 
 	// init string class

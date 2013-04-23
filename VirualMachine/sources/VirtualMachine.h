@@ -46,6 +46,7 @@ namespace Beer
 		// TODO: get rid of these
 		Class* mMetaClass;
 		Class* mMethodClass;
+		Class* mPropertyClass;
 		Class* mFrameClass;
 		Class* mObjectClass;
 		Class* mStringClass;
@@ -64,7 +65,7 @@ namespace Beer
 			: Thread(this, gc),
 			mClassLoader(NULL), mDebugger(NULL),
 			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL), mPoolClass(NULL), 
-			mMethodClass(NULL), mFrameClass(NULL), mBytecodeBuilder(NULL)//, mGC(NULL)
+			mMethodClass(NULL), mPropertyClass(NULL), mFrameClass(NULL), mBytecodeBuilder(NULL)//, mGC(NULL)
 		{
 		}
 
@@ -95,8 +96,9 @@ namespace Beer
 		void destroy();
 		
 		INLINE Class* getMetaClass() { return mMetaClass; }
-		INLINE Class* getFrameClass() { return mFrameClass; }
 		INLINE Class* getMethodClass() { return mMethodClass; }
+		INLINE Class* getPropertyClass() { return mPropertyClass; }
+		INLINE Class* getFrameClass() { return mFrameClass; }
 		INLINE Class* getObjectClass() { return mObjectClass; }
 		INLINE Class* getFloatClass() { return mFloatClass; }
 		INLINE Class* getIntegerClass() { return mIntegerClass; }
@@ -107,8 +109,9 @@ namespace Beer
 		INLINE Class* getPairClass() { return findClass(BEER_WIDEN("Pair")); }
 		
 		INLINE void setMetaClass(Class* value) { mMetaClass = value; }
-		INLINE void setFrameClass(Class* value) { mFrameClass = value; }
 		INLINE void setMethodClass(Class* value) { mMethodClass = value; }
+		INLINE void setPropertyClass(Class* value) { mPropertyClass = value; }
+		INLINE void setFrameClass(Class* value) { mFrameClass = value; }
 		INLINE void setObjectClass(Class* value) { mObjectClass = value; }
 		INLINE void setFloatClass(Class* value) { mFloatClass = value; }
 		INLINE void setIntegerClass(Class* value) { mIntegerClass = value; }
