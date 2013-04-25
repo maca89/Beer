@@ -1,0 +1,22 @@
+native class Scheduler
+{
+  interface
+  {
+    add(Task task);
+    wait();
+    run();
+  }
+  
+  interface Object
+  {
+  }
+}
+
+
+native class ParallelScheduler
+{
+  interface Scheduler
+  {
+    
+  }
+}

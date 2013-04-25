@@ -156,6 +156,7 @@ namespace Beer
 		static void BEER_CALL operatorAddBoolean(Thread* thread, StackRef<String> receiver, StackRef<Boolean> arg, StackRef<String> ret);
 		static void BEER_CALL operatorAddCharacter(Thread* thread, StackRef<String> receiver, StackRef<Character> arg, StackRef<String> ret);
 		static void BEER_CALL operatorAddArray(Thread* thread, StackRef<String> receiver, StackRef<Array> arg, StackRef<String> ret);
+		//static void BEER_CALL operatorAddObject(Thread* thread, StackRef<String> receiver, StackRef<Object> arg, StackRef<String> ret);
 		
 		static void BEER_CALL operatorEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);
 		static void BEER_CALL operatorNotEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret);

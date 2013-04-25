@@ -3,7 +3,7 @@
 #include "Frame.h"
 #include "Pool.h"
 #include "BytecodePass.h"
-
+#include "Mutex.h"
 
 namespace Beer
 {
@@ -144,6 +144,7 @@ namespace Beer
 	protected:
 		uint32 mDataSize;
 		byte* mData;
+		CriticalSection mCriticalSection;
 
 		// TODO: get rid of these
 		ClassFileDescriptor* mClassFile;
@@ -183,6 +184,7 @@ namespace Beer
 		INLINE const void* getData() const { return mData; }
 		INLINE uint32 getDataLength() const { return mDataSize; }
 		INLINE void* getData() { return mData; }
+		INLINE CriticalSection* getCriticalSection() { return &mCriticalSection; }
 
 		// TODO: get rid of these
 		INLINE ClassFileDescriptor* getClassFile() const { return mClassFile; };

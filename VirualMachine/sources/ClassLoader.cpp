@@ -122,6 +122,7 @@ Method* ClassLoader::createMethod(Thread* thread, String* name, Cb fn, uint16 re
 		Method::METHOD_CHILDREN_COUNT + returns + params
 	);
 
+	new(method) Method(); // call ctor
 	method->setFlags(0);
 	method->setMaxStack(20); // default value, TODO: get rid of
 	method->setBytecode(NULL);
@@ -155,7 +156,7 @@ Method* ClassLoader::addOverrideMethod(Thread* thread, Class* klass, Method* met
 	}
 	else
 	{
-		klass->findVirtualMethodIndex(selector, index);
+		//klass->findVirtualMethodIndex(selector, index);
 		throw Exception(BEER_WIDEN("Unable to override such method"));
 	}
 

@@ -6,6 +6,7 @@
 #include "Frame.h"
 #include "Bytecode.h"
 #include "MiliTimer.h"
+#include "Mutex.h"
 
 
 namespace Beer
@@ -56,8 +57,11 @@ namespace Beer
 		Pool* mPool;
 		Class* mInterface;
 		String* mSelector;
+		CriticalSection mCriticalSection;
 
 	public:
+		INLINE Method() {}
+
 		// time spent
 		INLINE void addTimeSpent(float64 value) { mTimeSpent += value; }
 		INLINE void setTimeSpent(float64 value) { mTimeSpent = value; }
@@ -126,6 +130,7 @@ namespace Beer
 		}
 		
 		INLINE Bytecode* getBytecode() { return mBytecode; }
+		INLINE CriticalSection* getCriticalSection() { return &mCriticalSection; }
 
 		void loadFromPool(Thread* thread, uint16 index, StackRef<Object> ret);
 		uint16 storeToPool(Thread* thread, StackRef<Object> object);

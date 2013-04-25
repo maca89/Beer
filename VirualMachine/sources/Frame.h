@@ -48,7 +48,7 @@ namespace Beer
 		void* mIp;
 		WorkStack mStack;
 		int32 mBonusSpace;
-		bool mHasInnerFrame;
+		bool mHasInnerFrame;//TODO: get rid of this flag
 
 	public:
 		INLINE Frame(void* bp, int16 frameOffset, int32 stackSize, int32 bonusSpace)

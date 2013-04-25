@@ -26,6 +26,7 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 	BytecodeInputStream istream(bc.data, bc.dataLength);
 	BytecodeOutputStream ostream(bc.instrCount);
 
+	// 1st pass
 	while(!istream.end())
 	{
 		ostream.next();
@@ -123,7 +124,9 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 						if(opcode == BEER_INSTR_VIRTUAL_INVOKE)
 						{
 							ostream.write<uint8>(opcode);
-							ostream.write<uint32>(index);
+							ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(NULL))); // cache key (class)
+							ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(NULL))); // cache value (method)
+							ostream.write<uint32>(index); // virtual table index
 						}
 						else // opcode == BEER_INSTR_SPECIAL_INVOKE
 						{

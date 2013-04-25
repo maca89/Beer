@@ -3,6 +3,7 @@ native class Integer
   interface
   {
     Integer();
+    Integer(Integer value);
     
     Float;
     String;

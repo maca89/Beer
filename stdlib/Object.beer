@@ -5,8 +5,8 @@ native class Object
     Object();
     String();
     
-    Object cloneShallow();
-    Object cloneDeep();
+    //Object cloneShallow();
+    //Object cloneDeep();
     
     Class getType();
   }

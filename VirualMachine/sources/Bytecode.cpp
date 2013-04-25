@@ -161,6 +161,56 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 
 #define BEER_BC_CHECK_SAFEPOINT() if(thread->getVM()->isSafePoint()) { BEER_BC_MOVE(-static_cast<int64>(sizeof(BEER_BC_OPCODE_TYPE))); BEER_BC_RETURN(); }
 
+
+INLINE void patchInlineCache(Object** keyDest, Object** valueDest, Object* key, Object* value)
+{
+	//Object* oldKey = *keyDest;
+	//Object* oldValue = *valueDest;
+	//cout << "[patchInlineCache]: " << oldKey << " to " << key << ", " << oldValue << " to " << value << "\n";
+	
+	// order is important
+	*valueDest = value;
+	*keyDest = key;
+}
+
+NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Object** valueDest, Object* key, Object* value)
+{
+	// critical section is shared in all bytecode, therefore the loop
+	while(*keyDest == NULL)
+	{
+		// cache is empty, store the result
+
+		CriticalSection* crSection = invokedMethod->getBytecode()->getCriticalSection();
+		NonBlockingMutex nbMutex(crSection);
+
+		if(nbMutex.entered())
+		{
+			patchInlineCache(keyDest, valueDest, key, value);
+		}
+		else
+		{
+			BlockingMutex blMutex(crSection); // blocking wait for other thread to do the work
+		}
+
+		// nbMutex unlocked
+	}
+}
+
+INLINE Method* methodLookup(Class* type, uint32 vtableIndex)
+{
+	return type->getMethod(vtableIndex);
+}
+
+INLINE Method* methodLookupCacheResultAtomic(Method* invokedMethod, Object** keyDest, Object** valueDest, Class* type, uint32 vtableIndex)
+{
+	Method* method = methodLookup(type, vtableIndex);
+
+	patchInlineCacheAtomic(invokedMethod, keyDest, valueDest, type, method);
+	
+	return method;
+}
+
+
 uint16 Bytecode::Instruction::printRaw(const ClassFileDescriptor* classFile) const
 {
 	uint16 size = sizeof(uint8); // opcode
@@ -411,7 +461,9 @@ void Bytecode::printTranslatedInstruction(Thread* thread, Method* method, byte* 
 
 	case BEER_INSTR_VIRTUAL_INVOKE:
 		{
-			cout << "VIRTUAL_INVOKE #" << BEER_BC_DATA(uint32);
+			BEER_BC_MOVE(sizeof(int32)); // cache key (class)
+			BEER_BC_MOVE(sizeof(int32)); // cache key (method)
+			cout << "VIRTUAL_INVOKE #" << BEER_BC_DATA(uint32); // virtual method index
 		}
 		break;
 	
@@ -532,7 +584,9 @@ void DefaultBytecodeCompiler::compile(Thread* thread, Method* method, const Temp
 			// uint32 arg (index)
 			case BEER_INSTR_VIRTUAL_INVOKE:
 				BEER_BC_WRITE_OPCODE(ostream, opcode);
-				ostream.write<uint32>(istream.read<uint32>());
+				ostream.write<int32>(istream.read<int32>()); // cache key (class)
+				ostream.write<int32>(istream.read<int32>()); // cache key (method)
+				ostream.write<uint32>(istream.read<uint32>()); // virtual method index
 				break;
 
 			// int32 arg (object pointer)
@@ -769,46 +823,35 @@ BEER_BC_LABEL(INSTR_ASSIGN_THIS):
 
 BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
 	{
-		StackRef<Object> object(frame, frame->stackTopIndex());
-		NULL_ASSERT(object.get());
+		StackRef<Object> receiver(frame, frame->stackTopIndex());
+		NULL_ASSERT(receiver.get());
 
-		Method* method = NULL;
+		// get cache key
+		Object** cachedClassPtr = reinterpret_cast<Object**>(ip);
+		Class* cachedClass = static_cast<Class*>(*cachedClassPtr);
+		BEER_BC_MOVE(sizeof(int32));
+			
+		// get cache value
+		Object** methodPtr = reinterpret_cast<Object**>(ip);
+		Method* method = static_cast<Method*>(*methodPtr);
+		BEER_BC_MOVE(sizeof(int32));
+			
+		// get current class
+		Class* receiverKlass = thread->getType(receiver);
 
-		// fetch method
+		// is it cached?
+		if(receiverKlass != cachedClass)
 		{
-			uint32 index = BEER_BC_DATA(uint32);
-			Class* klass = thread->getType(object);
-
-			method = klass->getMethod(index);
-
-			if(!method)
-			{
-				BEER_DBG_BREAKPOINT();
-				throw MethodNotFoundException(*object, klass, NULL); // lookup failed, TODO: better exception
-			}
-		}
-
-		// set new opcode
-		if(false)
-		{
-			// set opcode
-
-	#if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
-			*reinterpret_cast<BEER_BC_OPCODE_TYPE*>(ip - sizeof(BEER_BC_OPCODE_TYPE)) = BEER_OPTIMAL_CACHED_INVOKE;
-	#elif BEER_BC_DISPATCH == BEER_BC_DISPATCH_DIRECT
-			*reinterpret_cast<BEER_BC_OPCODE_TYPE*>(ip - sizeof(BEER_BC_OPCODE_TYPE)) = Bytecode::LabelTable[BEER_OPTIMAL_CACHED_INVOKE];
-	#endif // BEER_BC_DISPATCH
-
-			// set arg
-			*reinterpret_cast<int32*>(ip) = reinterpret_cast<int32>(static_cast<Object*>(method));
+			// whoops, cache-miss!
+			method = methodLookupCacheResultAtomic(invokedMethod, cachedClassPtr, methodPtr, receiverKlass, BEER_BC_DATA(uint32));
 		}
 		
+		DBG_ASSERT(method, BEER_WIDEN("Cached method is NULL"));
 		frame->stackPush(method);
 		thread->openFrame();
 	}
-	BEER_BC_MOVE(sizeof(int32));
+	BEER_BC_MOVE(sizeof(uint32));
 	BEER_BC_RETURN();
-
 	
 BEER_BC_LABEL(INSTR_SPECIAL_INVOKE):
 BEER_BC_LABEL(OPTIMAL_CACHED_INVOKE):
@@ -1158,19 +1201,35 @@ void Bytecode::init(Thread* thread)
 
 void Bytecode::buildInvokeBytecode(Thread* thread)
 {
+	Method* invokedMethod = NULL;
+
+	// get invoked method
 	{
 		Frame* frame = thread->getFrame();
 		BEER_STACK_CHECK();
 
-		Method* invokedMethod = frame->stackTop<Method>(-1);
+		invokedMethod = frame->stackTop<Method>(-1);
 		DBG_ASSERT(invokedMethod != NULL, BEER_WIDEN("Method is NULL"));
-
-		// TODO: lock method
-	
-		thread->getVM()->getBytecodeBuilder()->buildBytecodeMethod(thread, invokedMethod);
-
-		// TODO: unlock method
 	}
 
-	invokeBytecode(thread);
+	// prepare method
+	{
+		NonBlockingMutex nonBlockMutex(invokedMethod->getCriticalSection());
+
+		if(nonBlockMutex.entered())
+		{
+			// we blocked the method => prepare the bytecode
+			thread->getVM()->getBytecodeBuilder()->buildBytecodeMethod(thread, invokedMethod);
+		}
+		else
+		{
+			// someone locked the method and is preparing the bytecode, just wait
+			BlockingMutex blockMutex(invokedMethod->getCriticalSection()); // blocking wait
+		}
+
+		// nonBlockMutex will be automatically released
+	}
+
+	// method now should be prepared
+	invokedMethod->invoke(thread);
 }

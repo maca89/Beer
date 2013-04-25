@@ -25,6 +25,7 @@ native class String
     String +(Boolean value);
     String +(Character value);
     String +(Array value);
+    //String +(Object value); // TODO
     
     Character get(Integer index); // TODO: []
   }

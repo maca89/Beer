@@ -5,6 +5,9 @@
 #include "Frame.h"
 
 
+// disabled inlining
+#define BEER_INLINED_INTEGER_MODE_DISABLED 0
+
 // unsigned 30bit precision [0, 1073741823]
 #define BEER_INLINED_INTEGER_MODE_UNSIGNED 1
 
@@ -90,11 +93,27 @@ namespace Beer
 		{
 			return reinterpret_cast<IntegerData>(data) >> SignatureBits;
 		}
+#elif BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_DISABLED
+		INLINE static bool canBeInlineValue(IntegerData data)
+		{
+			return false;
+		}
+
+		INLINE static Integer* makeInlineValue(IntegerData data)
+		{
+			return reinterpret_cast<Integer*>((data << SignatureBits) | 1); // unsigned, TODO: throw exception
+		}
+
+		INLINE static IntegerData getInlineValue(const Integer* data)
+		{
+			return reinterpret_cast<IntegerData>(data) >> SignatureBits; // unsigned, TODO: throw exception
+		}
 #endif // BEER_INLINED_INTEGER_MODE
 
 		static void BEER_CALL createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Integer> ret);
 
 		static void BEER_CALL init(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> ret1);
+		static void BEER_CALL initInteger(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Integer> ret);
 		
 		static void BEER_CALL operatorFloat(Thread* thread, StackRef<Integer> receiver, StackRef<Float> ret);
 		static void BEER_CALL operatorString(Thread* thread, StackRef<Integer> receiver, StackRef<String> ret);

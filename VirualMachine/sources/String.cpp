@@ -145,6 +145,11 @@ void BEER_CALL String::operatorAddArray(Thread* thread, StackRef<String> receive
 	frame->stackPop(); // pop serialisedArray
 }
 
+/*void BEER_CALL String::operatorAddObject(Thread* thread, StackRef<String> receiver, StackRef<Object> arg, StackRef<String> ret)
+{
+	TODO
+}*/
+
 void BEER_CALL String::operatorEqual(Thread* thread, StackRef<String> receiver, StackRef<String> arg, StackRef<Boolean> ret)
 {
 	ret = Boolean::makeInlineValue(receiver->compare(arg.get()) == 0);
@@ -211,6 +216,7 @@ void StringClassInitializer::initClass(Thread* thread, ClassLoader* loader, Clas
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Boolean)"), &String::operatorAddBoolean, 1, 1);
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Character)"), &String::operatorAddCharacter, 1, 1);
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Array)"), &String::operatorAddArray, 1, 1);
+	//loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("String::+(Object)"), &String::operatorAddObject, 1, 1);
 	
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getLength"), BEER_WIDEN("String::getLength()"), &String::getLength, 1, 0);
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("get"), BEER_WIDEN("String::get(Integer)"), &String::operatorGet, 1, 1); // TODO: String::[](Integer)

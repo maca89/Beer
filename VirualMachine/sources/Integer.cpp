@@ -10,9 +10,16 @@
 using namespace Beer;
 
 
-void BEER_CALL Integer::init(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> ret1)
+void BEER_CALL Integer::init(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> ret)
 {
-	ret1 = receiver;
+	ret = receiver;
+}
+
+void BEER_CALL Integer::initInteger(Thread* thread, StackRef<Integer> receiver, StackRef<Integer> arg, StackRef<Integer> ret)
+{
+	RUNTIME_ASSERT(!Object::isInlineValue(*receiver), BEER_WIDEN("Unable to invoke Integer::Integer(Integer) on an inlined value"));
+	receiver->setNonInlineValue(arg->getData());
+	ret = receiver;
 }
 
 void BEER_CALL Integer::operatorFloat(Thread* thread, StackRef<Integer> receiver, StackRef<Float> ret)
@@ -108,7 +115,7 @@ void BEER_CALL Integer::createInstance(Thread* thread, StackRef<Class> receiver,
 
 Class* IntegerClassInitializer::createClass(Thread* thread, ClassLoader* loader, String* name)
 {
-	return loader->createClass<Class>(thread, name, 1, 0, 17 + Object::OBJECT_METHODS_COUNT);
+	return loader->createClass<Class>(thread, name, 1, 0, Object::OBJECT_METHODS_COUNT + 18);
 }
 
 void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klass)
@@ -116,8 +123,9 @@ void IntegerClassInitializer::initClass(Thread* thread, ClassLoader* loader, Cla
 	klass->setSuperClass(thread->getVM()->getObjectClass());
 	klass->markSealed();
 	klass->markAsValueType();
-
+	
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Integer::Integer()"), &Integer::init, 1, 0);
+	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Integer"), BEER_WIDEN("Integer::Integer(Integer)"), &Integer::initInteger, 1, 1);
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("Float"), BEER_WIDEN("Integer::Float()"), &Integer::operatorFloat, 1, 0);
 
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("+"), BEER_WIDEN("Integer::+(Integer)"), &Integer::operatorAdd, 1, 1);
