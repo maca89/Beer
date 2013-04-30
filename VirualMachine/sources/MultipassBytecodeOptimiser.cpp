@@ -6,6 +6,7 @@
 #include "BytecodeOutputStream.h"
 #include "BytecodeInputStream.h"
 #include "Method.h"
+#include "PolymorphicCache.h"
 
 using namespace Beer;
 
@@ -112,7 +113,6 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 					else
 					{
 						String::LengthData classNameLength = Class::getFQNFromSelector(selector);
-						String* className = thread->createConstantString(classNameLength);
 						Class* klass = thread->getVM()->findClass(string(selector->c_str(), static_cast<size_t>(classNameLength))); // ugly, TODO: without allocating
 
 						uint32 index = 0;
@@ -141,8 +141,28 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 			case BEER_INSTR_INTERFACE_INVOKE:
 				{
 					ostream.write<uint8>(opcode);
-					ostream.write<uint16>(istream.read<uint16>()); // selector
-					ostream.write<uint16>(istream.read<uint16>()); // cache
+
+					String* selector = static_cast<String*>(reinterpret_cast<Object*>(istream.read<int32>()));
+
+					// find interface
+					String::LengthData classNameLength = Class::getFQNFromSelector(selector);
+					Class* interf = thread->getVM()->findClass(string(selector->c_str(), static_cast<size_t>(classNameLength))); // ugly, TODO: without allocating
+					RUNTIME_ASSERT(interf->isInterface(), BEER_WIDEN("Interface invoke expects interface"));
+
+					uint32 index = 0;
+					if(!interf->findVirtualMethodIndex(selector, index))
+					{
+						throw MethodNotFoundException(interf, interf, selector);
+					}
+					index -= interf->getSuperClass()->getVirtualMethodsCount();
+					
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(interf)));// interface
+					ostream.write<uint32>(index);// method index
+
+					StackRef<PolymorphicCache> cache(frame, frame->stackPush());
+					thread->createPolycache(cache, 4);
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*cache))); // cache
+					frame->stackPop(); // pop cache
 				}
 				break;
 

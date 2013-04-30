@@ -28,9 +28,9 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 	thread->createInstance(klass, instance);
 
 
-	// call constuctor
+	// call Main::Main() constuctor
 #ifdef BEER_FOLDING_BLOCK
-	if(true){
+	if(false){
 		StackRef<String> selector(frame, frame->stackPush());
 
 		StackRef<String> tmpString1(frame, frame->stackPush());
@@ -53,7 +53,7 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 		if(method)
 		{
 			// ugly
-			TrampolineThread thread2(thread->getVM(), thread->getGC());
+			TrampolineThread thread2(42, thread->getVM(), thread->getGC());
 
 			thread2.getFrame()->stackPush(); // for return
 			thread2.getFrame()->stackPush(*instance); // push receiver
@@ -66,47 +66,15 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 
 		frame->stackPop(); // selector
 	}
-#endif // BEER_FOLDING_BLOCK
-
-
-	// Task::run()
-	if(false){
-#ifdef BEER_FOLDING_BLOCK
-		StackRef<Method> method(frame, frame->stackPush());
-		//getDebugger()->printFrameStack(frame);
-				
-		// fetch method
-		{
-#ifdef BEER_FOLDING_BLOCK
-			StackRef<String> selector(frame, frame->stackPush()); // TODO
-			thread->createString(selector, BEER_WIDEN("Task::run()")); // why the cast?!, TODO
-
-			method = klass->findVirtualMethod(*selector);
-
-			if(method.isNull())
-			{
-				throw MethodNotFoundException(*instance, *klass, *selector); // TODO
-			}
-			frame->stackPop(); // pop selector
-#endif // BEER_FOLDING_BLOCK
-		}
-
-		//thread->getVM()->getDebugger()->printFrame(thread, thread->getFrame());
-
-		thread->openFrame();
-
-		//thread->getVM()->getDebugger()->printFrame(thread, thread->getFrame());
-
-		method->invoke(thread); // closes frame, pop method, instance
-
-		//thread->getVM()->getDebugger()->printFrame(thread, thread->getFrame());
-
-#endif // BEER_FOLDING_BLOCK
-	}
+	// call Task::Task() constructor
 	else
 	{
-		thread->getVM()->getScheduler()->schedule(*instance);
+		Task::init(thread, instance, instance);
 	}
+#endif // BEER_FOLDING_BLOCK
+
+
+	thread->getVM()->getScheduler()->addTask(*instance);
 
 	frame->stackPop(); // pop instance
 	frame->stackPop(); // pop klass

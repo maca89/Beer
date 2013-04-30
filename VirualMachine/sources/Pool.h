@@ -24,6 +24,17 @@ namespace Beer
 		uint16 mNext;
 
 	public:
+		uint16 getLength() const;
+		void setLength(uint16 value);
+
+		Object* getItem(uint16 index);
+		void setItem(uint16 index, Object* item);
+
+		uint32 createSlot();
+		bool hasFreeSlot() const;
+
+		//
+
 		static void getLength(Thread* thread, StackRef<Pool> pool, uint16& length);
 		static void setLength(Thread* thread, StackRef<Pool> pool, uint16 length);
 
@@ -51,33 +62,67 @@ namespace Beer
 		virtual void initClass(Thread* thread, ClassLoader* loader, Class* klass);
 	};
 
+	// inline definitions
+
+	INLINE uint16 Pool::getLength() const
+	{
+		return mSize;
+	}
+
+	INLINE void Pool::setLength(uint16 value)
+	{
+		mSize = value;
+	}
+
+	INLINE Object* Pool::getItem(uint16 index)
+	{
+		return getChild(CHILD_ID_POOL_START + index);
+	}
+
+	INLINE void Pool::setItem(uint16 index, Object* item)
+	{
+		setChild(CHILD_ID_POOL_START + index, item);
+	}
+
+	INLINE uint32 Pool::createSlot()
+	{
+		return mNext++;
+	}
+
+	INLINE bool Pool::hasFreeSlot() const
+	{
+		return mNext < mSize;
+	}
+
+	//
+
 	INLINE void Pool::getLength(Thread* thread, StackRef<Pool> pool, uint16& length)
 	{
-		length = pool->mSize;
+		length = static_cast<Pool*>(thread->getGC()->getIdentity(pool))->getLength();
 	}
 
 	INLINE void Pool::setLength(Thread* thread, StackRef<Pool> pool, uint16 length)
 	{
-		pool->mSize = length;
+		static_cast<Pool*>(thread->getGC()->getIdentity(pool))->setLength(length);
 	}
 
-	INLINE void Pool::getItem(Thread* thread, StackRef<Pool> receiver, uint16 index, StackRef<Object> ret)
+	INLINE void Pool::getItem(Thread* thread, StackRef<Pool> pool, uint16 index, StackRef<Object> ret)
 	{
-		Object::getChild(thread, receiver, CHILD_ID_POOL_START + index, ret);
+		ret = static_cast<Pool*>(thread->getGC()->getIdentity(pool))->getItem(index);
 	}
 
-	INLINE void Pool::setItem(Thread* thread, StackRef<Pool> receiver, uint16 index, StackRef<Object> item)
+	INLINE void Pool::setItem(Thread* thread, StackRef<Pool> pool, uint16 index, StackRef<Object> item)
 	{
-		Object::setChild(thread, receiver, CHILD_ID_POOL_START + index, item);
+		static_cast<Pool*>(thread->getGC()->getIdentity(pool))->setItem(index, *item);
 	}
 
-	INLINE void Pool::createSlot(Thread* thread, StackRef<Pool> receiver, uint16& ret)
+	INLINE void Pool::createSlot(Thread* thread, StackRef<Pool> pool, uint16& ret)
 	{
-		ret = receiver->mNext++;
+		ret = static_cast<Pool*>(thread->getGC()->getIdentity(pool))->createSlot();
 	}
 
-	INLINE void Pool::hasFreeSlot(Thread* thread, StackRef<Pool> receiver, bool& ret)
+	INLINE void Pool::hasFreeSlot(Thread* thread, StackRef<Pool> pool, bool& ret)
 	{
-		ret = receiver->mNext < receiver->mSize;
+		ret = static_cast<Pool*>(thread->getGC()->getIdentity(pool))->hasFreeSlot();
 	}
 };

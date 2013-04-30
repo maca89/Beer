@@ -50,9 +50,9 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if BEER_BC_DISPATCH == BEER_BC_DISPATCH_SWITCH
 
-#define BEER_BC_WORD int32
+#define BEER_BC_WORD int16
 
-#define BEER_BC_UWORD uint32
+#define BEER_BC_UWORD uint16
 
 #define BEER_BC_OPCODE_TYPE BEER_BC_UWORD
 
@@ -159,7 +159,7 @@ void* Bytecode::LabelTable[BEER_MAX_OPCODE * sizeof(void*)] = {0};
 #endif // BEER_BC_DISPATCH
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BEER_BC_CHECK_SAFEPOINT() if(thread->getVM()->isSafePoint()) { BEER_BC_MOVE(-static_cast<int64>(sizeof(BEER_BC_OPCODE_TYPE))); BEER_BC_RETURN(); }
+#define BEER_BC_CHECK_SAFEPOINT() if(thread->isExecutionPaused()) { BEER_BC_MOVE(-static_cast<int64>(sizeof(BEER_BC_OPCODE_TYPE))); BEER_BC_RETURN(); }
 
 
 INLINE void patchInlineCache(Object** keyDest, Object** valueDest, Object* key, Object* value)
@@ -185,7 +185,11 @@ NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Ob
 
 		if(nbMutex.entered())
 		{
-			patchInlineCache(keyDest, valueDest, key, value);
+			if(*keyDest == NULL) // could have been patched by someone else before we acquired the lock
+			{
+				patchInlineCache(keyDest, valueDest, key, value);
+				return;
+			}
 		}
 		else
 		{
@@ -199,15 +203,6 @@ NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Ob
 INLINE Method* methodLookup(Class* type, uint32 vtableIndex)
 {
 	return type->getMethod(vtableIndex);
-}
-
-INLINE Method* methodLookupCacheResultAtomic(Method* invokedMethod, Object** keyDest, Object** valueDest, Class* type, uint32 vtableIndex)
-{
-	Method* method = methodLookup(type, vtableIndex);
-
-	patchInlineCacheAtomic(invokedMethod, keyDest, valueDest, type, method);
-	
-	return method;
 }
 
 
@@ -450,12 +445,15 @@ void Bytecode::printTranslatedInstruction(Thread* thread, Method* method, byte* 
 	
 	case BEER_INSTR_INTERFACE_INVOKE:
 		{
-			StackRef<String> selector(frame, frame->stackPush());
-			method->loadFromPool(thread, BEER_BC_DATA(uint16), selector);
+			Class* interf = static_cast<Class*>(reinterpret_cast<Object*>(BEER_BC_DATA(int32)));
+			BEER_BC_MOVE(sizeof(int32)); // pass interface
 
-			cout << "INTERFACE_INVOKE \"" << selector->c_str() << "\"";
-			
-			frame->stackPop(); // pop selector
+			uint32 index = BEER_BC_DATA(uint32);
+			BEER_BC_MOVE(sizeof(uint32)); // pass index
+
+			PolymorphicCache* polycache = static_cast<PolymorphicCache*>(reinterpret_cast<Object*>(BEER_BC_DATA(int32)));
+
+			cout << "INTERFACE_INVOKE \"" << interf->getName()->c_str() << "+" << index << "\"";
 		}
 		break;
 
@@ -601,16 +599,19 @@ void DefaultBytecodeCompiler::compile(Thread* thread, Method* method, const Temp
 				ostream.write<int32>(istream.read<int32>());
 				break;
 				
-			// two uint16 args
+			// two int32 args (object pointers)
 			case BEER_INSTR_INTERFACE_INVOKE:
-				BEER_BC_WRITE_OPCODE(ostream, opcode);
-				ostream.write<uint16>(istream.read<uint16>()); // selector
-				ostream.write<uint16>(istream.read<uint16>()); // cache
+				{
+					BEER_BC_WRITE_OPCODE(ostream, opcode);
+
+					ostream.write<int32>(istream.read<int32>()); // interface
+					ostream.write<uint32>(istream.read<uint32>()); // index
+					ostream.write<int32>(istream.read<int32>()); // cache
+				}
 				break;
 
-			// two int32 args (object pointer)
+			// two int32 args (object pointers)
 			case BEER_INSTR_NEW:
-				{
 				BEER_BC_WRITE_OPCODE(ostream, opcode);
 
 				/*Class* klass = static_cast<Class*>(reinterpret_cast<Object*>(istream.read<int32>()));
@@ -619,7 +620,6 @@ void DefaultBytecodeCompiler::compile(Thread* thread, Method* method, const Temp
 				//ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(klass)));
 				ostream.write<int32>(istream.read<int32>());
 				ostream.write<int32>(istream.read<int32>());
-				}
 				break;
 
 			default:
@@ -780,7 +780,7 @@ BEER_BC_LABEL(INSTR_NEW):
 BEER_BC_LABEL(INSTR_LOAD):
 	{
 		StackRef<Object> object(frame, frame->stackTopIndex());
-		NULL_ASSERT(object.get());
+		NULL_ASSERT(*object);
 
 		thread->getGC()->getChild(object, object, Object::OBJECT_CHILDREN_COUNT + BEER_BC_DATA(BEER_BC_UWORD));
 	}
@@ -796,7 +796,6 @@ BEER_BC_LABEL(INSTR_LOAD_THIS):
 
 BEER_BC_LABEL(INSTR_ASSIGN):
 	{
-
 		StackRef<Object> object(frame, frame->stackTopIndex());
 		NULL_ASSERT(object.get());
 
@@ -823,18 +822,19 @@ BEER_BC_LABEL(INSTR_ASSIGN_THIS):
 
 BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
 	{
-		StackRef<Object> receiver(frame, frame->stackTopIndex());
-		NULL_ASSERT(receiver.get());
+		//StackRef<Object> receiver(frame, frame->stackTopIndex());
+		Object* receiver = frame->stackTop();
+		NULL_ASSERT(receiver);
 
 		// get cache key
 		Object** cachedClassPtr = reinterpret_cast<Object**>(ip);
 		Class* cachedClass = static_cast<Class*>(*cachedClassPtr);
-		BEER_BC_MOVE(sizeof(int32));
 			
 		// get cache value
-		Object** methodPtr = reinterpret_cast<Object**>(ip);
+		Object** methodPtr = reinterpret_cast<Object**>(ip + sizeof(int32));
 		Method* method = static_cast<Method*>(*methodPtr);
-		BEER_BC_MOVE(sizeof(int32));
+
+		BEER_BC_MOVE(2 * sizeof(int32));
 			
 		// get current class
 		Class* receiverKlass = thread->getType(receiver);
@@ -843,10 +843,11 @@ BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
 		if(receiverKlass != cachedClass)
 		{
 			// whoops, cache-miss!
-			method = methodLookupCacheResultAtomic(invokedMethod, cachedClassPtr, methodPtr, receiverKlass, BEER_BC_DATA(uint32));
+			method = methodLookup(receiverKlass, BEER_BC_DATA(uint32));
+			patchInlineCacheAtomic(invokedMethod, cachedClassPtr, methodPtr, receiverKlass, method);
 		}
 		
-		DBG_ASSERT(method, BEER_WIDEN("Cached method is NULL"));
+		DBG_ASSERT(method, BEER_WIDEN("Method is NULL"));
 		frame->stackPush(method);
 		thread->openFrame();
 	}
@@ -871,31 +872,23 @@ BEER_BC_LABEL(INSTR_INTERFACE_INVOKE):
 
 		// fetch method
 		{
-			StackRef<String> selector(frame, frame->stackPush());
-			invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), selector);
+			Class* interf = static_cast<Class*>(reinterpret_cast<Object*>(BEER_BC_DATA(int32)));
+			BEER_BC_MOVE(sizeof(int32)); // pass interface
 
-			BEER_BC_MOVE(sizeof(uint16)); // pass selector
+			uint32 index = BEER_BC_DATA(uint32);
+			BEER_BC_MOVE(sizeof(uint32)); // pass index
 
-			StackRef<PolymorphicCache> cache(frame, frame->stackPush());
-			invokedMethod->loadFromPool(thread, BEER_BC_DATA(uint16), cache);
+			PolymorphicCache* polycache = static_cast<PolymorphicCache*>(reinterpret_cast<Object*>(BEER_BC_DATA(int32)));
+			BEER_BC_MOVE(sizeof(int32)); // pass cache
 
-			StackRef<Class> klass(frame, frame->stackPush());
-			thread->getType(receiver, klass);
+			method = polycache->find(thread->getType(receiver), interf, index);
 
-			PolymorphicCache::find(thread, cache, klass, selector, method);
-
-			// lookup failed
-			if(method.isNull())
-			{
-				throw MethodNotFoundException(*receiver, *klass, *selector);
-			}
-
-			frame->stackMoveTop(-3); // pop selector, cache, klass
+			DBG_ASSERT(*method, BEER_WIDEN("Method is NULL"));
 		}
 
 		thread->openFrame();
 	}
-	BEER_BC_MOVE(sizeof(uint16)); // pass cache
+	//BEER_BC_MOVE(sizeof(int32)); // pass cache
 	BEER_BC_RETURN();
 
 BEER_BC_LABEL(INSTR_STACK_INVOKE):

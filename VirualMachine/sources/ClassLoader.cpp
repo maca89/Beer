@@ -92,14 +92,7 @@ Class* ClassLoader::createClass(Thread* thread, String* classname, uint32 static
 		Object::OBJECT_CHILDREN_COUNT + (parents - 1) + virtualMethods + interfaceMethods + properties
 	);
 	
-	klass->mFlags = 0;
-	klass->mInterfacesCount = parents - 1;
-	klass->mPropertiesCount = properties;
-	klass->mVirtualMethodsCount = virtualMethods;
-	klass->mInterfaceMethodsCount = interfaceMethods;
-	klass->mInterfaceNext = klass->mVirtualMethodNext = klass->mInterfaceMethodNext = klass->mPropertyNext = 0;
-	klass->mTraverser = &Class::DefaultInstanceTraverser;
-	klass->mInstanceStaticSize = sizeof(Object);
+	new(klass) Class(parents - 1, properties, virtualMethods, interfaceMethods);
 
 	klass->setType(thread->getVM()->getMetaClass());
 	klass->setName(classname);

@@ -34,13 +34,9 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 		Object::OBJECT_CHILDREN_COUNT + 0 + Class::CLASS_METHODS_COUNT + 0 + 0
 	);
 	
-	metaClass->mFlags = 0;
-	metaClass->mInterfacesCount = 0;
-	metaClass->mPropertiesCount = 0;
-	metaClass->mVirtualMethodsCount = 2 + Object::OBJECT_METHODS_COUNT;
-	metaClass->mInterfaceMethodsCount = 0;
-	metaClass->mInterfaceNext = metaClass->mVirtualMethodNext = metaClass->mInterfaceMethodNext = metaClass->mPropertyNext = 0;
-	metaClass->mTraverser = &MetaClass::DefaultClassTraverser;
+	new(metaClass) Class(0, 0, 2 + Object::OBJECT_METHODS_COUNT, 0);
+
+	metaClass->setTraverser(&MetaClass::DefaultClassTraverser);
 	metaClass->mInstanceStaticSize = sizeof(Class);
 
 	metaClass->setType(metaClass);

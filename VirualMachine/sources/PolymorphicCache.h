@@ -1,7 +1,7 @@
 #pragma once
 #include "prereq.h"
 #include "Pool.h"
-#include "Integer.h"
+#include "Mutex.h"
 
 
 namespace Beer
@@ -17,18 +17,20 @@ namespace Beer
 	public:
 		enum
 		{
-			POLYCACHE_CHILDREN_COUNT = POOL_CHILDREN_COUNT/* + 2*/,
-			/*CHILD_ID_LOCKS = OBJECT_CHILDREN_COUNT,
-			CHILD_ID_METHODS = OBJECT_CHILDREN_COUNT + 1*/
+			POLYCACHE_CHILDREN_COUNT = POOL_CHILDREN_COUNT,
 		};
 
 	protected:
-		String* mSelector;
+		CriticalSection mCriticalSection;
 
 	public:
-		static void BEER_CALL init(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<String> selector);
-		static void BEER_CALL clear(Thread* thread, StackRef<PolymorphicCache> receiver);
-		static void BEER_CALL find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
-		static void BEER_CALL find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<Method> ret);
+		PolymorphicCache();
+		void clear();
+		Method* find(Class* receiverType, Class* interf, uint32 index);
+
+	public:
+		//static void BEER_CALL clear(Thread* thread, StackRef<PolymorphicCache> receiver);
+		//static void BEER_CALL find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret);
+		
 	};
 };

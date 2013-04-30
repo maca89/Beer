@@ -143,16 +143,20 @@ void DefaultBytecodeVerifier::verify(Thread* thread, Method* method, const Tempo
 
 			case BEER_INSTR_INTERFACE_INVOKE:
 				{
-					StackRef<String> selector(frame, frame->stackPush());
-					method->loadFromPool(thread, istream.read<uint16>(), selector);
-
-					StackRef<PolymorphicCache> cache(frame, frame->stackPush());
-					method->loadFromPool(thread, istream.read<uint16>(), cache);
+					String* selector = static_cast<String*>(reinterpret_cast<Object*>(istream.read<int32>()));
 
 					// TODO: what to check???
-					
-					frame->stackPop(); // pop selector
-					frame->stackPop(); // pop cache
+
+					if(selector == NULL)
+					{
+						throw BytecodeException(BEER_WIDEN("Selector is NULL"));
+					}
+
+					Class* selectorClass = thread->getType(selector);
+					if(selectorClass != thread->getVM()->getStringClass())
+					{
+						throw BytecodeException(BEER_WIDEN("Selector is not a String"));
+					}
 				}
 				break;
 

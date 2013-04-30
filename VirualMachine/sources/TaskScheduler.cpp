@@ -3,169 +3,265 @@
 #include "Thread.h"
 #include "Class.h"
 #include "Method.h"
-#include "TrampolineThread.h"
+#include "WorkerThread.h"
 #include "VirtualMachine.h"
 #include "FrameInspector.h"
 #include "GenerationalGC.h"
+#include "ThreadSafeOutput.h"
 
 using namespace Beer;
 
+//#define BEER_SCHEDULER_VERBOSE
+
+#ifdef BEER_SCHEDULER_VERBOSE
+#define SCHEDULER_DEBUG(msg) { stringstream ss; ss << "Scheduler: " << msg << "\n"; ThreadSafeOutput(cout) << ss.str(); }
+#else
+#define SCHEDULER_DEBUG(msg)
+#endif // BEER_SCHEDULER_VERBOSE
 
 TaskScheduler::TaskScheduler()
-	: mVM(NULL), mGC(NULL), mSafePoint(false)
+	: mVM(NULL), mGC(NULL), mSafePoint(false), mThreadIdleEvents(NULL), mRunning(false), mThreadsCount(0)
 {
+	
 }
 
 TaskScheduler::~TaskScheduler()
 {
 }
 
-void TaskScheduler::init(VirtualMachine* vm, GenerationalGC* gc)
+void TaskScheduler::init(VirtualMachine* vm, GenerationalGC* gc, uint16 threadsCount)
 {
 	mVM = vm;
 	mGC = gc;
+	mThreadsCount = threadsCount;
+	mThreadIdleEvents = new HANDLE[threadsCount];
+	mAllThreads = new WorkerThread* [threadsCount];
 
-	for(int i = 0; i < 2; i++)
+	for(uint16 i = 0; i < threadsCount; i++)
 	{
-		TrampolineThread* thread = new TrampolineThread(mVM, mGC);
+		WorkerThread* thread = new WorkerThread(i, mVM, mGC);
 		thread->init();
 
-		mAvailableThreads.push(thread);
+		mThreadIdleEvents[i] = thread->getIdleEvent()->getHandle();
+		mAllThreads[i] = thread;
+
+		mIdleThreads.push(thread);
+	}
+}
+
+void TaskScheduler::pause()
+{
+	mRunning = false;
+	// TODO: event
+}
+
+void TaskScheduler::resume()
+{
+	mRunning = true;
+	mIdleThreads.clear();
+
+	// start all threads
+	for(uint16 i = 0; i < mThreadsCount; i++)
+	{
+		WorkerThread* thread = mAllThreads[i];
+		thread->run();
+		mIdleThreads.push(thread);
+	}
+
+	while(mRunning)
+	{
+#ifdef BEER_SCHEDULER_VERBOSE
+		{
+			stringstream ss;
+			ss << "Scheduler:[";
+
+			ThreadQueue q;
+			WorkerThread* t = NULL;
+
+			// print idle
+			ss << "[Idle:";
+			while(t = mIdleThreads.pop())
+			{
+				ss << t->getThreadId() << " ";
+				q.push(t);
+			}
+			ss << "]";
+
+			// fix idle
+			while(t = q.pop())
+			{
+				mIdleThreads.push(t);
+			}
+
+			ss << "]\n";
+			ThreadSafeOutput(cout) << ss.str();
+		}
+#endif // BEER_SCHEDULER_VERBOSE
+
+		if(isSafePoint())
+		{
+			safePoint();
+			continue;
+		}
+
+		if(!mDone.empty())
+		{
+			mDone.clear(); // dbg
+		}
+
+		if(!mActive.empty()) // we have some tasks
+		{
+			if(mIdleThreads.empty()) // no threads available
+			{
+				//SCHEDULER_DEBUG("resume -- no worker -- wait");
+				// wait a while until maybe some appear
+				WaitForMultipleObjects(mThreadsCount, mThreadIdleEvents, false, SCHEDULER_TIME_FRAME);
+			}
+
+			if(mIdleThreads.empty()) // still no threads available
+			{
+				//SCHEDULER_DEBUG("resume -- no worker -- context switch");
+				//contextSwitch();
+				continue;
+			}
+
+			// we have available thread
+			wakeUpOneThread();
+		}
+
+		if(mActive.empty() && mWaiting.empty() && mDone.empty()) // no new work
+		{
+			// is anybody working?
+			
+			// very ugly, TODO
+			ThreadQueue q;
+			WorkerThread* t = NULL;
+			uint16 idleCount = 0;
+			while(t = mIdleThreads.pop())
+			{
+				q.push(t);
+				idleCount++;
+			}
+
+			while(t = q.pop())
+			{
+				mIdleThreads.push(t);
+			}
+
+			if(idleCount == mThreadsCount)
+			{
+				SCHEDULER_DEBUG("resume -- all done");
+				mRunning = false;
+				//contextSwitch(); // dbg, TODO
+				continue;
+			}
+			// otherwise somebody is still working
+		}
+
+		if(mActive.empty()) // no work, lets just wait a while
+		{
+			//SCHEDULER_DEBUG("resume -- no work");
+			WaitForMultipleObjects(mThreadsCount, mThreadIdleEvents, false, SCHEDULER_TIME_FRAME);
+		}
+	}
+
+	// start all threads
+	for(uint16 i = 0; i < mThreadsCount; i++)
+	{
+		WorkerThread* thread = mAllThreads[i];
+		thread->terminate();
 	}
 }
 
 void TaskScheduler::contextSwitch()
 {
-}
+	SCHEDULER_DEBUG("contextSwitch");
 
-void TaskScheduler::pauseAll()
-{
-}
+	// TODO
 
-void TaskScheduler::initializeTasks()
-{
-	while(!mScheduled.empty() && !isSafePoint())
+	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
-		Task* task = mScheduled.pop();
-
-		TrampolineThread* thread = mAvailableThreads.pop();
-		initializeTask(thread, task);
-		mAvailableThreads.push(thread);
-
-		mActive.push(task);
+		mAllThreads[i]->contextSwitch();
+		//mAllThreads[i]->getDoWorkEvent()->fire(); // dbg, TODO
 	}
 }
 
-void TaskScheduler::resumeAll()
+void TaskScheduler::startSafePoint()
 {
-	while(!mActive.empty() || !mScheduled.empty())
+	SCHEDULER_DEBUG("startSafePoint");
+
+	mSafePoint = true;
+
+	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
-		initializeTasks();
-
-		//while(!mActive.empty())
-		{
-			// dbg, TODO
-			if(isSafePoint())
-			{
-				//////////////////////////////
-				if(false)
-				{
-					if(!mActive.empty())
-					{
-						Task* task = mActive.pop();
-						TrampolineThread* thread = mAvailableThreads.pop();
-						thread->setContext(task->getContext());
-
-						//Frame* frame = task->getContext()->getFrames();
-						FrameInspector::debugPrintFrames(thread);
-					
-						thread->setContext(NULL); // debug
-						mAvailableThreads.push(thread);
-						mActive.push(task);
-					}
-				}
-				//////////////////////////////
-
-
-				mGC->threadsSuspended();
-				while(isSafePoint())
-				{
-					Sleep(40);
-				}
-				//stopSafePoint();
-				afterSafePoint();
-				continue;
-			}
-
-			Task* task = mActive.pop();
-
-			// TODO: run on thread
-			// TODO: mActive.push(task);
-
-			TrampolineThread* thread = mAvailableThreads.pop();
-			thread->setContext(task->getContext());
-			
-			// TODO: parallel
-			if(thread->trampoline())
-			{
-				task->markCompleted();
-				mDone.push(task);
-			}
-			else
-			{
-				mActive.push(task);
-			}
-
-			thread->setContext(NULL); // debug
-			mAvailableThreads.push(thread);
-		}
+		mAllThreads[i]->pauseExecution();
 	}
 }
-
-void TaskScheduler::schedule(Task* task)
+	
+void TaskScheduler::stopSafePoint()
 {
-	mScheduled.push(task);
+	SCHEDULER_DEBUG("stopSafePoint");
+	mSafePoint = false;
 }
 
-void TaskScheduler::initializeTask(Thread* thread, Task* task)
+void TaskScheduler::safePoint()
 {
-	TaskContext* context = task->getContext();
-	context->init(thread->getHeap(), thread->getVM()->getFrameClass());
+	SCHEDULER_DEBUG("safePoint");
 
-	Frame* frame = context->getFrame();
-	StackRef<Method> receiver(frame, frame->stackPush(task)); // push receiver
-	StackRef<Method> method(frame, frame->stackPush()); // push method
-				
-	// fetch method, TODO: cache
+	// wait for all threads to be idle (they **WERE** already notified)
+	WaitForMultipleObjects(mThreadsCount, mThreadIdleEvents, true, INFINITE);
+
+	// all threads are idle now
+	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
-		StackRef<Class> klass(frame, frame->stackPush());
-		thread->getType(receiver, klass);
-		DBG_ASSERT(*klass, BEER_WIDEN("Task has no type"));
+		mIdleThreads.push(mAllThreads[i]);
+	}
+	
+	// signalize GC
+	mGC->threadsSuspended(); 
 
-		StackRef<String> selector(frame, frame->stackPush()); // TODO
-		thread->createString(selector, BEER_WIDEN("Task::run()")); // TODO: cache
-
-		method = klass->findVirtualMethod(*selector);
-		//Class::findMethod(thread, klass, selector, method);
-
-		if(method.isNull())
-		{
-			throw MethodNotFoundException(*receiver, *klass, *selector); // TODO
-		}
-
-		frame->stackPop(); // pop selector
-		frame->stackPop(); // pop klass
+	// TODO: event from GC, no sleeplock
+	while(isSafePoint())
+	{
+		Sleep(40);
 	}
 
-	context->openFrame();
-	task->markScheduled();
-	task->unmarkCompleted();
-	task->unmarkCanceled();
-	task->unmarkFailed();
+	//stopSafePoint();
+	afterSafePoint();
+}
+
+void TaskScheduler::wakeUpOneThread()
+{
+	WorkerThread* thread = mIdleThreads.pop();
+	SCHEDULER_DEBUG("wakeUpOneThread -- thread #" << thread->getThreadId() << " -- #" << thread->getDoWorkEvent()->getHandle());
+	thread->getDoWorkEvent()->fire();
+}
+
+void TaskScheduler::addIdle(WorkerThread* thread)
+{
+	mIdleThreads.push(thread);
+}
+
+void TaskScheduler::addTask(Task* task)
+{
+	mActive.push(task);
+}
+
+void TaskScheduler::done(Task* task)
+{
+	mDone.push(task); // TODO: find waiting tasks
+	task->markCompleted();
+}
+
+Task* TaskScheduler::getSomeWork()
+{
+	return mActive.pop();
 }
 
 void TaskScheduler::wait(Task* who, Task* whatFor)
 {
+	WaitingTask waiting(who, whatFor);
+	mWaiting.push(waiting);
 }
 
 void TaskScheduler::afterSafePoint()
@@ -178,21 +274,26 @@ void TaskScheduler::updateFramesPointers()
 	updateFramesPointers(mActive);
 	updateFramesPointers(mWaiting);
 	updateFramesPointers(mDone);
-	updateFramesPointers(mScheduled);
+	//updateFramesPointers(mScheduled);
 	//updateFramesPointers(mLocked);
 }
 
-
-/*#include "TraverseObjectReceiver.h"
-class MyTraverseObjectReceiver : public TraverseObjectReceiver
+Task* TaskScheduler::updateFramesPointers(Task* task)
 {
-public:
-	virtual void traverseObjectPtr(Object** ptrToObject)
+	task = static_cast<Task*>(mGC->getIdentity(task));
+
+	if(task->getContext()->hasFrame())
 	{
-		Object* obj = *ptrToObject;
-		cout << obj << "\n";
+		WorkerThread* thread = mIdleThreads.pop();
+		thread->setContext(task);
+
+		task->getContext()->updateMovedPointers(mGC);
+
+		mIdleThreads.push(thread);
 	}
-};*/
+
+	return task;
+}
 
 void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 {
@@ -200,35 +301,25 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 
 	while(!queue.empty())
 	{
-		Task* task = queue.pop();
-		task = static_cast<Task*>(mGC->getIdentity(task));
+		newQueue.push(updateFramesPointers(queue.pop()));
+	}
 
-		if(task->getContext()->hasFrame())
-		{
-			TrampolineThread* thread = mAvailableThreads.pop();
-			thread->setContext(task->getContext());
+	while(!newQueue.empty())
+	{
+		queue.push(newQueue.pop());
+	}
+}
 
-			//Frame* oldTop = task->getContext()->getFrame();
-			//Frame* oldHeapAllocated = oldTop;
-			//while(oldHeapAllocated->isStackAllocated()) { oldHeapAllocated = oldHeapAllocated->previousFrame(); }
+void TaskScheduler::updateFramesPointers(WaitingTaskQueue& queue)
+{
+	WaitingTaskQueue newQueue;
 
-			//FrameInspector::debugPrintFrames(thread);
-			task->getContext()->updateMovedPointers(mGC);
-
-			//MyTraverseObjectReceiver myTraverserReceiver;
-			//task->getType()->getTraverser()(&myTraverserReceiver, task->getType(), task);
-			
-			//Frame* newTop = task->getContext()->getFrame();
-			//Frame* newHeapAllocated = newTop;
-			//while(newHeapAllocated->isStackAllocated()) { newHeapAllocated = newHeapAllocated->previousFrame(); }
-
-			//FrameInspector::debugPrintFrames(thread);
-
-			thread->setContext(NULL); // debug
-			mAvailableThreads.push(thread);
-		}
-
-		newQueue.push(task);
+	while(!queue.empty())
+	{
+		WaitingTask waiting = queue.pop();
+		waiting.who = updateFramesPointers(waiting.who);
+		waiting.whatFor = updateFramesPointers(waiting.whatFor);
+		newQueue.push(waiting);
 	}
 
 	while(!newQueue.empty())
@@ -242,8 +333,18 @@ void TaskScheduler::updateFramesClass(Class* klass)
 	updateFramesClass(mActive, klass);
 	updateFramesClass(mWaiting, klass);
 	updateFramesClass(mDone, klass);
-	updateFramesClass(mScheduled, klass);
+	//updateFramesClass(mScheduled, klass);
 	//updateFramesClass(mLocked, klass);
+}
+
+void TaskScheduler::updateFramesClass(WaitingTaskQueue& queue, Class* klass)
+{
+	for(WaitingTaskQueue::iterator it = queue.begin(); it != queue.end(); it++)
+	{
+		WaitingTask waiting = *it;
+		waiting.who->getContext()->updateFramesClass(klass);
+		waiting.whatFor->getContext()->updateFramesClass(klass);
+	}
 }
 
 void TaskScheduler::updateFramesClass(TaskQueue& queue, Class* klass)

@@ -10,6 +10,18 @@
 
 using namespace Beer;
 
+Class::Class(uint32 interfaces, uint32 properties, uint32 virtualMethods, uint32 interfaceMethods)
+	: mSuperClass(NULL), mFlags(0), mName(NULL), mTraverser(NULL)
+{
+	mInterfacesCount = interfaces;
+	mPropertiesCount = properties;
+	mVirtualMethodsCount = virtualMethods;
+	mInterfaceMethodsCount = interfaceMethods;
+	mInterfaceNext = mVirtualMethodNext = mInterfaceMethodNext = mPropertyNext = 0;
+	mTraverser = &Class::DefaultInstanceTraverser;
+	mInstanceStaticSize = sizeof(Object);
+	mVTable = getChildren() + Object::OBJECT_CHILDREN_COUNT + interfaces;
+}
 
 void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, StackRef<Object> ret)
 {
@@ -191,7 +203,6 @@ uint32 Class::addInterface(Class* interf)
 void Class::setSuperClass(Class* klass)
 {
 	DBG_ASSERT(!klass->isInterface(), BEER_WIDEN("Superclass may not be an interface"));
-
 
 	mSuperClass = klass;
 	mInterfaceNext = 0;

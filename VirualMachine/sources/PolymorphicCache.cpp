@@ -8,33 +8,80 @@
 
 using namespace Beer;
 
-void BEER_CALL PolymorphicCache::init(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<String> selector)
+Method* interfaceMethodLookup(Class* receiverType, Class* interf, uint32 methodIndex)
 {
-	//receiver = static_cast<PolymorphicCache*>(thread->getGC()->getIdentity(receiver));
-	//thread->getGC()->setChild(*receiver, receiver->mSelector, *selector); // TODO
-	receiver->mSelector = *selector;
-}
-
-void BEER_CALL PolymorphicCache::clear(Thread* thread, StackRef<PolymorphicCache> receiver)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	uint16 length = 0;
-	Pool::getLength(thread, receiver.staticCast<Pool>(), length);
-	
-	StackRef<Object> null(frame, frame->stackPush());
-
-	for(uint32 i = 0; i < length; i++)
+	uint32 interfIndex = 0;
+	if(!receiverType->findInterfaceMethodsStart(interf, interfIndex))
 	{
-		Pool::setItem(thread, receiver.staticCast<Pool>(), i, null);
+		throw Exception(BEER_WIDEN("Interface method not found")); // TODO: better exception
 	}
-	
-	frame->stackPop(); // null
+
+	return receiverType->getMethod(interfIndex + methodIndex);
 }
 
+PolymorphicCache::PolymorphicCache() : mCriticalSection()
+{
+}
 
-void PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
+void PolymorphicCache::clear()
+{
+	for(uint32 i = 0; i < getLength(); i++)
+	{
+		setItem(i, NULL);
+	}
+}
+
+Method* PolymorphicCache::find(Class* receiverType, Class* interf, uint32 methodIndex)
+{
+	//return interfaceMethodLookup(receiverType, interf, methodIndex);
+
+	for(uint32 sloti = 0; sloti < getLength(); sloti += 2)
+	{
+		Object* key = getItem(sloti);
+		
+		// found!
+		if(key == receiverType)
+		{
+			return static_cast<Method*>(getItem(sloti + 1));
+		}
+
+		// end of cache
+		while(key == NULL)
+		{
+			NonBlockingMutex nbMutex(&mCriticalSection);
+
+			// patch the cache!
+			if(nbMutex.entered())
+			{
+				if(key == NULL) // could have been patched by someone else before we acquired the lock
+				{
+					Method* value = interfaceMethodLookup(receiverType, interf, methodIndex);
+
+					setItem(sloti + 1, value); // first set value
+					setItem(sloti, receiverType); // second set key
+					return value; // releases nbMutex
+				}
+			}
+
+			// umm, someone else is working with the cache (probably with this index, but we dont know)
+			else
+			{
+				BlockingMutex blMutex(&mCriticalSection); // wait until they finish (blocking wait)
+				key = getItem(sloti); // lets see if the slot is free
+			}
+		}
+	}
+
+	return interfaceMethodLookup(receiverType, interf, methodIndex);
+}
+
+/*void BEER_CALL PolymorphicCache::clear(Thread* thread, StackRef<PolymorphicCache> receiver)
+{
+	static_cast<PolymorphicCache*>(thread->getGC()->getIdentity(receiver))->clear();
+}*/
+
+
+/*void PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<String> selector, StackRef<Method> ret)
 {
 	Frame* frame = thread->getFrame();
 	BEER_STACK_CHECK();
@@ -94,18 +141,4 @@ void PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver,
 
 		frame->stackPop(); // pop pair
 	}
-}
-
-void BEER_CALL PolymorphicCache::find(Thread* thread, StackRef<PolymorphicCache> receiver, StackRef<Class> klass, StackRef<Method> ret)
-{
-	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<String> selector(frame, frame->stackPush(
-		receiver->mSelector
-	));
-	
-	find(thread, receiver, klass, selector, ret);
-
-	frame->stackPop(); // pop receiver
-}
+}*/

@@ -140,16 +140,8 @@ void DefaultBytecodeLinker::link(Thread* thread, Method* method, ClassFileDescri
 					ostream.write<uint8>(opcode);
 
 					const char16* cselector = classFile->getDescriptor<StringDescriptor>(istream.read<int32>())->c_str();
-					StackRef<String> selector(frame, frame->stackPush(
-						*String::gTranslate(thread, cselector)
-					));
-					ostream.write<uint16>(method->storeToPool(thread, selector));
-					
-					StackRef<PolymorphicCache> cache(frame, frame->stackPush());
-					thread->createPolycache(cache, 3);
-					ostream.write<uint16>(method->storeToPool(thread, cache));
-
-					frame->stackMoveTop(-2); // pop selector, cache
+					String* selector = *String::gTranslate(thread, cselector);
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(selector))); // TODO
 				}
 				break;
 

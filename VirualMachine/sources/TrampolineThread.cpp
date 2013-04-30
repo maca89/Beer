@@ -17,8 +17,11 @@ void TrampolineThread::work()
 bool TrampolineThread::trampoline()
 {
 	//mVM->getDebugger()->started();
+
+	bool hf = hasFrame();
+	bool iep = isExecutionPaused();
 		
-	while(hasFrame() && !mVM->isSafePoint())
+	while(hasFrame() && !isExecutionPaused())
 	{
 		Frame* frame = getFrame();
 		StackRef<Method> method(frame, Frame::INDEX_METHOD);
@@ -46,7 +49,6 @@ bool TrampolineThread::trampoline()
 		#ifdef BEER_MEASURE_PERFORMANCE
 			oldMethod->addTimeSpent(timer.stop());
 		#endif // BEER_MEASURE_PERFORMANCE
-
 		}
 		catch(Exception& ex)
 		{

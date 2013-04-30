@@ -205,6 +205,12 @@
     <ClCompile Include="sources\Mutex.cpp">
       <Filter>Sources\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="sources\SynchronizationEvent.cpp">
+      <Filter>Sources\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\WorkerThread.cpp">
+      <Filter>Sources\Thread</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -212,9 +218,6 @@
     </ClInclude>
     <ClInclude Include="sources\AllocationBlock.h">
       <Filter>Headers\GarbageCollector</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\Array.h">
-      <Filter>Headers\InternalClasses</Filter>
     </ClInclude>
     <ClInclude Include="sources\Boolean.h">
       <Filter>Headers\InternalClasses</Filter>
@@ -471,6 +474,15 @@
     </ClInclude>
     <ClInclude Include="sources\Mutex.h">
       <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\SynchronizationEvent.h">
+      <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Array.h">
+      <Filter>Headers\InternalClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\WorkerThread.h">
+      <Filter>Headers\Thread</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

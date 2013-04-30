@@ -11,7 +11,7 @@ using namespace Beer;
 
 
 Debugger::Debugger(VirtualMachine* vm, GenerationalGC* gc)
-	: mEnabled(false), mStepping(false), Thread(vm, gc)
+	: mEnabled(false), mStepping(false), Thread(999, vm, gc)
 {
 }
 

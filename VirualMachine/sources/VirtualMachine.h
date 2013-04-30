@@ -62,7 +62,7 @@ namespace Beer
 
 	public:
 		INLINE VirtualMachine(GenerationalGC* gc)
-			: Thread(this, gc),
+			: Thread(666, this, gc),
 			mClassLoader(NULL), mDebugger(NULL),
 			mMetaClass(NULL), mObjectClass(NULL), mStringClass(NULL), mIntegerClass(NULL), mBooleanClass(NULL), mArrayClass(NULL), mPoolClass(NULL), 
 			mMethodClass(NULL), mPropertyClass(NULL), mFrameClass(NULL), mBytecodeBuilder(NULL)//, mGC(NULL)
@@ -120,7 +120,7 @@ namespace Beer
 		INLINE void setArrayClass(Class* value) { mArrayClass = value; }
 		INLINE void setPoolClass(Class* value) { mPoolClass = value; }
 
-		volatile bool isSafePoint() const;
+		//volatile bool isSafePoint() const;
 		void startSafePoint();
 		void stopSafePoint();
 
@@ -132,10 +132,10 @@ namespace Beer
 	};
 
 
-	INLINE volatile bool VirtualMachine::isSafePoint() const
+	/*INLINE volatile bool VirtualMachine::isSafePoint() const
 	{
 		return mScheduler.isSafePoint();
-	}
+	}*/
 
 	INLINE void VirtualMachine::startSafePoint()
 	{

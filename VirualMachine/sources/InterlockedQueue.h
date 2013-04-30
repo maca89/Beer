@@ -150,7 +150,7 @@ namespace Beer
 					{
 						if(next.node == NULL)
 						{
-							return T();//result; // empty queue, undefined behaviour
+							return T(); // empty queue, undefined behaviour
 						}
 						CAS(&mTail, oldTail, Pointer(next.node, oldTail.counter + 1)); // tail is weird, fix it
 					}

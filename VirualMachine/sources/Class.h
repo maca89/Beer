@@ -65,7 +65,10 @@ namespace Beer
 		uint32 mVirtualMethodNext;
 		uint32 mInterfaceMethodNext;
 
+		Object** mVTable;
+
 	public:
+		Class(uint32 interfaces, uint32 properties, uint32 virtualMethods, uint32 interfaceMethods);
 
 		// flags
 		INLINE uint8 getFlags() const { return mFlags; }
@@ -231,14 +234,17 @@ namespace Beer
 
 	INLINE Method* Class::getMethod(uint32 index)
 	{
-		BOUNDS_ASSERT(index, getMethodsCount());
-		return static_cast<Method*>(getChild(OBJECT_CHILDREN_COUNT + getInterfacesCount() + index));
+		DBG_ASSERT(index < getMethodsCount(), BEER_WIDEN("Tried to get method with index out of bound")); // dbg assert due to speed
+		//return static_cast<Method*>(getChild(OBJECT_CHILDREN_COUNT + getInterfacesCount() + index));
+		return static_cast<Method*>(mVTable[index]);
 	}
 
 	INLINE void Class::setMethod(uint32 index, Method* value)
 	{
 		BOUNDS_ASSERT(index, getMethodsCount());
-		setChild(OBJECT_CHILDREN_COUNT + mInterfacesCount + index, value);
+		//setChild(OBJECT_CHILDREN_COUNT + getInterfacesCount() + index, value);
+		mVTable[index] = value;
+		value->setSlotId(index);
 	}
 	
 	INLINE uint32 Class::getMethodsCount() const

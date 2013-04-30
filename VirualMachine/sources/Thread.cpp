@@ -13,9 +13,10 @@
 using namespace Beer;
 
 
-Thread::Thread(VirtualMachine* vm, GenerationalGC * gc)
-	: mVM(vm), mGC(gc), /*mPolycache(NULL),*/ mContext(NULL)//, mTopFrame(NULL), mRootFrame(NULL)
+Thread::Thread(uint16 threadId, VirtualMachine* vm, GenerationalGC * gc)
+	: mVM(vm), mGC(gc), mContext(NULL), mExecutionPaused(true)
 {
+	mThreadId = threadId;
 }
 
 void Thread::init()
@@ -293,18 +294,6 @@ void Thread::staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int
 
 Class* Thread::getType(Object* object)
 {
-	Frame* frame = getFrame();
-	BEER_STACK_CHECK();
-
-	StackRef<Object> objectOnStack(frame, frame->stackPush(object));
-	Class* type = getType(objectOnStack);
-	frame->stackPop(); // pop objectOnStack
-
-	return type;
-}
-
-Class* Thread::getType(StackRef<Object> object)
-{
 	return mVM->getClassTable()->translate(this, object);
 }
 
@@ -315,8 +304,10 @@ void Thread::getType(StackRef<Object> object, StackRef<Class> ret)
 
 void Thread::createPolycache(StackRef<PolymorphicCache> ret, uint16 length)
 {
-	ret = getHeap()->alloc<PolymorphicCache>(PolymorphicCache::POLYCACHE_CHILDREN_COUNT + length);
+	ret = getHeap()->alloc<PolymorphicCache>(PolymorphicCache::POLYCACHE_CHILDREN_COUNT + length * 2);
 
-	PolymorphicCache::setLength(this, ret.staticCast<Pool>(), length);
-	PolymorphicCache::clear(this, ret);
+	new(*ret) PolymorphicCache(); // ctor
+
+	ret->setLength(length);
+	ret->clear();
 }

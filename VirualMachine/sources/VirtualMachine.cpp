@@ -93,7 +93,7 @@ void VirtualMachine::init()
 	mBytecodeBuilder = new BytecodeBuilder();
 	Bytecode::init(this);
 
-	mScheduler.init(this, mGC);
+	mScheduler.init(this, mGC, 2);
 
 	mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
@@ -183,12 +183,12 @@ void VirtualMachine::work()
 		CreateAllEntryPointsTask::init(this, taskOnStack, taskOnStack);
 		//CreateAllEntryPointsTask::work(this, taskOnStack);
 
-		getScheduler()->schedule(*taskOnStack);
+		getScheduler()->addTask(*taskOnStack);
 
 		frame->stackPop(); // pop taskOnStack
 	}
 
-	getScheduler()->resumeAll();
+	getScheduler()->resume();
 	//getScheduler()->
 
 	// wait for all threads

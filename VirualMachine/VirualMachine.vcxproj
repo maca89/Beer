@@ -89,9 +89,11 @@
     <ClCompile Include="sources\TaskScheduler.cpp" />
     <ClCompile Include="sources\Thread.cpp" />
     <ClCompile Include="sources\MiliTimer.cpp" />
+    <ClCompile Include="sources\SynchronizationEvent.cpp" />
     <ClCompile Include="sources\Timer.cpp" />
     <ClCompile Include="sources\TrampolineThread.cpp" />
     <ClCompile Include="sources\VirtualMachine.cpp" />
+    <ClCompile Include="sources\WorkerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\GCObjectTraverser.h" />
@@ -139,6 +141,7 @@
     <ClInclude Include="sources\ChildrenForwarder.h" />
     <ClInclude Include="sources\TaskContext.h" />
     <ClInclude Include="sources\TaskScheduler.h" />
+    <ClInclude Include="sources\SynchronizationEvent.h" />
     <ClInclude Include="sources\TraverseObjectReceiver.h" />
     <ClInclude Include="sources\Pair.h" />
     <ClInclude Include="sources\PolymorphicCache.h" />
@@ -183,6 +186,7 @@
     <ClInclude Include="sources\TrampolineThread.h" />
     <ClInclude Include="sources\VirtualMachine.h" />
     <ClInclude Include="sources\FixedStack.h" />
+    <ClInclude Include="sources\WorkerThread.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5AD3E299-9451-4D7E-B1A4-0693AE600112}</ProjectGuid>

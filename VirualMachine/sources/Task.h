@@ -23,6 +23,8 @@ namespace Beer
 			TASK_STATE_COMPLETED = 0x02,
 			TASK_STATE_CANCELED = 0x04,
 			TASK_STATE_FAILED = 0x08,
+
+			METHOD_SLOT_RUN = 10,
 		};
 
 	protected:

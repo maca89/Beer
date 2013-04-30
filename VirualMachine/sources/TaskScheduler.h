@@ -9,60 +9,99 @@
 namespace Beer
 {
 	class Task;
-	class TrampolineThread;
+	class WorkerThread;
 	class VirtualMachine;
 	class GenerationalGC;
 
 	class TaskScheduler
 	{
 	public:
+		struct WaitingTask
+		{
+			Task* who;
+			Task* whatFor;
+
+			INLINE WaitingTask() : who(NULL), whatFor(NULL) {}
+			INLINE WaitingTask(Task* who, Task* whatFor) : who(who), whatFor(whatFor) {}
+		};
+
+		enum
+		{
+			SCHEDULER_TIME_FRAME = 40 // ms
+		};
+
 		typedef InterlockedQueue<Task*> TaskQueue;
-		typedef InterlockedQueue<TrampolineThread*> ThreadQueue;
+		typedef InterlockedQueue<WorkerThread*> ThreadQueue;
+		typedef InterlockedQueue<WaitingTask> WaitingTaskQueue;
 
 	protected:
-		TaskQueue mActive;
-		TaskQueue mWaiting;
-		TaskQueue mDone;
-		TaskQueue mScheduled;
-		// TaskQueue mLocked;
-
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;
-		ThreadQueue mAvailableThreads;
+
 		volatile bool mSafePoint;
+		volatile bool mRunning;
+
+		// tasks
+		TaskQueue mActive;
+		WaitingTaskQueue mWaiting;
+		TaskQueue mDone;
+		//TaskQueue mScheduled;
+		// TaskQueue mLocked;
+
+		// threads
+		ThreadQueue mIdleThreads;
+		//ThreadQueue mRunningThreads;
+		
+		uint16 mThreadsCount;
+		HANDLE* mThreadIdleEvents;
+		WorkerThread** mAllThreads;
 
 	public:
 		TaskScheduler();
 		~TaskScheduler();
 
-		void init(VirtualMachine* vm, GenerationalGC* mGC);
+		void init(VirtualMachine* vm, GenerationalGC* mGC, uint16 threadsCount);
 
-		void contextSwitch();
-		void pauseAll();
-		void resumeAll();
-
-		void schedule(Task* task);
-		void wait(Task* who, Task* whatFor);
-		// void wait(Thread* thread, StackRef<Task> who, StackRef<Lock> whatFor);
+		void pause();
+		void resume();
 
 		volatile bool isSafePoint() const;
 		void startSafePoint();
 		void stopSafePoint();
 
 		TaskQueue* getActiveQueue();
-		TaskQueue* getWaitingQueue();
 		TaskQueue* getDoneQueue();
 		TaskQueue* getScheduledQueue();
+		WaitingTaskQueue* getWaitingQueue();
 
 		void updateFramesClass(Class* klass);
 
+		// tasks
+		void addTask(Task* task);
+		void done(Task* task);
+		void wait(Task* who, Task* whatFor);
+
+		// threads
+		void addIdle(WorkerThread* thread);
+		//void addRunning(WorkerThread* thread);
+
+		Task* getSomeWork();
+
 	protected:
-		void initializeTask(Thread* thread, Task* task);
-		void initializeTasks();
+		void safePoint();
+		void contextSwitch();
 		void afterSafePoint();
+		void wakeUpOneThread();	
+		
+		//void findAllIdle();
+		
 		void updateFramesPointers();
+		Task* updateFramesPointers(Task* task);
 		void updateFramesPointers(TaskQueue& queue);
+		void updateFramesPointers(WaitingTaskQueue& queue);
 		Frame* updateFramePointers(Frame* frame);
+
+		void updateFramesClass(WaitingTaskQueue& queue, Class* klass);
 		void updateFramesClass(TaskQueue& queue, Class* klass);
 };
 
@@ -72,22 +111,12 @@ namespace Beer
 		return mSafePoint;
 	}
 
-	INLINE void TaskScheduler::startSafePoint()
-	{
-		mSafePoint = true;
-	}
-	
-	INLINE void TaskScheduler::stopSafePoint()
-	{
-		mSafePoint = false;
-	}
-
 	INLINE TaskScheduler::TaskQueue* TaskScheduler::getActiveQueue()
 	{
 		return &mActive;
 	}
 
-	INLINE TaskScheduler::TaskQueue* TaskScheduler::getWaitingQueue()
+	INLINE TaskScheduler::WaitingTaskQueue* TaskScheduler::getWaitingQueue()
 	{
 		return &mWaiting;
 	}
@@ -97,10 +126,10 @@ namespace Beer
 		return &mDone;
 	}
 
-	INLINE TaskScheduler::TaskQueue* TaskScheduler::getScheduledQueue()
+	/*NLINE TaskScheduler::TaskQueue* TaskScheduler::getScheduledQueue()
 	{
 		return &mScheduled;
-	}
+	}*/
 
 	/*TaskScheduler::TaskQueue* TaskScheduler::getLockedQueue()
 	{

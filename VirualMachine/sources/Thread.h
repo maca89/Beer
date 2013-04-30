@@ -7,6 +7,7 @@
 #include "String.h"
 #include "GenerationalGC.h"
 #include "TaskContext.h"
+#include "SynchronizationEvent.h"
 
 
 namespace Beer
@@ -28,7 +29,10 @@ namespace Beer
 		GenerationalGC* mGC;  // is it needed?
 		Heap* mHeap;
 
+		Task* mTask;
 		TaskContext* mContext;
+		uint16 mThreadId;
+		volatile bool mExecutionPaused;
 
 		enum
 		{
@@ -36,16 +40,21 @@ namespace Beer
 		};
 
 	public:
-		Thread(VirtualMachine* vm, GenerationalGC * gc);
+		Thread(uint16 threadId, VirtualMachine* vm, GenerationalGC * gc);
 
 		virtual ~Thread()
 		{
 		}
 
-		void setContext(TaskContext* value) { mContext = value; }
-		TaskContext* getThreadContext() { return mContext; }
+		uint16 getThreadId() const;
 
-		//volatile bool isSafePoint() const;
+		void setContext(TaskContext* cxt);
+		void setContext(Task* task);
+		TaskContext* getThreadContext() const;
+		Task* getTask() const;
+
+		volatile bool isExecutionPaused() const;
+		void pauseExecution();
 
 		INLINE VirtualMachine* getVM() { return mVM; }
 		INLINE GenerationalGC* getGC() { return mGC; } // does every thread need GC?
@@ -98,8 +107,47 @@ namespace Beer
 		void staticCreateObject(StackRef<Class> klass, StackRef<Object> ret, int32 staticSize, int32 additionalChildrenCount = 0);
 	};
 
-	/*INLINE volatile bool Thread::isSafePoint() const
+	INLINE volatile bool Thread::isExecutionPaused() const
 	{
-		return mVM->isSafePoint();
-	}*/
+		return mExecutionPaused;
+	}
+
+	INLINE void Thread::pauseExecution()
+	{
+		mExecutionPaused = true;
+	}
+
+	// inline definitions
+
+	INLINE uint16 Thread::getThreadId() const
+	{
+		return mThreadId;
+	}
+
+	INLINE Class* Thread::getType(StackRef<Object> object)
+	{
+		return getType(*object);
+	}
+
+	INLINE void Thread::setContext(TaskContext* cxt)
+	{
+		mTask = NULL;
+		mContext = cxt;
+	}
+
+	INLINE void Thread::setContext(Task* task)
+	{
+		mTask = task;
+		mContext = mTask->getContext();
+	}
+	
+	INLINE Task* Thread::getTask() const
+	{
+		return mTask;
+	}
+	
+	INLINE TaskContext* Thread::getThreadContext() const
+	{
+		return mContext; 
+	}
 };

@@ -13,6 +13,28 @@ void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task
 {
 	receiver->mContext = TaskContext();
 	receiver->mTaskFlags = 0;
+
+	// init task context
+	{
+		TaskContext* context = receiver->getContext();
+		context->init(thread->getHeap(), thread->getVM()->getFrameClass());
+
+		Frame* frame = context->getFrame();
+	
+		StackRef<Method> new_receiver(frame, frame->stackPush(*receiver)); // push receiver
+		StackRef<Method> new_method(frame, frame->stackPush()); // push method
+				
+		Class* klass = thread->getType(receiver);
+		new_method = klass->getMethod(Task::METHOD_SLOT_RUN);
+
+		context->openFrame();
+	}
+	
+	receiver->markScheduled();
+	receiver->unmarkCompleted();
+	receiver->unmarkCanceled();
+	receiver->unmarkFailed();
+
 	ret = receiver;
 }
 
@@ -20,7 +42,10 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 {
 	NULL_ASSERT(*receiver);
 
-	TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
+	thread->getVM()->getScheduler()->addTask(*receiver);
+	return;
+
+	/*TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
 	thread->getVM()->getThreads().insert(thread2);
 	Frame* frame = thread2->getFrame();
 
@@ -54,13 +79,14 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 	//thread->getVM()->getDebugger()->printFrame(thread2, frame);
 
 	thread2->openFrame();
-	thread2->run();
+	thread2->run();*/
 }
 
 
 void BEER_CALL Task::await(Thread* thread, StackRef<Task> receiver)
 {
-
+	thread->getVM()->getScheduler()->wait(thread->getTask(), *receiver);
+	return;
 }
 
 void BEER_CALL Task::getScheduled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)
@@ -148,6 +174,7 @@ void TaskInitializer::initClass(Thread* thread, ClassLoader* loader, Class* klas
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getFailed"), BEER_WIDEN("Task::getFailed()"), &Task::getFailed, 0, 1);
 	loader->addVirtualMethod(thread, klass, BEER_WIDEN("getId"), BEER_WIDEN("Task::getId()"), &Task::getId, 0, 1);
 
-	loader->addVirtualMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &Task::abstractRun, 0, 0)
-		->markAbstract();
+	Method* run = loader->addVirtualMethod(thread, klass, BEER_WIDEN("run"), BEER_WIDEN("Task::run()"), &Task::abstractRun, 0, 0);
+	run->markAbstract();
+	RUNTIME_ASSERT(run->getSlotId() == Task::METHOD_SLOT_RUN, BEER_WIDEN("Task::run method slot is different"));
 }

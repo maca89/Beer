@@ -53,6 +53,7 @@ namespace Beer
 		uint16 mReturnsCount;
 		uint16 mParamsCount;
 
+		uint32 mSlotId;
 		String* mName;
 		Pool* mPool;
 		Class* mInterface;
@@ -60,7 +61,12 @@ namespace Beer
 		CriticalSection mCriticalSection;
 
 	public:
-		INLINE Method() {}
+		INLINE Method() : mSlotId(0) {}
+
+		// slot id
+
+		INLINE uint32 getSlotId() const { return mSlotId; }
+		INLINE void setSlotId(uint32 value) { mSlotId = value; }
 
 		// time spent
 		INLINE void addTimeSpent(float64 value) { mTimeSpent += value; }
