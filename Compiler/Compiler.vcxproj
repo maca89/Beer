@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sources\AssignmentNode.cpp" />
+    <ClCompile Include="sources\beer.tab.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\BeerCompiler.cpp" />
+    <ClCompile Include="sources\BinaryWriter.cpp" />
+    <ClCompile Include="sources\Block.cpp" />
+    <ClCompile Include="sources\BlockNode.cpp" />
+    <ClCompile Include="sources\BooleanConstantNode.cpp" />
+    <ClCompile Include="sources\ByteCodeGenerator.cpp" />
+    <ClCompile Include="sources\CallOperatorNode.cpp" />
+    <ClCompile Include="sources\CharacterConstantNode.cpp" />
+    <ClCompile Include="sources\Class.cpp" />
+    <ClCompile Include="sources\ClassDefinitionNode.cpp" />
+    <ClCompile Include="sources\ClassFileGenerator.cpp" />
+    <ClCompile Include="sources\ClassListBuilder.cpp" />
+    <ClCompile Include="sources\ClassStructureBuilder.cpp" />
+    <ClCompile Include="sources\CodeGenerator.cpp" />
+    <ClCompile Include="sources\ConstructorCallNode.cpp" />
+    <ClCompile Include="sources\DataSectionNode.cpp" />
+    <ClCompile Include="sources\DescriptorDictionary.cpp" />
+    <ClCompile Include="sources\EventsSectionNode.cpp" />
+    <ClCompile Include="sources\FloatConstantNode.cpp" />
+    <ClCompile Include="sources\IdentifierNode.cpp" />
+    <ClCompile Include="sources\IfNode.cpp" />
+    <ClCompile Include="sources\IntegerConstantNode.cpp" />
+    <ClCompile Include="sources\InterfaceSectionNode.cpp" />
+    <ClCompile Include="sources\lex.yy.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\main.cpp" />
+    <ClCompile Include="sources\MemberDeclarationNode.cpp" />
+    <ClCompile Include="sources\Method.cpp" />
+    <ClCompile Include="sources\MethodCallNode.cpp" />
+    <ClCompile Include="sources\MethodDefinitionNode.cpp" />
+    <ClCompile Include="sources\MethodGroup.cpp" />
+    <ClCompile Include="sources\MethodParameterNode.cpp" />
+    <ClCompile Include="sources\NameBuilder.cpp" />
+    <ClCompile Include="sources\NodeVisitor.cpp" />
+    <ClCompile Include="sources\Output.cpp" />
+    <ClCompile Include="sources\prereq.cpp" />
+    <ClCompile Include="sources\PrinterVisitor.cpp" />
+    <ClCompile Include="sources\Program.cpp" />
+    <ClCompile Include="sources\ProgramNode.cpp" />
+    <ClCompile Include="sources\PropertyCallNode.cpp" />
+    <ClCompile Include="sources\PropertyDefinitionNode.cpp" />
+    <ClCompile Include="sources\ProtectedSectionNode.cpp" />
+    <ClCompile Include="sources\ReturnNode.cpp" />
+    <ClCompile Include="sources\SemanticAnalyser.cpp" />
+    <ClCompile Include="sources\semanticschecker.cpp" />
+    <ClCompile Include="sources\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\StringConstantNode.cpp" />
+    <ClCompile Include="sources\ThisNode.cpp" />
+    <ClCompile Include="sources\VariableDeclarationNode.cpp" />
+    <ClCompile Include="sources\VariableDefinitionNode.cpp" />
+    <ClCompile Include="sources\WhileNode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sources\AssignmentNode.h" />
+    <ClInclude Include="sources\beer.tab.hpp" />
+    <ClInclude Include="sources\BeerCompiler.h" />
+    <ClInclude Include="sources\BinaryWriter.h" />
+    <ClInclude Include="sources\Block.h" />
+    <ClInclude Include="sources\BlockNode.h" />
+    <ClInclude Include="sources\BooleanConstantNode.h" />
+    <ClInclude Include="sources\ByteCodeGenerator.h" />
+    <ClInclude Include="sources\CallOperatorNode.h" />
+    <ClInclude Include="sources\CharacterConstantNode.h" />
+    <ClInclude Include="sources\Class.h" />
+    <ClInclude Include="sources\ClassDefinitionNode.h" />
+    <ClInclude Include="sources\ClassFileGenerator.h" />
+    <ClInclude Include="sources\ClassListBuilder.h" />
+    <ClInclude Include="sources\ClassStructureBuilder.h" />
+    <ClInclude Include="sources\CodeGenerator.h" />
+    <ClInclude Include="sources\ConstantNode.h" />
+    <ClInclude Include="sources\ConstructorCallNode.h" />
+    <ClInclude Include="sources\DataSectionNode.h" />
+    <ClInclude Include="sources\Descriptor.h" />
+    <ClInclude Include="sources\DescriptorDictionary.h" />
+    <ClInclude Include="sources\DescriptorVisitor.h" />
+    <ClInclude Include="sources\EventsSectionNode.h" />
+    <ClInclude Include="sources\Expression.h" />
+    <ClInclude Include="sources\ExpressionNode.h" />
+    <ClInclude Include="sources\FloatConstantNode.h" />
+    <ClInclude Include="sources\IdentifierNode.h" />
+    <ClInclude Include="sources\IfNode.h" />
+    <ClInclude Include="sources\IntegerConstantNode.h" />
+    <ClInclude Include="sources\InterfaceSectionNode.h" />
+    <ClInclude Include="sources\LexicalException.h" />
+    <ClInclude Include="sources\LValueNode.h" />
+    <ClInclude Include="sources\Member.h" />
+    <ClInclude Include="sources\MemberDeclarationNode.h" />
+    <ClInclude Include="sources\Method.h" />
+    <ClInclude Include="sources\MethodCallNode.h" />
+    <ClInclude Include="sources\MethodDefinitionNode.h" />
+    <ClInclude Include="sources\MethodGroup.h" />
+    <ClInclude Include="sources\MethodParameter.h" />
+    <ClInclude Include="sources\MethodParameterNode.h" />
+    <ClInclude Include="sources\NameBuilder.h" />
+    <ClInclude Include="sources\Node.h" />
+    <ClInclude Include="sources\NodeVisitor.h" />
+    <ClInclude Include="sources\Output.h" />
+    <ClInclude Include="sources\prereq.h" />
+    <ClInclude Include="sources\PrinterVisitor.h" />
+    <ClInclude Include="sources\Program.h" />
+    <ClInclude Include="sources\ProgramNode.h" />
+    <ClInclude Include="sources\PropertyCallNode.h" />
+    <ClInclude Include="sources\PropertyDefinitionNode.h" />
+    <ClInclude Include="sources\ProtectedSectionNode.h" />
+    <ClInclude Include="sources\ReturnNode.h" />
+    <ClInclude Include="sources\SectionNode.h" />
+    <ClInclude Include="sources\SemanticAnalyser.h" />
+    <ClInclude Include="sources\SemanticException.h" />
+    <ClInclude Include="sources\SemanticsChecker.h" />
+    <ClInclude Include="sources\StatementNode.h" />
+    <ClInclude Include="sources\stdafx.h" />
+    <ClInclude Include="sources\StringConstantNode.h" />
+    <ClInclude Include="sources\StringDescriptor.h" />
+    <ClInclude Include="sources\ThisNode.h" />
+    <ClInclude Include="sources\Variable.h" />
+    <ClInclude Include="sources\VariableDeclarationNode.h" />
+    <ClInclude Include="sources\VariableDefinitionNode.h" />
+    <ClInclude Include="sources\WhileNode.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sources\beer.l" />
+    <None Include="sources\beer.y" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{182A8477-B3CA-4EF5-90C3-E92BD8651244}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Compiler</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)$(Configuration)\</IntDir>
+    <TargetName>beer-compile-d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)$(Configuration)\</IntDir>
+    <TargetName>beer-compile</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)tools\flex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>"$(SolutionDir)tools\bison\bin\bison.exe" -d -o "$(ProjectDir)sources\beer.tab.cpp" "$(ProjectDir)sources\beer.y"
+"$(SolutionDir)tools\flex\bin\flex.exe" -o"$(ProjectDir)sources\lex.yy.cpp" "$(ProjectDir)sources\beer.l"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)tools\flex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>"$(SolutionDir)tools\bison\bin\bison.exe" -d -o "$(ProjectDir)sources\beer.tab.cpp" "$(ProjectDir)sources\beer.y"
+"$(SolutionDir)tools\flex\bin\flex.exe" -o"$(ProjectDir)sources\lex.yy.cpp" "$(ProjectDir)sources\beer.l"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

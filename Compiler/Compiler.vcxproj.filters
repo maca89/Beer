@@ -1,0 +1,404 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\AST">
+      <UniqueIdentifier>{a297b0ee-ad0c-4a7f-94d5-5bd1964b7f7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CodeGeneration">
+      <UniqueIdentifier>{60615af6-2950-43cc-aed7-3f436988e4a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SemanticAnalysis">
+      <UniqueIdentifier>{b616c125-c681-4b8a-86c6-190884072ed6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST">
+      <UniqueIdentifier>{bdea16cc-e3e3-49ba-ae9c-b79d1e832830}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CodeGeneration">
+      <UniqueIdentifier>{dd4d0c59-4054-4e0a-8149-7bbeba6cf0de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SemanticAnalysis">
+      <UniqueIdentifier>{f165aa76-2918-46f2-837e-10c456ee4d65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bison">
+      <UniqueIdentifier>{026c1c28-49e6-4804-87cb-8e358077dd64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="flex">
+      <UniqueIdentifier>{f28a9c09-3e87-44a7-872f-8336ea22a5b6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sources\BeerCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Output.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\AssignmentNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BlockNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BooleanConstantNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CallOperatorNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CharacterConstantNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ClassDefinitionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ConstructorCallNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\DataSectionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\EventsSectionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\FloatConstantNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\IdentifierNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\IfNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\IntegerConstantNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\InterfaceSectionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MemberDeclarationNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MethodCallNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MethodDefinitionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MethodParameterNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ProgramNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\PropertyCallNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\PropertyDefinitionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ProtectedSectionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ReturnNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\StringConstantNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ThisNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\VariableDeclarationNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\VariableDefinitionNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\WhileNode.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\BinaryWriter.cpp">
+      <Filter>Source Files\CodeGeneration</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Block.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ByteCodeGenerator.cpp">
+      <Filter>Source Files\CodeGeneration</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ClassFileGenerator.cpp">
+      <Filter>Source Files\CodeGeneration</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Class.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ClassListBuilder.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\ClassStructureBuilder.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CodeGenerator.cpp">
+      <Filter>Source Files\CodeGeneration</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\DescriptorDictionary.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Method.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MethodGroup.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\NameBuilder.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\NodeVisitor.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\PrinterVisitor.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Program.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\SemanticAnalyser.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\semanticschecker.cpp">
+      <Filter>Source Files\SemanticAnalysis</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\prereq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\beer.tab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\lex.yy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sources\BeerCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DescriptorVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\LexicalException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\SemanticException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\AssignmentNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BlockNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BooleanConstantNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CallOperatorNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CharacterConstantNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassDefinitionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ConstantNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ConstructorCallNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DataSectionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\EventsSectionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ExpressionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\FloatConstantNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\IdentifierNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\InterfaceSectionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\IfNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\IntegerConstantNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\LValueNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MemberDeclarationNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MethodCallNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MethodDefinitionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MethodParameterNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ProgramNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\PropertyCallNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\PropertyDefinitionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ProtectedSectionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ReturnNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\SectionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StatementNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StringConstantNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ThisNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\VariableDeclarationNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\VariableDefinitionNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\WhileNode.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\BinaryWriter.h">
+      <Filter>Header Files\CodeGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ByteCodeGenerator.h">
+      <Filter>Header Files\CodeGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassFileGenerator.h">
+      <Filter>Header Files\CodeGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Block.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Class.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassListBuilder.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\ClassStructureBuilder.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CodeGenerator.h">
+      <Filter>Header Files\CodeGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Descriptor.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DescriptorDictionary.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Expression.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Member.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Method.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MethodGroup.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MethodParameter.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\NameBuilder.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Node.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\NodeVisitor.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\PrinterVisitor.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Program.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\SemanticAnalyser.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\SemanticsChecker.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\StringDescriptor.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Variable.h">
+      <Filter>Header Files\SemanticAnalysis</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\prereq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\beer.tab.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sources\beer.y">
+      <Filter>bison</Filter>
+    </None>
+    <None Include="sources\beer.l">
+      <Filter>flex</Filter>
+    </None>
+  </ItemGroup>
+</Project>
