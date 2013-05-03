@@ -132,30 +132,13 @@ void TaskScheduler::resume()
 		if(mActive.empty() && mWaiting.empty() && mDone.empty()) // no new work
 		{
 			// is anybody working?
-			
-			// very ugly, TODO
-			ThreadQueue q;
-			WorkerThread* t = NULL;
-			uint16 idleCount = 0;
-			while(t = mIdleThreads.pop())
-			{
-				q.push(t);
-				idleCount++;
-			}
-
-			while(t = q.pop())
-			{
-				mIdleThreads.push(t);
-			}
-
-			if(idleCount == mThreadsCount)
+			if(allThreadsIdle())
 			{
 				SCHEDULER_DEBUG("resume -- all done");
 				mRunning = false;
-				//contextSwitch(); // dbg, TODO
 				continue;
 			}
-			// otherwise somebody is still working
+			// otherwise somebody is still working, we have to just wait
 		}
 
 		if(mActive.empty()) // no work, lets just wait a while
@@ -235,6 +218,27 @@ void TaskScheduler::wakeUpOneThread()
 	WorkerThread* thread = mIdleThreads.pop();
 	SCHEDULER_DEBUG("wakeUpOneThread -- thread #" << thread->getThreadId() << " -- #" << thread->getDoWorkEvent()->getHandle());
 	thread->getDoWorkEvent()->fire();
+}
+
+bool TaskScheduler::allThreadsIdle()
+{
+	// very ugly, TODO
+
+	ThreadQueue q;
+	WorkerThread* t = NULL;
+	uint16 idleCount = 0;
+	while(t = mIdleThreads.pop())
+	{
+		q.push(t);
+		idleCount++;
+	}
+
+	while(t = q.pop())
+	{
+		mIdleThreads.push(t);
+	}
+
+	return idleCount == mThreadsCount;
 }
 
 void TaskScheduler::addIdle(WorkerThread* thread)

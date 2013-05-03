@@ -83,8 +83,6 @@ namespace Beer
 
 		// threads
 		void addIdle(WorkerThread* thread);
-		//void addRunning(WorkerThread* thread);
-
 		Task* getSomeWork();
 
 	protected:
@@ -93,7 +91,7 @@ namespace Beer
 		void afterSafePoint();
 		void wakeUpOneThread();	
 		
-		//void findAllIdle();
+		bool allThreadsIdle();
 		
 		void updateFramesPointers();
 		Task* updateFramesPointers(Task* task);
