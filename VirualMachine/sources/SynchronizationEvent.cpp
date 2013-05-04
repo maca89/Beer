@@ -4,9 +4,9 @@
 using namespace Beer;
 
 
-SynchronizationEvent::SynchronizationEvent() : mHandle(NULL)
+SynchronizationEvent::SynchronizationEvent(Mode mode) : mHandle(NULL)
 {
-	mHandle = ::CreateEvent(NULL, false, false, NULL);
+	mHandle = ::CreateEvent(NULL, mode == EVENT_MANUAL_RESET, false, NULL);
 	
 	if (!mHandle)
 	{

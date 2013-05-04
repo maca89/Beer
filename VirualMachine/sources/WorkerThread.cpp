@@ -14,7 +14,9 @@ using namespace Beer;
 #endif // BEER_SCHEDULER_VERBOSE
 
 WorkerThread::WorkerThread(uint16 threadId, VirtualMachine* vm, GenerationalGC* gc)
-	: TrampolineThread(threadId, vm, gc), mContextSwitch(false), mWorking(false)
+	: TrampolineThread(threadId, vm, gc), mContextSwitch(false), mWorking(false),
+		mIdleEvent(SynchronizationEvent::EVENT_AUTO_RESET), // EVENT_MANUAL_RESET
+		mDoWorkEvent(SynchronizationEvent::EVENT_AUTO_RESET)
 {
 
 }
@@ -36,6 +38,7 @@ void WorkerThread::idle()
 	mVM->getScheduler()->addIdle(this);
 	mIdleEvent.fire();
 
+	mDoWorkEvent.reset();
 	mDoWorkEvent.wait();
 	WORKER_DEBUG("do work");
 }
@@ -78,6 +81,12 @@ void WorkerThread::work()
 		if(mContextSwitch)
 		{
 			mContextSwitch = false;
+		}
+		
+		if (mExecutionPaused)
+		{
+			mExecutionPaused = false;
+			idle();
 		}
 
 		//WORKER_DEBUG("work -- get some work");

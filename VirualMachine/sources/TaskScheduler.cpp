@@ -191,17 +191,55 @@ void TaskScheduler::safePoint()
 {
 	SCHEDULER_DEBUG("safePoint");
 
-	// wait for all threads to be idle (they **WERE** already notified)
-	WaitForMultipleObjects(mThreadsCount, mThreadIdleEvents, true, INFINITE);
+	mIdleThreads.clear();
 
-	// all threads are idle now
-	for(uint16 i = 0; i < mThreadsCount; i++)
+	// wait for all threads to be idle (some of them were already notified, some of them are idle and their event was consumed)
+	DWORD index = 0;
+	while(index < mThreadsCount)
 	{
-		mIdleThreads.push(mAllThreads[i]);
+		// wait for the rest
+		DWORD result = WaitForMultipleObjects(mThreadsCount - index, &mThreadIdleEvents[index], false, SCHEDULER_TIME_FRAME);
+
+		if(result == WAIT_TIMEOUT)
+		{
+			// notify the rest
+			for(DWORD i = index; i < mThreadsCount; i++)
+			{
+				mAllThreads[i]->pauseExecution(); // set the flag
+				mAllThreads[i]->getDoWorkEvent()->fire(); // possibly wake up
+			}
+
+			continue;
+		}
+
+		if(result == WAIT_FAILED)
+		{
+			// TODO
+			continue;
+		}
+
+		// + index because the array is given smaller each time
+		// + 1 because it returns an index of thread (therefore 0 = first thread is idle)
+		DWORD newIndex = index + (result - WAIT_OBJECT_0) + 1;
+
+		// save idle
+		for(DWORD i = index; i < newIndex; i++)
+		{
+			mIdleThreads.push(mAllThreads[i]); // the thread is idle now
+		}
+
+		// notify the rest
+		for(DWORD i = newIndex; i < mThreadsCount; i++)
+		{
+			mAllThreads[i]->pauseExecution(); // set the flag
+			mAllThreads[i]->getDoWorkEvent()->fire(); // possibly wake up
+		}
+
+		index = newIndex;
 	}
 	
 	// signalize GC
-	mGC->threadsSuspended(); 
+	mGC->threadsSuspended();
 
 	// TODO: event from GC, no sleeplock
 	while(isSafePoint())

@@ -5,11 +5,18 @@ namespace Beer
 {
 	class SynchronizationEvent
 	{
+	public:
+		enum Mode
+		{
+			EVENT_AUTO_RESET = 0,
+			EVENT_MANUAL_RESET = 1
+		};
+
 	protected:
 		HANDLE mHandle;
 
 	public:
-		SynchronizationEvent();
+		SynchronizationEvent(Mode mode = EVENT_AUTO_RESET);
 		~SynchronizationEvent();
 
 		void reset();

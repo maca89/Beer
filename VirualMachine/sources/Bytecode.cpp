@@ -766,7 +766,7 @@ BEER_BC_LABEL(INSTR_PUSH_THIS):
 	BEER_BC_NEXT_0();
 
 BEER_BC_LABEL(INSTR_NEW):
-	BEER_BC_CHECK_SAFEPOINT();
+	//BEER_BC_CHECK_SAFEPOINT();
 
 	frame->stackPush(); // push ret
 	frame->stackPush(static_cast<Class*>(reinterpret_cast<Object*>(BEER_BC_DATA(int32)))); // push receiver
