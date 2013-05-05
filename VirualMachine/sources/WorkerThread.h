@@ -1,11 +1,11 @@
 #pragma once
 #include "prereq.h"
-#include "TrampolineThread.h"
+#include "Thread.h"
 
 
 namespace Beer
 {
-	class WorkerThread : public TrampolineThread
+	class WorkerThread : public Thread
 	{
 	public:
 

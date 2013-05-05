@@ -37,9 +37,6 @@
     <ClCompile Include="sources\Thread.cpp">
       <Filter>Sources\Thread</Filter>
     </ClCompile>
-    <ClCompile Include="sources\TrampolineThread.cpp">
-      <Filter>Sources\Thread</Filter>
-    </ClCompile>
     <ClCompile Include="sources\GrowableMemoryAllocator.cpp">
       <Filter>Sources\MemoryAllocator</Filter>
     </ClCompile>
@@ -394,9 +391,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="sources\ForwardPointer.h" />
-    <ClInclude Include="sources\TrampolineThread.h">
-      <Filter>Headers\Thread</Filter>
-    </ClInclude>
     <ClInclude Include="sources\StackRef.h">
       <Filter>Headers\Stack</Filter>
     </ClInclude>

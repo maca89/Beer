@@ -14,7 +14,7 @@ using namespace Beer;
 #endif // BEER_SCHEDULER_VERBOSE
 
 WorkerThread::WorkerThread(uint16 threadId, VirtualMachine* vm, GenerationalGC* gc)
-	: TrampolineThread(threadId, vm, gc), mContextSwitch(false), mWorking(false),
+	: Thread(threadId, vm, gc), mContextSwitch(false), mWorking(false),
 		mIdleEvent(SynchronizationEvent::EVENT_AUTO_RESET), // EVENT_MANUAL_RESET
 		mDoWorkEvent(SynchronizationEvent::EVENT_AUTO_RESET)
 {

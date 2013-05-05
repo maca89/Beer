@@ -6,7 +6,6 @@
 #include "StringDescriptor.h"
 //#include "ClassFileDescriptor.h"
 //#include "ClassDescriptor.h"
-#include "TrampolineThread.h"
 
 
 namespace Beer

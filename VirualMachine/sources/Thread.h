@@ -101,6 +101,7 @@ namespace Beer
 		void getType(StackRef<Object> object, StackRef<Class> ret);
 
 		void init();
+		bool trampoline();
 
 	protected:
 		Object* staticCreateConstant(Class* klass, int32 staticSize, int32 additionalChildrenCount = 0);

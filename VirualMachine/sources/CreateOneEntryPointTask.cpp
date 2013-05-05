@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "CreateOneEntryPointTask.h"
-#include "TrampolineThread.h"
+#include "WorkerThread.h"
 #include "Method.h"
 #include "VirtualMachine.h"
 #include "Debugger.h"
@@ -53,7 +53,7 @@ void BEER_CALL CreateOneEntryPointTask::run(Thread* thread, StackRef<CreateOneEn
 		if(method)
 		{
 			// ugly
-			TrampolineThread thread2(42, thread->getVM(), thread->getGC());
+			WorkerThread thread2(42, thread->getVM(), thread->getGC());
 
 			thread2.getFrame()->stackPush(); // for return
 			thread2.getFrame()->stackPush(*instance); // push receiver

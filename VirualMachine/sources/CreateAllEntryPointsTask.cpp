@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "CreateAllEntryPointsTask.h"
-#include "TrampolineThread.h"
 #include "Method.h"
 #include "CreateOneEntryPointTask.h"
 #include "VirtualMachine.h"

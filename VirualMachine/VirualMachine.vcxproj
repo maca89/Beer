@@ -91,7 +91,6 @@
     <ClCompile Include="sources\MiliTimer.cpp" />
     <ClCompile Include="sources\SynchronizationEvent.cpp" />
     <ClCompile Include="sources\Timer.cpp" />
-    <ClCompile Include="sources\TrampolineThread.cpp" />
     <ClCompile Include="sources\VirtualMachine.cpp" />
     <ClCompile Include="sources\WorkerThread.cpp" />
   </ItemGroup>
@@ -183,7 +182,6 @@
     <ClInclude Include="sources\MiliTimer.h" />
     <ClInclude Include="sources\ThreadSafeOutput.h" />
     <ClInclude Include="sources\Timer.h" />
-    <ClInclude Include="sources\TrampolineThread.h" />
     <ClInclude Include="sources\VirtualMachine.h" />
     <ClInclude Include="sources\FixedStack.h" />
     <ClInclude Include="sources\WorkerThread.h" />
