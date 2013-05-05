@@ -4,6 +4,7 @@
 #include "InterlockedQueue.h"
 #include "Task.h"
 #include "TaskContext.h"
+#include "Mutex.h"
 
 
 namespace Beer
@@ -34,6 +35,9 @@ namespace Beer
 		typedef InterlockedQueue<WorkerThread*> ThreadQueue;
 		typedef InterlockedQueue<WaitingTask> WaitingTaskQueue;
 
+		/*typedef void (*PushIdleFn)(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread);
+		typedef WorkerThread* (*PopIdleFn)(CriticalSection* cs, ThreadQueue* queue);*/
+
 	protected:
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;
@@ -43,18 +47,19 @@ namespace Beer
 
 		// tasks
 		TaskQueue mActive;
-		WaitingTaskQueue mWaiting;
-		TaskQueue mDone;
-		//TaskQueue mScheduled;
 		// TaskQueue mLocked;
 
 		// threads
 		ThreadQueue mIdleThreads;
-		//ThreadQueue mRunningThreads;
 		
 		uint16 mThreadsCount;
 		HANDLE* mThreadIdleEvents;
 		WorkerThread** mAllThreads;
+
+		// synchronization
+		/*CriticalSection mIdleCriticalSection;
+		volatile PushIdleFn mPushIdleFunction;
+		volatile PopIdleFn mPopIdleFunction;*/
 
 	public:
 		TaskScheduler();
@@ -90,6 +95,7 @@ namespace Beer
 		void contextSwitch();
 		void afterSafePoint();
 		void wakeUpOneThread();	
+		void processDone();
 		
 		bool allThreadsIdle();
 		
@@ -101,6 +107,12 @@ namespace Beer
 
 		void updateFramesClass(WaitingTaskQueue& queue, Class* klass);
 		void updateFramesClass(TaskQueue& queue, Class* klass);
+
+		/*static void PushIdleLockFree(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread);
+		static void PushIdleSynchronized(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread);
+
+		static WorkerThread* PopIdleLockFree(CriticalSection* cs, ThreadQueue* queue);
+		static WorkerThread* PopIdleSynchronized(CriticalSection* cs, ThreadQueue* queue);*/
 };
 
 	
@@ -114,15 +126,15 @@ namespace Beer
 		return &mActive;
 	}
 
-	INLINE TaskScheduler::WaitingTaskQueue* TaskScheduler::getWaitingQueue()
+	/*INLINE TaskScheduler::WaitingTaskQueue* TaskScheduler::getWaitingQueue()
 	{
 		return &mWaiting;
-	}
+	}*/
 
-	INLINE TaskScheduler::TaskQueue* TaskScheduler::getDoneQueue()
+	/*INLINE TaskScheduler::TaskQueue* TaskScheduler::getDoneQueue()
 	{
 		return &mDone;
-	}
+	}*/
 
 	/*NLINE TaskScheduler::TaskQueue* TaskScheduler::getScheduledQueue()
 	{

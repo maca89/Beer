@@ -19,10 +19,15 @@ using namespace Beer;
 #define SCHEDULER_DEBUG(msg)
 #endif // BEER_SCHEDULER_VERBOSE
 
+
 TaskScheduler::TaskScheduler()
 	: mVM(NULL), mGC(NULL), mSafePoint(false), mThreadIdleEvents(NULL), mRunning(false), mThreadsCount(0)
 {
-	
+	//mPushIdleFunction = &PushIdleLockFree;
+	//mPopIdleFunction = &PopIdleLockFree;
+	/*mPushIdleFunction = &PushIdleSynchronized;
+	mPopIdleFunction = &PopIdleSynchronized;
+	mIdleSize = 0;*/
 }
 
 TaskScheduler::~TaskScheduler()
@@ -45,6 +50,7 @@ void TaskScheduler::init(VirtualMachine* vm, GenerationalGC* gc, uint16 threadsC
 		mThreadIdleEvents[i] = thread->getIdleEvent()->getHandle();
 		mAllThreads[i] = thread;
 
+		//mPushIdleFunction(&mIdleCriticalSection, &mIdleThreads, thread);
 		mIdleThreads.push(thread);
 	}
 }
@@ -58,20 +64,20 @@ void TaskScheduler::pause()
 void TaskScheduler::resume()
 {
 	mRunning = true;
-	mIdleThreads.clear();
+	//mIdleThreads.clear();
 
 	// start all threads
 	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
 		WorkerThread* thread = mAllThreads[i];
 		thread->run();
-		mIdleThreads.push(thread);
+		//mIdleThreads.push(thread);
 	}
 
 	while(mRunning)
 	{
 #ifdef BEER_SCHEDULER_VERBOSE
-		{
+		if(false){
 			stringstream ss;
 			ss << "Scheduler:[";
 
@@ -100,14 +106,15 @@ void TaskScheduler::resume()
 
 		if(isSafePoint())
 		{
+			cout << "[Safe point]\n";
 			safePoint();
 			continue;
 		}
 
-		if(!mDone.empty())
+		/*if(!mDone.empty())
 		{
-			mDone.clear(); // dbg
-		}
+			processDone();
+		}*/
 
 		if(!mActive.empty()) // we have some tasks
 		{
@@ -121,7 +128,7 @@ void TaskScheduler::resume()
 			if(mIdleThreads.empty()) // still no threads available
 			{
 				//SCHEDULER_DEBUG("resume -- no worker -- context switch");
-				//contextSwitch();
+				contextSwitch();
 				continue;
 			}
 
@@ -129,7 +136,7 @@ void TaskScheduler::resume()
 			wakeUpOneThread();
 		}
 
-		if(mActive.empty() && mWaiting.empty() && mDone.empty()) // no new work
+		if(mActive.empty() /*&& mWaiting.empty()*/ /*&& mDone.empty()*/) // no new work
 		{
 			// is anybody working?
 			if(allThreadsIdle())
@@ -193,7 +200,7 @@ void TaskScheduler::safePoint()
 
 	mIdleThreads.clear();
 
-	// wait for all threads to be idle (some of them were already notified, some of them are idle and their event was consumed)
+	// wait for all threads to be idle (some of them were already notified, some of them are idle but some of the events were consumed)
 	DWORD index = 0;
 	while(index < mThreadsCount)
 	{
@@ -253,46 +260,85 @@ void TaskScheduler::safePoint()
 
 void TaskScheduler::wakeUpOneThread()
 {
+	//WorkerThread* thread = mPopIdleFunction(&mIdleCriticalSection, &mIdleThreads);
 	WorkerThread* thread = mIdleThreads.pop();
-	SCHEDULER_DEBUG("wakeUpOneThread -- thread #" << thread->getThreadId() << " -- #" << thread->getDoWorkEvent()->getHandle());
-	thread->getDoWorkEvent()->fire();
+	if(thread)
+	{
+		SCHEDULER_DEBUG("wakeUpOneThread -- thread #" << thread->getThreadId() << " -- #" << thread->getDoWorkEvent()->getHandle());
+		thread->getDoWorkEvent()->fire();
+	}
 }
 
 bool TaskScheduler::allThreadsIdle()
 {
-	// very ugly, TODO
+	//BlockingMutex bm(&mIdleCriticalSection);
 
-	ThreadQueue q;
-	WorkerThread* t = NULL;
+	//mPushIdleFunction = &PushIdleSynchronized;
+	//mPopIdleFunction = &PopIdleSynchronized;
+
+	// ugly, TODO
 	uint16 idleCount = 0;
-	while(t = mIdleThreads.pop())
+	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
-		q.push(t);
-		idleCount++;
+		WorkerThread* thread = mAllThreads[i];
+		if(thread->isIdle()) idleCount++;
 	}
-
-	while(t = q.pop())
-	{
-		mIdleThreads.push(t);
-	}
+	
+	//mPushIdleFunction = &PushIdleLockFree;
+	//mPopIdleFunction = &PopIdleLockFree;
 
 	return idleCount == mThreadsCount;
 }
 
+/*WorkerThread* TaskScheduler::PopIdleLockFree(CriticalSection* cs, ThreadQueue* queue)
+{
+	return queue->pop();
+}
+
+void TaskScheduler::PushIdleLockFree(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread)
+{
+	queue->push(thread);
+}
+
+WorkerThread* TaskScheduler::PopIdleSynchronized(CriticalSection* cs, ThreadQueue* queue)
+{
+	BlockingMutex bm(cs);
+	return PopIdleLockFree(cs, queue);
+}
+
+void TaskScheduler::PushIdleSynchronized(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread)
+{
+	BlockingMutex bm(cs);
+	PushIdleLockFree(cs, queue, thread);
+}*/
+
 void TaskScheduler::addIdle(WorkerThread* thread)
 {
+	//mPushIdleFunction(&mIdleCriticalSection, &mIdleThreads, thread);
 	mIdleThreads.push(thread);
 }
 
 void TaskScheduler::addTask(Task* task)
 {
+	if(task->isAwaiting())
+	{
+		throw SchedulerException(BEER_WIDEN("Awaiting task cannot be scheduled"));
+	}
+
 	mActive.push(task);
 }
 
 void TaskScheduler::done(Task* task)
 {
-	mDone.push(task); // TODO: find waiting tasks
 	task->markCompleted();
+
+	Task* awaiting = NULL;
+	Task::TaskQueue* queue = task->getAwaitingQueue();
+	while(awaiting = queue->pop())
+	{
+		awaiting->unmarkAwaiting();
+		mActive.push(awaiting);
+	}
 }
 
 Task* TaskScheduler::getSomeWork()
@@ -302,8 +348,13 @@ Task* TaskScheduler::getSomeWork()
 
 void TaskScheduler::wait(Task* who, Task* whatFor)
 {
-	WaitingTask waiting(who, whatFor);
-	mWaiting.push(waiting);
+	if(who->isAwaiting())
+	{
+		throw SchedulerException(BEER_WIDEN("Task is already awaiting"));
+	}
+
+	whatFor->getAwaitingQueue()->push(who);
+	who->markAwaiting();
 }
 
 void TaskScheduler::afterSafePoint()
@@ -314,8 +365,8 @@ void TaskScheduler::afterSafePoint()
 void TaskScheduler::updateFramesPointers()
 {
 	updateFramesPointers(mActive);
-	updateFramesPointers(mWaiting);
-	updateFramesPointers(mDone);
+	//updateFramesPointers(mWaiting);
+	//updateFramesPointers(mDone);
 	//updateFramesPointers(mScheduled);
 	//updateFramesPointers(mLocked);
 }
@@ -373,8 +424,6 @@ void TaskScheduler::updateFramesPointers(WaitingTaskQueue& queue)
 void TaskScheduler::updateFramesClass(Class* klass)
 {
 	updateFramesClass(mActive, klass);
-	updateFramesClass(mWaiting, klass);
-	updateFramesClass(mDone, klass);
 	//updateFramesClass(mScheduled, klass);
 	//updateFramesClass(mLocked, klass);
 }

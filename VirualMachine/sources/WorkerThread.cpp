@@ -5,6 +5,7 @@
 
 using namespace Beer;
 
+
 //#define BEER_SCHEDULER_VERBOSE
 
 #ifdef BEER_SCHEDULER_VERBOSE
@@ -14,7 +15,7 @@ using namespace Beer;
 #endif // BEER_SCHEDULER_VERBOSE
 
 WorkerThread::WorkerThread(uint16 threadId, VirtualMachine* vm, GenerationalGC* gc)
-	: Thread(threadId, vm, gc), mContextSwitch(false), mWorking(false),
+	: Thread(threadId, vm, gc), mContextSwitch(false), mWorking(false), mIdle(false),
 		mIdleEvent(SynchronizationEvent::EVENT_AUTO_RESET), // EVENT_MANUAL_RESET
 		mDoWorkEvent(SynchronizationEvent::EVENT_AUTO_RESET)
 {
@@ -23,6 +24,11 @@ WorkerThread::WorkerThread(uint16 threadId, VirtualMachine* vm, GenerationalGC* 
 
 WorkerThread::~WorkerThread()
 {
+}
+
+volatile bool WorkerThread::isIdle() const
+{
+	return mIdle;
 }
 
 void WorkerThread::contextSwitch()
@@ -35,11 +41,15 @@ void WorkerThread::contextSwitch()
 void WorkerThread::idle()
 {
 	WORKER_DEBUG("idle");
+	mIdle = true;
 	mVM->getScheduler()->addIdle(this);
 	mIdleEvent.fire();
 
 	mDoWorkEvent.reset();
+	mExecutionPaused = false;
+	mContextSwitch = false;
 	mDoWorkEvent.wait();
+	mIdle = false;
 	WORKER_DEBUG("do work");
 }
 
@@ -55,7 +65,7 @@ void WorkerThread::work(Task* task)
 	{
 		scheduler->done(task);
 	}
-	else
+	else if(!task->isAwaiting()) // awaiting should not be scheduled
 	{
 		scheduler->addTask(task);
 	}
@@ -87,6 +97,7 @@ void WorkerThread::work()
 		{
 			mExecutionPaused = false;
 			idle();
+			continue;
 		}
 
 		//WORKER_DEBUG("work -- get some work");
@@ -101,4 +112,6 @@ void WorkerThread::work()
 			idle();
 		}
 	}
+
+	cout << "thread exited";
 }

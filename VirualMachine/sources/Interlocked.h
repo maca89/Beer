@@ -10,5 +10,6 @@ namespace Beer
 
 		// 32bit
 		static bool CompareAndSwap32(int32* dest, int32 oldValue, int32 newValue);
+		static bool FetchAndIncrement32(int32* dest);
 	};
 };

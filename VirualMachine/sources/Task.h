@@ -4,6 +4,7 @@
 #include "Boolean.h"
 #include "Integer.h"
 #include "TaskContext.h"
+#include "InterlockedQueue.h"
 
 
 namespace Beer
@@ -19,17 +20,21 @@ namespace Beer
 			TASK_CHILDREN_COUNT = OBJECT_CHILDREN_COUNT,
 			TASK_METHODS_COUNT = OBJECT_METHODS_COUNT + 8,
 
-			TASK_STATE_SCHEDULED = 0x01,
-			TASK_STATE_COMPLETED = 0x02,
-			TASK_STATE_CANCELED = 0x04,
-			TASK_STATE_FAILED = 0x08,
+			TASK_STATE_SCHEDULED = 1<<1,
+			TASK_STATE_COMPLETED = 1<<2,
+			TASK_STATE_CANCELED = 1<<3,
+			TASK_STATE_FAILED = 1<<4,
+			TASK_STATE_AWAITING = 1<<5,
 
 			METHOD_SLOT_RUN = 10,
 		};
+		
+		typedef InterlockedQueue<Task*> TaskQueue;
 
 	protected:
 		TaskContext mContext;
 		uint8 mTaskFlags;
+		TaskQueue mAwaiting; // are waiting for completion of this
 
 	public:
 		TaskContext* getContext();
@@ -40,16 +45,21 @@ namespace Beer
 		bool isScheduled() const;
 		bool isFailed() const;
 		bool isCanceled() const;
+		bool isAwaiting() const;
 
 		void markCompleted();
 		void markScheduled();
 		void markFailed();
 		void markCanceled();
+		void markAwaiting();
 
 		void unmarkCompleted();
 		void unmarkScheduled();
 		void unmarkFailed();
 		void unmarkCanceled();
+		void unmarkAwaiting();
+
+		TaskQueue* getAwaitingQueue();
 
 		// beer methods
 
@@ -104,6 +114,11 @@ namespace Beer
 		return Object::hasFlag(mTaskFlags, TASK_STATE_CANCELED);
 	}
 
+	INLINE bool Task::isAwaiting() const
+	{
+		return Object::hasFlag(mTaskFlags, TASK_STATE_AWAITING);
+	}
+
 	INLINE void Task::markCompleted()
 	{
 		Object::markFlag(mTaskFlags, TASK_STATE_COMPLETED);
@@ -124,6 +139,11 @@ namespace Beer
 		Object::markFlag(mTaskFlags, TASK_STATE_CANCELED);
 	}
 
+	INLINE void Task::markAwaiting()
+	{
+		Object::markFlag(mTaskFlags, TASK_STATE_AWAITING);
+	}
+
 	INLINE void Task::unmarkCompleted()
 	{
 		Object::unmarkFlag(mTaskFlags, TASK_STATE_COMPLETED);
@@ -142,5 +162,15 @@ namespace Beer
 	INLINE void Task::unmarkCanceled()
 	{
 		Object::unmarkFlag(mTaskFlags, TASK_STATE_CANCELED);
+	}
+
+	INLINE void Task::unmarkAwaiting()
+	{
+		Object::unmarkFlag(mTaskFlags, TASK_STATE_AWAITING);
+	}
+	
+	INLINE Task::TaskQueue* Task::getAwaitingQueue()
+	{
+		return &mAwaiting;
 	}
 };

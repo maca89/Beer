@@ -8,10 +8,16 @@ namespace Beer
 	class WorkerThread : public Thread
 	{
 	public:
+		/*enum State
+		{
+			THREAD_STATE_IDLE,
+			THREAD_STATE_WORKING
+		};*/
 
 	protected:
 		volatile bool mContextSwitch;
 		volatile bool mWorking;
+		volatile bool mIdle;
 
 		SynchronizationEvent mIdleEvent;
 		SynchronizationEvent mDoWorkEvent;
@@ -25,6 +31,8 @@ namespace Beer
 
 		void contextSwitch();
 		void terminate(); // you must call run to start a thread again
+
+		volatile bool isIdle() const;
 
 	protected:
 			virtual void work();

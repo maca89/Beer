@@ -76,7 +76,7 @@ void VirtualMachine::run()
 	this->Thread::wait();
 }*/
 
-void VirtualMachine::init()
+void VirtualMachine::init(uint32 numberOfThreads)
 {
 	this->Thread::init();
 	//mGC = new GenerationalGC(27, 32768);
@@ -93,7 +93,7 @@ void VirtualMachine::init()
 	mBytecodeBuilder = new BytecodeBuilder();
 	Bytecode::init(this);
 
-	mScheduler.init(this, mGC, 2);
+	mScheduler.init(this, mGC, numberOfThreads);
 
 	mClassLoader->addClassInitializer(BEER_WIDEN("Boolean"), new BooleanClassInitializer);
 	mClassLoader->addClassInitializer(BEER_WIDEN("Character"), new CharacterClassInitializer);
@@ -189,17 +189,6 @@ void VirtualMachine::work()
 	}
 
 	getScheduler()->resume();
-	//getScheduler()->
-
-	// wait for all threads
-	for(ThreadSet::iterator it = mThreads.begin(); it != mThreads.end(); it++)
-	{
-		Thread* thread = *it;
-		if(thread != static_cast<Thread*>(this))
-		{
-			(*it)->wait();
-		}
-	}
 	
 	//DBG_ASSERT(frame->stackLength() == 2, BEER_WIDEN("Stack was not properly cleaned"));
 }

@@ -29,6 +29,11 @@ void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task
 
 		context->openFrame();
 	}
+
+	// init task awaiting queue
+	{
+		new(&(receiver->mAwaiting)) TaskQueue();
+	}
 	
 	receiver->markScheduled();
 	receiver->unmarkCompleted();
@@ -43,7 +48,7 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 	NULL_ASSERT(*receiver);
 
 	thread->getVM()->getScheduler()->addTask(*receiver);
-	return;
+	//return;
 
 	/*TrampolineThread* thread2 = new TrampolineThread(thread->getVM(), thread->getGC());
 	thread->getVM()->getThreads().insert(thread2);
@@ -85,8 +90,14 @@ void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
 
 void BEER_CALL Task::await(Thread* thread, StackRef<Task> receiver)
 {
-	thread->getVM()->getScheduler()->wait(thread->getTask(), *receiver);
-	return;
+	Task* who = thread->getTask();
+	Task* whatFor = *receiver;
+
+	if(!whatFor->isCompleted() && !whatFor->isCanceled())
+	{
+		thread->getVM()->getScheduler()->wait(who, whatFor);
+		thread->pauseExecution();
+	}
 }
 
 void BEER_CALL Task::getScheduled(Thread* thread, StackRef<Task> receiver, StackRef<Boolean> ret)

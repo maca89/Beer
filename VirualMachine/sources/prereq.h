@@ -312,6 +312,14 @@ namespace Beer
 		}
 	};
 
+	struct SchedulerException : RuntimeException
+	{
+		SchedulerException(string msg = BEER_WIDEN(""), string filename = BEER_WIDEN(""), long line = 0) : RuntimeException(msg, filename, line)
+		{
+			mName = BEER_WIDEN("SchedulerException");
+		}
+	};
+
 	#define GCException(_msg_) GCException((_msg_), __WFILE__, __LINE__)
 	#define NotEnoughMemoryException(_msg_) NotEnoughMemoryException((_msg_), __WFILE__, __LINE__)
 	#define CriticalAssertException(_msg_) CriticalAssertException((_msg_), __WFILE__, __LINE__)
@@ -328,6 +336,7 @@ namespace Beer
 	#define IOException(_msg_) IOException((_msg_), __WFILE__, __LINE__)
 	#define StackOverflowException(_msg_) StackOverflowException((_msg_), __WFILE__, __LINE__)
 	#define ArrayIndexOutOfBoundsException(index, size) ArrayIndexOutOfBoundsException(index, size, __WFILE__, __LINE__)
+	#define SchedulerException(_msg_) SchedulerException((_msg_), __WFILE__, __LINE__)
 
 	#ifdef BEER_DEBUG_MODE
 		#define BEER_DEBUG_ASSERTS_ON

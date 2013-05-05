@@ -18,9 +18,11 @@ struct Settings
 	bool printBytecode;
 	bool debuggerEnabled;
 	bool debuggerStepping;
+	bool manualThreads;
 	string classFileName;
 	uint32 stackSize;
 	uint32 heapSize;
+	uint32 threadsCount;
 
 	INLINE Settings() :
 		printClassFile(false), 
@@ -31,7 +33,10 @@ struct Settings
 		debuggerStepping(false),
 		printBytecode(false),
 		stackSize(1*1024),
-		heapSize(10*1024*1024)
+		heapSize(10*1024*1024),
+		manualThreads(false),
+		threadsCount(0)
+
 	{}
 };
 
@@ -58,10 +63,16 @@ bool loadFile(string filename, byte** out_data, uint32& out_length)
 }
 
 bool parseMemorySize(string in_value, uint32& out_value)
+{//TODO
+	stringstream ss(in_value);
+	ss >> out_value;
+	return !ss.fail();
+}
+
+bool parseInteger(string in_value, uint32& out_value)
 {
 	stringstream ss(in_value);
 	ss >> out_value;
-			
 	return !ss.fail();
 }
 
@@ -91,6 +102,7 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 		{
 			cout << "--help" << std::endl;
 			cout << "--run[:false]" << std::endl;
+			cout << "--threads:value" << std::endl;
 			cout << "--printbytecode[:false]" << std::endl;
 			cout << "--printclassfile[:false]" << std::endl;
 			cout << "--debugger[:false]" << std::endl;
@@ -109,6 +121,16 @@ bool loadSettings(int argc, const char** argv, Settings& settings)
 		if(name.compare(BEER_WIDEN("--run")) == 0)
 		{
 			settings.run = value.compare(BEER_WIDEN(":false")) == 0 ? false : true;
+		}
+		else if(name.compare(BEER_WIDEN("--threads")) == 0)
+		{
+			settings.manualThreads = true;
+
+			if(!parseInteger(value.substr(1), settings.threadsCount))
+			{
+				cout << BEER_WIDEN("Unable to parse threads value: ") << value;
+				return false;
+			}
 		}
 		else if(name.compare(BEER_WIDEN("--printclassfile")) == 0)
 		{
@@ -172,30 +194,6 @@ void printBytecodes(VirtualMachine *vm)
 }
 
 
-void testInteger()
-{
-#if BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_UNSIGNED
-	assert(Integer::canBeInlineValue(1));
-	assert(Integer::canBeInlineValue(1073741823)); // max
-	assert(!Integer::canBeInlineValue(1073741824)); // max + 1
-	assert(Integer::canBeInlineValue(0)); // min
-	assert(!Integer::canBeInlineValue(-1)); // min - 1
-#elif BEER_INLINED_INTEGER_MODE == BEER_INLINED_INTEGER_MODE_SIGNED
-
-//#define testassert
-#define testassert assert
-
-	testassert(Integer::canBeInlineValue(0));
-	testassert(Integer::canBeInlineValue(1));
-	testassert(Integer::canBeInlineValue(-1));
-	testassert(Integer::canBeInlineValue(536870911)); // max
-	testassert(!Integer::canBeInlineValue(536870912)); // max + 1
-	testassert(Integer::canBeInlineValue(-536870912)); // min
-	testassert(!Integer::canBeInlineValue(-536870913)); // min - 1
-	
-#endif // BEER_INLINED_INTEGER_MODE
-}
-
 int __cdecl main(int argc, const char** argv)
 {
 	
@@ -204,14 +202,21 @@ int __cdecl main(int argc, const char** argv)
 	// set UTF-16 support
 	_setmode( _fileno(stdout), _O_U16TEXT);
 
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	uint32 numberOfProcessors = sysinfo.dwNumberOfProcessors;
+
 	MiliTimer mainTimer;
 	mainTimer.start();
 
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
+	uint32 numberOfThreads = settings.manualThreads ? settings.threadsCount : numberOfProcessors;
+	//cout << "Threads: " << numberOfThreads << "\n";
+
 	//GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
-	GenerationalGC* gc = new GenerationalGC(320 * 1024 * 1024, 8 * 1024);
+	GenerationalGC* gc = new GenerationalGC(480 * 1024 * 1024, 128 * 1024);
 	//GenerationalGC* gc = new GenerationalGC(512 * 1024, 8 * 1024);
 	
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
@@ -224,7 +229,7 @@ int __cdecl main(int argc, const char** argv)
 
 	try
 	{
-		vm->init();
+		vm->init(numberOfThreads);
 		vm->getDebugger()->setEnabled(settings.debuggerEnabled);
 		vm->getDebugger()->setSteppingMode(settings.debuggerStepping);
 
@@ -252,12 +257,6 @@ int __cdecl main(int argc, const char** argv)
 		{
 			vm->run();
 			//vm->wait();
-		
-			for(ThreadSet::iterator it = vm->getThreads().begin(); it != vm->getThreads().end(); it++)
-			{
-				(*it)->wait();
-			}
-
 			//Console::getOutput().flush(cout);
 		}
 

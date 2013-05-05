@@ -16,3 +16,19 @@ bool Interlocked::CompareAndSwap32(int32* dest, int32 oldValue, int32 newValue)
 		setz al
 	}
 }
+
+bool Interlocked::FetchAndIncrement32(int32* dest)
+{
+	// TODO: better
+
+	while(true)
+	{
+		int32 oldValue = *dest;
+		int32 newValue = oldValue + 1;
+
+		if(CompareAndSwap32(dest, oldValue, newValue))
+		{
+			return true;
+		}
+	}
+}

@@ -24,6 +24,12 @@ namespace Beer
 
 	class Thread : public NativeThread
 	{
+	public:
+		enum
+		{
+			CREATE_INSTANCE_CACHE_SIZE = 3, // TODO: bigger
+		};
+
 	protected:
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;  // is it needed?
@@ -33,11 +39,6 @@ namespace Beer
 		TaskContext* mContext;
 		uint16 mThreadId;
 		volatile bool mExecutionPaused;
-
-		enum
-		{
-			CREATE_INSTANCE_CACHE_SIZE = 3, // TODO: bigger
-		};
 
 	public:
 		Thread(uint16 threadId, VirtualMachine* vm, GenerationalGC * gc);
@@ -140,6 +141,7 @@ namespace Beer
 	{
 		mTask = task;
 		mContext = mTask->getContext();
+		mContext->setHeap(getHeap());
 	}
 	
 	INLINE Task* Thread::getTask() const

@@ -24,10 +24,8 @@ namespace Beer
 	class ClassFileLoader;
 	class ClassLoader;
 	class Thread;
-
 	class Debugger;
 
-	typedef std::set<Thread*> ThreadSet;
 	typedef std::map<string, Class*> ClassReflectionTable;
 
 	class VirtualMachine : protected Thread
@@ -39,7 +37,6 @@ namespace Beer
 		Debugger* mDebugger;
 		ClassTable mClassTable;
 		InlineFunctionTable mInlineFnTable;
-		ThreadSet mThreads;
 		BytecodeBuilder* mBytecodeBuilder;
 		TaskScheduler mScheduler;
 
@@ -84,13 +81,12 @@ namespace Beer
 		INLINE Debugger* getDebugger() const { return mDebugger; }
 		INLINE ClassTable* getClassTable() { return &mClassTable; }
 		INLINE InlineFunctionTable* getInlineFunctionTable() { return &mInlineFnTable; }
-		INLINE ThreadSet& getThreads() { return mThreads; }
 		INLINE ClassLoader* getClassLoader() const { return mClassLoader; }
 		INLINE ClassReflectionTable& getClasses() { return mClasses; }
 		INLINE BytecodeBuilder* getBytecodeBuilder() { return mBytecodeBuilder; }
 		INLINE TaskScheduler* getScheduler() { return &mScheduler; }
 
-		void init();
+		void init(uint32 numberOfThreads);
 		void run();
 		//void wait();
 		void destroy();

@@ -140,6 +140,7 @@ namespace Beer
 
 				if (start < child && end < child)
 				{
+					BEER_BREAKPOINT();
 					throw GCException(BEER_WIDEN("Accessing child outside of an object"));
 				}
 			}

@@ -200,8 +200,9 @@ NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Ob
 	}
 }
 
-INLINE Method* methodLookup(Class* type, uint32 vtableIndex)
+NOINLINE Method* methodLookup(Class* type, uint32 vtableIndex)
 {
+	NULL_ASSERT(type);
 	return type->getMethod(vtableIndex);
 }
 
@@ -1212,11 +1213,13 @@ void Bytecode::buildInvokeBytecode(Thread* thread)
 		if(nonBlockMutex.entered())
 		{
 			// we blocked the method => prepare the bytecode
+			//cout << "Preparing method: " << invokedMethod->getSelector()->c_str() << "\n";
 			thread->getVM()->getBytecodeBuilder()->buildBytecodeMethod(thread, invokedMethod);
 		}
 		else
 		{
 			// someone locked the method and is preparing the bytecode, just wait
+			//cout << "Method is being prepared by someone else: " << invokedMethod->getSelector()->c_str() << "\n";
 			BlockingMutex blockMutex(invokedMethod->getCriticalSection()); // blocking wait
 		}
 
