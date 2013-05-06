@@ -35,9 +35,6 @@ namespace Beer
 		typedef InterlockedQueue<WorkerThread*> ThreadQueue;
 		typedef InterlockedQueue<WaitingTask> WaitingTaskQueue;
 
-		/*typedef void (*PushIdleFn)(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread);
-		typedef WorkerThread* (*PopIdleFn)(CriticalSection* cs, ThreadQueue* queue);*/
-
 	protected:
 		VirtualMachine* mVM;
 		GenerationalGC* mGC;
@@ -47,7 +44,7 @@ namespace Beer
 
 		// tasks
 		TaskQueue mActive;
-		// TaskQueue mLocked;
+		// TaskQueue mLocked; // TODO
 
 		// threads
 		ThreadQueue mIdleThreads;
@@ -55,11 +52,6 @@ namespace Beer
 		uint16 mThreadsCount;
 		HANDLE* mThreadIdleEvents;
 		WorkerThread** mAllThreads;
-
-		// synchronization
-		/*CriticalSection mIdleCriticalSection;
-		volatile PushIdleFn mPushIdleFunction;
-		volatile PopIdleFn mPopIdleFunction;*/
 
 	public:
 		TaskScheduler();
@@ -107,12 +99,6 @@ namespace Beer
 
 		void updateFramesClass(WaitingTaskQueue& queue, Class* klass);
 		void updateFramesClass(TaskQueue& queue, Class* klass);
-
-		/*static void PushIdleLockFree(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread);
-		static void PushIdleSynchronized(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread);
-
-		static WorkerThread* PopIdleLockFree(CriticalSection* cs, ThreadQueue* queue);
-		static WorkerThread* PopIdleSynchronized(CriticalSection* cs, ThreadQueue* queue);*/
 };
 
 	
@@ -125,24 +111,4 @@ namespace Beer
 	{
 		return &mActive;
 	}
-
-	/*INLINE TaskScheduler::WaitingTaskQueue* TaskScheduler::getWaitingQueue()
-	{
-		return &mWaiting;
-	}*/
-
-	/*INLINE TaskScheduler::TaskQueue* TaskScheduler::getDoneQueue()
-	{
-		return &mDone;
-	}*/
-
-	/*NLINE TaskScheduler::TaskQueue* TaskScheduler::getScheduledQueue()
-	{
-		return &mScheduled;
-	}*/
-
-	/*TaskScheduler::TaskQueue* TaskScheduler::getLockedQueue()
-	{
-		return &mLocked;
-	}*/
 };

@@ -364,9 +364,18 @@ namespace Beer
 
 	// optimalizations
 	#define BEER_INLINE_OPTIMALIZATION
+	#define BEER_INLINE_FRAMES
+	#define BEER_MIC_OPTIMIZATION
+	#define BEER_PIC_OPTIMIZATION
+
+	// multi-threading
+	//#define BEER_BARRIER_READ_ON
+	//#define BEER_BARRIER_WRITE_ON
 
 	// measure performance
 	//#define BEER_MEASURE_PERFORMANCE
+	//#define BEER_PROFILE_MONOCACHES
+	//#define BEER_PROFILE_POLYCACHES
 
 
 	// usually bytecode/virutal-runtime related errors

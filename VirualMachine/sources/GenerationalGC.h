@@ -115,6 +115,7 @@ namespace Beer
 		{
 			DBG_ASSERT(object != NULL, BEER_WIDEN("Object is NULL"));
 
+			if(Object::isInlineValue(object)) return object;
 			return GCObject::get(object)->forward();
 		}
 
@@ -125,7 +126,7 @@ namespace Beer
 			return getIdentity(*object);
 		}
 
-		INLINE void getChild(StackRef<Object> receiver, StackRef<Object> ret, int64 index)
+		NOINLINE void getChild(StackRef<Object> receiver, StackRef<Object> ret, int64 index)
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
@@ -149,7 +150,7 @@ namespace Beer
 		}
 
 		// deprecated 
-		INLINE void setChild(StackRef<Object> receiver, StackRef<Object> child, int64 index)
+		NOINLINE void setChild(StackRef<Object> receiver, StackRef<Object> child, int64 index)
 		{
 			DBG_ASSERT(*receiver != NULL, BEER_WIDEN("Object is NULL"));
 
@@ -171,9 +172,9 @@ namespace Beer
 			receiver->getChildren()[index] = *child;
 		}
 
-		INLINE void setChild(Object* obj, Object* oldChild, Object* newChild)
+		NOINLINE void setChild(Object* obj, Object* oldChild, Object* newChild)
 		{
-
+			
 		}
 
 		// call this when all threads are suspended

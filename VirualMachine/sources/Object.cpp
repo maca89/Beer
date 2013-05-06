@@ -66,11 +66,21 @@ void BEER_CALL Object::setChild(Thread* thread, StackRef<Object> receiver, Stack
 void Object::getChild(Thread* thread, StackRef<Object> receiver, int64 index, StackRef<Object> ret)
 {
 	NULL_ASSERT(*receiver);
+
+#ifdef BEER_BARRIER_READ_ON
 	thread->getGC()->getChild(receiver, ret, index);
+#else
+	ret = receiver->getChild(index);
+#endif // BEER_BARRIER_READ_ON
 }
 
 void Object::setChild(Thread* thread, StackRef<Object> receiver, int64 index, StackRef<Object> child)
 {
 	NULL_ASSERT(*receiver);
+
+#ifdef BEER_BARRIER_WRITE_ON
 	thread->getGC()->setChild(receiver, child, index);
+#else
+	receiver->setChild(index, *child);
+#endif // BEER_BARRIER_READ_ON
 }

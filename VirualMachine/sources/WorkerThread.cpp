@@ -113,5 +113,5 @@ void WorkerThread::work()
 		}
 	}
 
-	cout << "thread exited";
+	//cout << "thread exited";
 }

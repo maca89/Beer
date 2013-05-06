@@ -16,7 +16,11 @@ namespace Beer
 	public:
 		enum
 		{
+#ifdef BEER_INLINE_FRAMES
 			DEFAULT_FRAME_SPACE = 4*1024, // 4KB
+#else
+			DEFAULT_FRAME_SPACE = 0,
+#endif // BEER_INLINE_FRAMES
 		};
 
 	protected:

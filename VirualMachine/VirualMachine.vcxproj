@@ -51,6 +51,7 @@
     <ClCompile Include="sources\GrowableMemoryAllocator.cpp" />
     <ClCompile Include="sources\Pair.cpp" />
     <ClCompile Include="sources\ChildrenForwarder.cpp" />
+    <ClCompile Include="sources\PerformanceProfiler.cpp" />
     <ClCompile Include="sources\PolymorphicCache.cpp" />
     <ClCompile Include="sources\Method.cpp" />
     <ClCompile Include="sources\AttributeDescriptor.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="sources\ObjectInspector.h" />
     <ClInclude Include="sources\CreateOneEntryPointTask.h" />
     <ClInclude Include="sources\ChildrenForwarder.h" />
+    <ClInclude Include="sources\PerformanceProfiler.h" />
     <ClInclude Include="sources\TaskContext.h" />
     <ClInclude Include="sources\TaskScheduler.h" />
     <ClInclude Include="sources\SynchronizationEvent.h" />

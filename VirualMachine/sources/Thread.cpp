@@ -353,10 +353,10 @@ void Thread::getType(StackRef<Object> object, StackRef<Class> ret)
 
 void Thread::createPolycache(StackRef<PolymorphicCache> ret, uint16 length)
 {
-	ret = getHeap()->alloc<PolymorphicCache>(PolymorphicCache::POLYCACHE_CHILDREN_COUNT + length * 2);
+	ret = getHeap()->alloc<PolymorphicCache>(PolymorphicCache::POLYCACHE_CHILDREN_COUNT + (length * 2));
 
 	new(*ret) PolymorphicCache(); // ctor
 
-	ret->setLength(length);
+	ret->setLength(length * 2);
 	ret->clear();
 }

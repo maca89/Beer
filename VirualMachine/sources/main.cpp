@@ -8,6 +8,8 @@
 #include "Thread.h"
 #include "MyClassFileLoader.h"
 
+#include "PerformanceProfiler.h"
+
 using namespace Beer;
 
 struct Settings
@@ -216,7 +218,7 @@ int __cdecl main(int argc, const char** argv)
 	//cout << "Threads: " << numberOfThreads << "\n";
 
 	//GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
-	GenerationalGC* gc = new GenerationalGC(480 * 1024 * 1024, 128 * 1024);
+	GenerationalGC* gc = new GenerationalGC(512 * 1024 * 1024, 4 * 1024 * 1024);
 	//GenerationalGC* gc = new GenerationalGC(512 * 1024, 8 * 1024);
 	
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
@@ -278,6 +280,19 @@ int __cdecl main(int argc, const char** argv)
 #ifdef BEER_MEASURE_PERFORMANCE
 	Console::getOutput() << BEER_WIDEN("\nMain took ") << mainTimer.stop();
 #endif // BEER_MEASURE_PERFORMANCE
+
+#if defined(BEER_PROFILE_MONOCACHES) || defined(BEER_PROFILE_POLYCACHES)
+	PerformanceProfiler* profiler = PerformanceProfiler::getInstance();
+	cout << "\n";
+#endif // 
+
+#ifdef BEER_PROFILE_MONOCACHES
+	cout << "MIC waiting: " << std::fixed << std::setw(11) << std::setprecision(8) << profiler->getMonoCachesWaiting() << "\n";
+#endif
+
+#ifdef BEER_PROFILE_POLYCACHES
+	cout << "PIC waiting: " << std::fixed << std::setw(11) << std::setprecision(8) << profiler->getPolyCachesWaiting() << "\n";
+#endif
 
 	//system(BEER_WIDEN("PAUSE"));test
 	return 0;

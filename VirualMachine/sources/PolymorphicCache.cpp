@@ -5,6 +5,7 @@
 #include "Frame.h"
 #include "Thread.h"
 #include "Pair.h"
+#include "PerformanceProfiler.h"
 
 using namespace Beer;
 
@@ -34,7 +35,7 @@ void PolymorphicCache::clear()
 Method* PolymorphicCache::find(Class* receiverType, Class* interf, uint32 methodIndex)
 {
 	//return interfaceMethodLookup(receiverType, interf, methodIndex);
-
+	
 	for(uint32 sloti = 0; sloti < getLength(); sloti += 2)
 	{
 		Object* key = getItem(sloti);
@@ -42,8 +43,15 @@ Method* PolymorphicCache::find(Class* receiverType, Class* interf, uint32 method
 		// found!
 		if(key == receiverType)
 		{
+			//cout << "[found: " << receiverType << "]\n";
 			return static_cast<Method*>(getItem(sloti + 1));
 		}
+
+		
+#ifdef BEER_PROFILE_POLYCACHES
+		MiliTimer timer;
+		timer.start();
+#endif // BEER_PROFILE_POLYCACHES
 
 		// end of cache
 		while(key == NULL)
@@ -55,7 +63,13 @@ Method* PolymorphicCache::find(Class* receiverType, Class* interf, uint32 method
 			{
 				if(key == NULL) // could have been patched by someone else before we acquired the lock
 				{
+#ifdef BEER_PROFILE_POLYCACHES
+					PerformanceProfiler::getInstance()->addPolyCacheWait(static_cast<float32>(timer.stop()));
+#endif // BEER_PROFILE_POLYCACHES
+
 					Method* value = interfaceMethodLookup(receiverType, interf, methodIndex);
+
+					//cout << "[cache miss: " << receiverType << "]\n";
 
 					setItem(sloti + 1, value); // first set value
 					setItem(sloti, receiverType); // second set key
@@ -70,8 +84,13 @@ Method* PolymorphicCache::find(Class* receiverType, Class* interf, uint32 method
 				key = getItem(sloti); // lets see if the slot is free
 			}
 		}
+
+#ifdef BEER_PROFILE_POLYCACHES
+		PerformanceProfiler::getInstance()->addPolyCacheWait(static_cast<float32>(timer.stop()));
+#endif // BEER_PROFILE_POLYCACHES
 	}
 
+	//cout << "[cache--" << getLength() <<  " full: " << receiverType << "]\n";
 	return interfaceMethodLookup(receiverType, interf, methodIndex);
 }
 

@@ -16,6 +16,7 @@
 #include "GenerationalGC.h"
 #include "StringDescriptor.h"
 #include "ClassFileDescriptor.h"
+#include "PerformanceProfiler.h"
 
 #include "FrameInspector.h"
 
@@ -175,6 +176,11 @@ INLINE void patchInlineCache(Object** keyDest, Object** valueDest, Object* key, 
 
 NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Object** valueDest, Object* key, Object* value)
 {
+#ifdef BEER_PROFILE_MONOCACHES
+	MiliTimer timer;
+	timer.start();
+#endif
+
 	// critical section is shared in all bytecode, therefore the loop
 	while(*keyDest == NULL)
 	{
@@ -187,6 +193,9 @@ NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Ob
 		{
 			if(*keyDest == NULL) // could have been patched by someone else before we acquired the lock
 			{
+#ifdef BEER_PROFILE_MONOCACHES
+				PerformanceProfiler::getInstance()->addMonoCacheWait(static_cast<float32>(timer.stop()));
+#endif
 				patchInlineCache(keyDest, valueDest, key, value);
 				return;
 			}
@@ -198,11 +207,15 @@ NOINLINE void patchInlineCacheAtomic(Method* invokedMethod, Object** keyDest, Ob
 
 		// nbMutex unlocked
 	}
+
+#ifdef BEER_PROFILE_MONOCACHES
+	PerformanceProfiler::getInstance()->addMonoCacheWait(static_cast<float32>(timer.stop()));
+#endif
 }
 
-NOINLINE Method* methodLookup(Class* type, uint32 vtableIndex)
+INLINE Method* methodLookup(Class* type, uint32 vtableIndex)
 {
-	NULL_ASSERT(type);
+	//NULL_ASSERT(type);
 	return type->getMethod(vtableIndex);
 }
 
@@ -783,7 +796,11 @@ BEER_BC_LABEL(INSTR_LOAD):
 		StackRef<Object> object(frame, frame->stackTopIndex());
 		NULL_ASSERT(*object);
 
+#ifdef BEER_BARRIER_READ_ON
 		thread->getGC()->getChild(object, object, Object::OBJECT_CHILDREN_COUNT + BEER_BC_DATA(BEER_BC_UWORD));
+#else
+		object = object->getChild(Object::OBJECT_CHILDREN_COUNT + BEER_BC_DATA(BEER_BC_UWORD));
+#endif // BEER_BARRIER_READ_ON
 	}
 	BEER_BC_NEXT(BEER_BC_SIZEOF(BEER_BC_UWORD));
 
@@ -801,8 +818,13 @@ BEER_BC_LABEL(INSTR_ASSIGN):
 		NULL_ASSERT(object.get());
 
 		StackRef<Object> child(frame, frame->stackTopIndex() - 1);
+
+#ifdef BEER_BARRIER_WRITE_ON
 		Object::setChild(thread, object, Object::OBJECT_CHILDREN_COUNT + BEER_BC_DATA(BEER_BC_UWORD), child);
 		//thread->getGC()->setChild(object, child, Object::OBJECT_CHILDREN_COUNT + BEER_BC_DATA(BEER_BC_UWORD)); // TODO
+#else
+		object->setChild(Object::OBJECT_CHILDREN_COUNT + BEER_BC_DATA(BEER_BC_UWORD), *child);
+#endif // BEER_BARRIER_READ_ON
 			
 		frame->stackPop(); // pop object
 		frame->stackPop(); // pop value
@@ -827,18 +849,21 @@ BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
 		Object* receiver = frame->stackTop();
 		NULL_ASSERT(receiver);
 
+		// get current class
+		Class* receiverKlass = thread->getType(receiver);
+
+		Method* method = NULL;
+
+#ifdef BEER_MIC_OPTIMIZATION
 		// get cache key
 		Object** cachedClassPtr = reinterpret_cast<Object**>(ip);
 		Class* cachedClass = static_cast<Class*>(*cachedClassPtr);
 			
 		// get cache value
 		Object** methodPtr = reinterpret_cast<Object**>(ip + sizeof(int32));
-		Method* method = static_cast<Method*>(*methodPtr);
+		method = static_cast<Method*>(*methodPtr);
 
 		BEER_BC_MOVE(2 * sizeof(int32));
-			
-		// get current class
-		Class* receiverKlass = thread->getType(receiver);
 
 		// is it cached?
 		if(receiverKlass != cachedClass)
@@ -847,6 +872,10 @@ BEER_BC_LABEL(INSTR_VIRTUAL_INVOKE):
 			method = methodLookup(receiverKlass, BEER_BC_DATA(uint32));
 			patchInlineCacheAtomic(invokedMethod, cachedClassPtr, methodPtr, receiverKlass, method);
 		}
+#else
+		BEER_BC_MOVE(2 * sizeof(int32));
+		method = methodLookup(receiverKlass, BEER_BC_DATA(uint32));
+#endif // BEER_MIC_OPTIMIZATION
 		
 		DBG_ASSERT(method, BEER_WIDEN("Method is NULL"));
 		frame->stackPush(method);
@@ -944,7 +973,15 @@ BEER_BC_LABEL(INLINE_BOOLEAN_NEGATION):
 BEER_BC_LABEL(INLINE_INTEGER_PLUS):
 	{
 		StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+		Integer::IntegerData result = op1 + op2;
+#else
 		Integer::IntegerData result = frame->stackTop<Integer>()->getData() + frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData();
+#endif // BEER_BARRIER_READ_ON
 
 		frame->stackPop(); // pop argument
 		frame->stackPop(); // pop receiver
@@ -956,7 +993,15 @@ BEER_BC_LABEL(INLINE_INTEGER_PLUS):
 BEER_BC_LABEL(INLINE_INTEGER_MINUS):
 	{
 		StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+		Integer::IntegerData result = op1 - op2;
+#else
 		Integer::IntegerData result = frame->stackTop<Integer>()->getData() - frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData();
+#endif // BEER_BARRIER_READ_ON
 		
 		frame->stackPop(); // pop argument
 		frame->stackPop(); // pop receiver
@@ -968,7 +1013,15 @@ BEER_BC_LABEL(INLINE_INTEGER_MINUS):
 BEER_BC_LABEL(INLINE_INTEGER_MUL):
 	{
 		StackRef<Integer> ret(frame, frame->stackTopIndex() - 2);
+
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+		Integer::IntegerData result = op1 * op2;
+#else
 		Integer::IntegerData result = frame->stackTop<Integer>()->getData() * frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData();
+#endif // BEER_BARRIER_READ_ON
 		
 		frame->stackPop(); // pop argument
 		frame->stackPop(); // pop receiver
@@ -978,51 +1031,129 @@ BEER_BC_LABEL(INLINE_INTEGER_MUL):
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_EQUAL):
-	frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
-		frame->stackTop<Integer>()->getData() == frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
-	));
-	frame->stackPop(); // pop argument
-	frame->stackPop(); // pop receiver
+	{
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			op1 == op2
+		));
+#else
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			frame->stackTop<Integer>()->getData() == frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
+		));
+#endif // BEER_BARRIER_READ_ON
+
+		frame->stackPop(); // pop argument
+		frame->stackPop(); // pop receiver
+	}
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_NOT_EQUAL):
-	frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
-		frame->stackTop<Integer>()->getData() != frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
-	));
-	frame->stackPop(); // pop argument
-	frame->stackPop(); // pop receiver
+	{
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			op1 != op2
+		));
+#else
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			frame->stackTop<Integer>()->getData() != frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
+		));
+#endif // BEER_BARRIER_READ_ON
+
+		frame->stackPop(); // pop argument
+		frame->stackPop(); // pop receiver
+	}
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_SMALLER):
-	frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
-		frame->stackTop<Integer>()->getData() < frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
-	));
-	frame->stackPop(); // pop argument
-	frame->stackPop(); // pop receiver
+	{
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			op1 < op2
+		));
+#else
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			frame->stackTop<Integer>()->getData() < frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
+		));
+#endif // BEER_BARRIER_READ_ON
+
+		frame->stackPop(); // pop argument
+		frame->stackPop(); // pop receiver
+	}
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_SMALLER_EQUAL):
-	frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
-		frame->stackTop<Integer>()->getData() <= frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
-	));
-	frame->stackPop(); // pop argument
-	frame->stackPop(); // pop receiver
+	{
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			op1 <= op2
+		));
+#else
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			frame->stackTop<Integer>()->getData() <= frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
+		));
+#endif // BEER_BARRIER_READ_ON
+
+		frame->stackPop(); // pop argument
+		frame->stackPop(); // pop receiver
+	}
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_GREATER):
-	frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
-		frame->stackTop<Integer>()->getData() > frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
-	));
-	frame->stackPop(); // pop argument
-	frame->stackPop(); // pop receiver
+	{
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			op1 > op2
+		));
+#else
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			frame->stackTop<Integer>()->getData() > frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
+		));
+#endif // BEER_BARRIER_READ_ON
+
+		frame->stackPop(); // pop argument
+		frame->stackPop(); // pop receiver
+	}
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_INTEGER_GREATER_EQUAL):
-	frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
-		frame->stackTop<Integer>()->getData() >= frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
-	));
-	frame->stackPop(); // pop argument
-	frame->stackPop(); // pop receiver
+	{
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		Integer::IntegerData op1 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>()))->getData();
+		Integer::IntegerData op2 = static_cast<Integer*>(gc->getIdentity(frame->stackTop<Integer>(frame->stackTopIndex() - 1)))->getData();
+
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			op1 >= op2
+		));
+#else
+		frame->stackStore(frame->stackTopIndex() - 2, Boolean::makeInlineValue(
+			frame->stackTop<Integer>()->getData() >= frame->stackTop<Integer>(frame->stackTopIndex() - 1)->getData()
+		));
+#endif // BEER_BARRIER_READ_ON
+
+		frame->stackPop(); // pop argument
+		frame->stackPop(); // pop receiver
+	}
 	BEER_BC_NEXT(0);
 
 BEER_BC_LABEL(INLINE_ARRAY_GET_LENGTH):
@@ -1043,7 +1174,11 @@ BEER_BC_LABEL(INLINE_ARRAY_GET_ITEM):
 		Integer::IntegerData itemIndex = index->getData();
 		BOUNDS_ASSERT(itemIndex, receiver->getSize());
 
+#ifdef BEER_BARRIER_READ_ON
 		Object::getChild(thread, receiver, Array::OBJECT_CHILDREN_COUNT + itemIndex, ret);
+#else
+		ret = static_cast<Integer*>(receiver->getChild(Array::OBJECT_CHILDREN_COUNT + itemIndex));
+#endif // BEER_BARRIER_READ_ON
 
 		frame->stackPop(); // pop receiver
 		frame->stackPop(); // pop index
@@ -1059,19 +1194,18 @@ BEER_BC_LABEL(INLINE_ARRAY_SET_ITEM):
 		Integer::IntegerData itemIndex = index->getData();
 		BOUNDS_ASSERT(itemIndex, receiver->getSize());
 
+#ifdef BEER_BARRIER_WRITE_ON
 		Object::setChild(thread, receiver, Array::OBJECT_CHILDREN_COUNT + itemIndex, value);
+#else
+#ifdef BEER_BARRIER_READ_ON
+		GenerationalGC* gc = thread->getGC();
+		gc->getIdentity(*receiver)->setChild(Array::OBJECT_CHILDREN_COUNT + itemIndex, *value);
+#else
+		receiver->setChild(Array::OBJECT_CHILDREN_COUNT + itemIndex, *value);
+#endif // BEER_BARRIER_READ_ON
+#endif // BEER_BARRIER_WRITE_ON
 
 		frame->stackMoveTop(-3); // pop index, receiver, value
-	}
-	BEER_BC_NEXT(0);
-
-BEER_BC_LABEL(OPTIMAL_ARRAY_ALLOC):
-	{
-		StackRef<Integer> length(frame, frame->stackTopIndex());
-		StackRef<Array> instance(frame, frame->stackPush());
-		
-		thread->createArray(length, instance);
-		//thread->getVM()->startSafePoint();
 	}
 	BEER_BC_NEXT(0);
 
@@ -1084,6 +1218,16 @@ BEER_BC_LABEL(OPTIMAL_PUSH_FALSE):
 	BEER_BC_NEXT_0();
 
 #endif // BEER_INLINE_OPTIMALIZATION
+
+BEER_BC_LABEL(OPTIMAL_ARRAY_ALLOC):
+	{
+		StackRef<Integer> length(frame, frame->stackTopIndex());
+		StackRef<Array> instance(frame, frame->stackPush());
+		
+		thread->createArray(length, instance);
+		//thread->getVM()->startSafePoint();
+	}
+	BEER_BC_NEXT(0);
 
 BEER_BC_DEFAULT_LABEL():
 	throw BytecodeException(BEER_WIDEN("Unknown opcode"));

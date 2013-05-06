@@ -208,6 +208,9 @@
     <ClCompile Include="sources\WorkerThread.cpp">
       <Filter>Sources\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="sources\PerformanceProfiler.cpp">
+      <Filter>Sources\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">
@@ -477,6 +480,9 @@
     </ClInclude>
     <ClInclude Include="sources\WorkerThread.h">
       <Filter>Headers\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\PerformanceProfiler.h">
+      <Filter>Headers\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

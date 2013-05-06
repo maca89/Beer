@@ -160,7 +160,11 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 					ostream.write<uint32>(index);// method index
 
 					StackRef<PolymorphicCache> cache(frame, frame->stackPush());
-					thread->createPolycache(cache, 4);
+#ifdef BEER_PIC_OPTIMIZATION
+					thread->createPolycache(cache, 6);
+#else
+					thread->createPolycache(cache, 0);
+#endif // BEER_PIC_OPTIMIZATION
 					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(*cache))); // cache
 					frame->stackPop(); // pop cache
 				}
@@ -184,6 +188,7 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 				{
 					Boolean* value = static_cast<Boolean*>(reinterpret_cast<Object*>(istream.read<int32>()));
 					
+#ifdef BEER_INLINE_OPTIMALIZATION
 					if(value->getData() == true)
 					{
 						ostream.write<uint8>(BEER_OPTIMAL_PUSH_TRUE);
@@ -192,6 +197,10 @@ void MultipassBytecodeOptimiser::optimise(Thread* thread, Method* method, const 
 					{
 						ostream.write<uint8>(BEER_OPTIMAL_PUSH_FALSE);
 					}
+#else 
+					ostream.write<uint8>(opcode);
+					ostream.write<int32>(reinterpret_cast<int32>(static_cast<Object*>(value)));
+#endif // BEER_INLINE_OPTIMALIZATION
 				}
 				break;
 

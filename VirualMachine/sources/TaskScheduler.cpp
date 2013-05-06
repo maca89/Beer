@@ -23,11 +23,6 @@ using namespace Beer;
 TaskScheduler::TaskScheduler()
 	: mVM(NULL), mGC(NULL), mSafePoint(false), mThreadIdleEvents(NULL), mRunning(false), mThreadsCount(0)
 {
-	//mPushIdleFunction = &PushIdleLockFree;
-	//mPopIdleFunction = &PopIdleLockFree;
-	/*mPushIdleFunction = &PushIdleSynchronized;
-	mPopIdleFunction = &PopIdleSynchronized;
-	mIdleSize = 0;*/
 }
 
 TaskScheduler::~TaskScheduler()
@@ -50,7 +45,6 @@ void TaskScheduler::init(VirtualMachine* vm, GenerationalGC* gc, uint16 threadsC
 		mThreadIdleEvents[i] = thread->getIdleEvent()->getHandle();
 		mAllThreads[i] = thread;
 
-		//mPushIdleFunction(&mIdleCriticalSection, &mIdleThreads, thread);
 		mIdleThreads.push(thread);
 	}
 }
@@ -64,57 +58,21 @@ void TaskScheduler::pause()
 void TaskScheduler::resume()
 {
 	mRunning = true;
-	//mIdleThreads.clear();
 
 	// start all threads
 	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
 		WorkerThread* thread = mAllThreads[i];
 		thread->run();
-		//mIdleThreads.push(thread);
 	}
 
 	while(mRunning)
 	{
-#ifdef BEER_SCHEDULER_VERBOSE
-		if(false){
-			stringstream ss;
-			ss << "Scheduler:[";
-
-			ThreadQueue q;
-			WorkerThread* t = NULL;
-
-			// print idle
-			ss << "[Idle:";
-			while(t = mIdleThreads.pop())
-			{
-				ss << t->getThreadId() << " ";
-				q.push(t);
-			}
-			ss << "]";
-
-			// fix idle
-			while(t = q.pop())
-			{
-				mIdleThreads.push(t);
-			}
-
-			ss << "]\n";
-			ThreadSafeOutput(cout) << ss.str();
-		}
-#endif // BEER_SCHEDULER_VERBOSE
-
 		if(isSafePoint())
 		{
-			cout << "[Safe point]\n";
 			safePoint();
 			continue;
 		}
-
-		/*if(!mDone.empty())
-		{
-			processDone();
-		}*/
 
 		if(!mActive.empty()) // we have some tasks
 		{
@@ -136,7 +94,7 @@ void TaskScheduler::resume()
 			wakeUpOneThread();
 		}
 
-		if(mActive.empty() /*&& mWaiting.empty()*/ /*&& mDone.empty()*/) // no new work
+		if(mActive.empty()) // no new work
 		{
 			// is anybody working?
 			if(allThreadsIdle())
@@ -167,12 +125,10 @@ void TaskScheduler::contextSwitch()
 {
 	SCHEDULER_DEBUG("contextSwitch");
 
-	// TODO
 
 	for(uint16 i = 0; i < mThreadsCount; i++)
 	{
 		mAllThreads[i]->contextSwitch();
-		//mAllThreads[i]->getDoWorkEvent()->fire(); // dbg, TODO
 	}
 }
 
@@ -251,7 +207,7 @@ void TaskScheduler::safePoint()
 	// TODO: event from GC, no sleeplock
 	while(isSafePoint())
 	{
-		Sleep(40);
+		Sleep(SCHEDULER_TIME_FRAME);
 	}
 
 	//stopSafePoint();
@@ -260,7 +216,6 @@ void TaskScheduler::safePoint()
 
 void TaskScheduler::wakeUpOneThread()
 {
-	//WorkerThread* thread = mPopIdleFunction(&mIdleCriticalSection, &mIdleThreads);
 	WorkerThread* thread = mIdleThreads.pop();
 	if(thread)
 	{
@@ -271,11 +226,6 @@ void TaskScheduler::wakeUpOneThread()
 
 bool TaskScheduler::allThreadsIdle()
 {
-	//BlockingMutex bm(&mIdleCriticalSection);
-
-	//mPushIdleFunction = &PushIdleSynchronized;
-	//mPopIdleFunction = &PopIdleSynchronized;
-
 	// ugly, TODO
 	uint16 idleCount = 0;
 	for(uint16 i = 0; i < mThreadsCount; i++)
@@ -283,38 +233,12 @@ bool TaskScheduler::allThreadsIdle()
 		WorkerThread* thread = mAllThreads[i];
 		if(thread->isIdle()) idleCount++;
 	}
-	
-	//mPushIdleFunction = &PushIdleLockFree;
-	//mPopIdleFunction = &PopIdleLockFree;
 
 	return idleCount == mThreadsCount;
 }
 
-/*WorkerThread* TaskScheduler::PopIdleLockFree(CriticalSection* cs, ThreadQueue* queue)
-{
-	return queue->pop();
-}
-
-void TaskScheduler::PushIdleLockFree(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread)
-{
-	queue->push(thread);
-}
-
-WorkerThread* TaskScheduler::PopIdleSynchronized(CriticalSection* cs, ThreadQueue* queue)
-{
-	BlockingMutex bm(cs);
-	return PopIdleLockFree(cs, queue);
-}
-
-void TaskScheduler::PushIdleSynchronized(CriticalSection* cs, ThreadQueue* queue, WorkerThread* thread)
-{
-	BlockingMutex bm(cs);
-	PushIdleLockFree(cs, queue, thread);
-}*/
-
 void TaskScheduler::addIdle(WorkerThread* thread)
 {
-	//mPushIdleFunction(&mIdleCriticalSection, &mIdleThreads, thread);
 	mIdleThreads.push(thread);
 }
 
@@ -365,10 +289,6 @@ void TaskScheduler::afterSafePoint()
 void TaskScheduler::updateFramesPointers()
 {
 	updateFramesPointers(mActive);
-	//updateFramesPointers(mWaiting);
-	//updateFramesPointers(mDone);
-	//updateFramesPointers(mScheduled);
-	//updateFramesPointers(mLocked);
 }
 
 Task* TaskScheduler::updateFramesPointers(Task* task)
@@ -424,8 +344,6 @@ void TaskScheduler::updateFramesPointers(WaitingTaskQueue& queue)
 void TaskScheduler::updateFramesClass(Class* klass)
 {
 	updateFramesClass(mActive, klass);
-	//updateFramesClass(mScheduled, klass);
-	//updateFramesClass(mLocked, klass);
 }
 
 void TaskScheduler::updateFramesClass(WaitingTaskQueue& queue, Class* klass)
