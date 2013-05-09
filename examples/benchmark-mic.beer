@@ -113,10 +113,10 @@ class MyTask
 
 class Main
 {
-	interface EntryPoint
-	{
-		run
-		{
+  interface EntryPoint
+  {
+    run
+    {
       Console out = new Console();
       Timer timer = new Timer();
       Integer i = 0;
@@ -124,7 +124,7 @@ class Main
       
       while(i < count)
       {
-  			MyTask t1 = new MyTask();
+        MyTask t1 = new MyTask();
         MyTask t2 = new MyTask();
         MyTask t3 = new MyTask();
         MyTask t4 = new MyTask();
@@ -179,6 +179,6 @@ class Main
       }
       
       out.print("Took: " + timer.stop());
-		}
-	}
+    }
+  }
 }

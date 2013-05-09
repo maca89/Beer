@@ -178,11 +178,11 @@ class QuickSort
 class Main
 {
   data
-	{
+  {
     RandomGenerator random;
     Timer timer;
     Console out;
-	}
+  }
   
   interface
   {
@@ -264,10 +264,10 @@ class Main
     }
   }
   
-	interface EntryPoint
-	{
-		run
-		{
+  interface EntryPoint
+  {
+    run
+    {
       random = new RandomGenerator(42);
       out = new Console();
       timer = new Timer();
@@ -301,6 +301,6 @@ class Main
       }
       
       out.println("Created tasks: " + (sort.getCounter() as Integer));
-		}
-	}
+    }
+  }
 }
