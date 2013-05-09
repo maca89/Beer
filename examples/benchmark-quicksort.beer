@@ -1,0 +1,306 @@
+class Counter
+{
+  data
+  {
+    Integer mNext;
+  }
+  
+  interface
+  {
+    Counter
+    {
+    }
+    
+    Integer
+    {
+      return mNext;
+    }
+    
+    Integer increment
+    {
+      Integer curr = mNext;
+      mNext += 1;
+      return curr;
+    }
+  }
+}
+
+class QuickSortTask
+{
+  data
+  {
+    Counter mCounter; // debug
+    Console out; // debug
+    Integer mId; // debug
+    
+    QuickSort mSort;
+    Array mArray;
+    Integer mLeft;
+    Integer mRight;
+  }
+  
+  interface
+  {
+    QuickSortTask(QuickSort sort, Array array, Integer left, Integer right, Counter counter)
+    {
+      Task();
+      
+      mArray = array;
+      mSort = sort;
+      mLeft = left;
+      mRight = right;
+      out = new Console();
+      mCounter = counter;
+      mId = mCounter.increment();
+    }
+  }
+  
+  interface Task
+  {
+    run
+    {
+      //out.println("QST #" + mId + " started");
+      
+      Integer paralelThreashold = 750;
+      
+      if(mRight > mLeft)
+      {
+        if((mRight - mLeft) < paralelThreashold)
+        {
+          mSort.sequential(mArray, mLeft, mRight);
+        }
+        else
+        {
+          Integer pivot = mSort.partition(mArray, mLeft, mRight);
+          
+          Task t1 = mSort.parallel(mArray, mLeft, pivot - 1, mCounter);
+          Task t2 = mSort.parallel(mArray, pivot + 1, mRight, mCounter);
+          
+          // start all tasks
+          t1.schedule();
+          t2.schedule();
+          
+          // wait for all scheduled tasks
+          //out.println("QST #" + mId + " await");
+          t1.await();
+          
+          //out.println("QST #" + mId + " await");
+          t2.await();
+        }
+      }
+      
+      //out.println("QST #" + mId + " ended");
+    }
+  }
+}
+
+class QuickSort
+{
+  data
+  {
+    Counter counter;
+  }
+  
+  interface
+  {
+    QuickSort
+    {
+      counter = new Counter();
+    }
+    
+    Counter getCounter
+    {
+      return counter;
+    }
+    
+    swap(Array array, Integer index1, Integer index2)
+    {
+      Integer item1 = array.get(index1);
+      array.set(index1, array.get(index2));
+      array.set(index2, item1);
+    }
+    
+    // returns pivot
+    Integer partition(Array array, Integer left, Integer right)
+    {
+      Integer length = right - left;
+      Integer pivot = left + ((length / 2) as Integer);
+      Integer pivotValue = array.get(pivot);
+
+      swap(array, pivot, right); // move pivot to end
+
+      Integer i = left;
+      Integer j = left;
+      
+      while(i < right)
+      {
+        if(array.get(i) < pivotValue)
+        {
+          swap(array, i, j);
+          j += 1;
+        }
+        i += 1;
+      }
+
+      swap(array, j, right); // move pivot to final place
+      return j;
+    }
+    
+    sequential(Array array, Integer left, Integer right)
+    {
+      //(new Console()).println("seq");
+      if(right > left)
+      {
+        Integer pivot = partition(array, left, right);
+        sequential(array, left, pivot - 1);
+        sequential(array, pivot + 1, right);
+      }
+    }
+    
+    sequential(Array array)
+    {
+      sequential(array, 0, array.getLength() - 1);
+    }
+    
+    Task parallel(Array array, Integer left, Integer right, Counter counter)
+    {
+      return (new QuickSortTask(this, array, left, right, counter)) as Task;
+    }
+    
+    Task parallel(Array array)
+    {
+      return parallel(array, 0, array.getLength() - 1, counter);
+    }
+  }
+}
+
+
+class Main
+{
+  data
+	{
+    RandomGenerator random;
+    Timer timer;
+    Console out;
+	}
+  
+  interface
+  {
+    Main
+    {
+      Task();
+    }
+    
+    Array clone(Array array)
+    {
+      Array cloned = new Array(array.getLength());
+      
+      Integer i = 0;
+      while(i < array.getLength())
+      {
+        cloned.set(i, array.get(i));
+        i += 1;
+      }
+      
+      return cloned;
+    }
+    
+    Array generateArray(Integer length)
+    {
+      Array array = new Array(length);
+      
+      Integer i = 0;
+      while(i < length)
+      {
+        Integer number = (random as Integer) % 100;
+        
+        if(number < 0)
+        {
+          number = -number;
+        }
+        
+        array.set(i, number);
+        i += 1;
+      }
+      
+      return array;
+    }
+    
+    Boolean isSorted(Array array)
+    {
+      Integer last = array.get(0);
+      Integer i = 1;
+      
+      while(i < array.getLength())
+      {
+        Integer item = array.get(i);
+        
+        if(item < last)
+        {
+          out.println("array[" + i + "] = " + item);
+          out.println("array[" + (i - 1) + "] = " + last);
+          return false;
+        }
+        
+        last = item;
+        i += 1;
+      }
+      
+      return true;
+    }
+    
+    Boolean sortSequential(QuickSort sort, Array array)
+    {
+      sort.sequential(array);
+      return isSorted(array);
+    }
+    
+    Boolean sortParallel(QuickSort sort, Array array)
+    {
+      Task t = sort.parallel(array);
+      t.schedule();
+      t.await();
+      return isSorted(array);
+    }
+  }
+  
+	interface EntryPoint
+	{
+		run
+		{
+      random = new RandomGenerator(42);
+      out = new Console();
+      timer = new Timer();
+      
+      Array array1 = generateArray(20000);//8000
+      Array array2 = clone(array1);
+      QuickSort sort = new QuickSort();
+      
+      //out.println("Data: " + array1);
+      
+      // sequential
+      timer.start();
+      if(sortSequential(sort, array1))
+      {
+        out.println("Seq: " + timer.stop());
+      }
+      else
+      {
+        out.println("Sequential failed: " + array1);
+      }
+      
+      // parallel
+      timer.start();
+      if(sortParallel(sort, array2))
+      {
+        out.println("Par: " + timer.stop());
+      }
+      else
+      {
+        out.println("Parallel failed: " + array2);
+      }
+      
+      out.println("Created tasks: " + (sort.getCounter() as Integer));
+		}
+	}
+}

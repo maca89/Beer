@@ -7,7 +7,7 @@ native class Task
     run; // abstract
     
     schedule;
-    await;
+    await();
     
     // properties
     Boolean getCompleted;

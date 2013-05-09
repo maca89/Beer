@@ -9,7 +9,7 @@ class Knapsack
 	{
 		Knapsack()
 		{
-			out = new Console();
+			//out = new Console();
 		}
 
 		Boolean find(Array arr, Integer total)
@@ -23,6 +23,7 @@ class Knapsack
       
       if(start == arr.getLength())
 			{
+        //out.println("false: " + arr + " [" + start + ", " + total + "]");
 				return false;
 			}
 
@@ -73,6 +74,7 @@ class Main
   			knap = new Knapsack();
   			if(!knap.find(arr, 20))
         {
+          //out.println("Knapsack find failed for iteration #" + i);
           result = false;
         }
         
@@ -81,7 +83,8 @@ class Main
       
       if(result)
       {
-        out.print(timer.stop());
+        //out.println("" + arr);
+        out.print("Took: " + timer.stop());
       }
       else
       {

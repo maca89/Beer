@@ -369,8 +369,8 @@ namespace Beer
 	#define BEER_PIC_OPTIMIZATION
 
 	// multi-threading
-	//#define BEER_BARRIER_READ_ON
-	//#define BEER_BARRIER_WRITE_ON
+	#define BEER_BARRIER_READ_ON
+	#define BEER_BARRIER_WRITE_ON
 
 	// measure performance
 	//#define BEER_MEASURE_PERFORMANCE

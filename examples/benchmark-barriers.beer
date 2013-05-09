@@ -1,0 +1,54 @@
+class Main
+{
+  data
+	{
+	}
+  
+  interface
+  {
+    writeArray(Array array, RandomGenerator rand)
+    {
+      Integer i = 0;
+      while(i < array.getLength())
+      {
+        array.set(i, (rand as Integer));
+        i += 1;
+      }
+    }
+    
+    readArray(Array array)
+    {
+      Integer result = 0;
+      Integer i = 0;
+      while(i < array.getLength())
+      {
+        result += array.get(i);
+        i += 1;
+      }
+    }
+  }
+  
+	interface EntryPoint
+	{
+		run
+		{
+      Boolean result = true;
+      Console out = new Console();
+      Timer timer = new Timer();
+      Integer i = 0;
+      Integer count = 200;
+      RandomGenerator rand = new RandomGenerator();
+      Array array = new Array(10000);
+      
+      while(i < count)
+      {
+        writeArray(array, rand);
+  			readArray(array);
+        
+        i += 1;
+      }
+      
+      out.print("Took: " + timer.stop());
+		}
+	}
+}

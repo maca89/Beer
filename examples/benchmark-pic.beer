@@ -1,0 +1,374 @@
+class MyInterf1
+{
+  interface
+  {
+    abstr1;
+  }
+}
+
+class MyInterf2
+{
+  interface
+  {
+    abstr2;
+  }
+}
+
+class MyInterf3
+{
+  interface
+  {
+    abstr3;
+  }
+}
+
+class MyInterf4
+{
+  interface
+  {
+    abstr4;
+  }
+}
+
+class MyInterf5
+{
+  interface
+  {
+    abstr5;
+  }
+}
+
+class MyInterf6
+{
+  interface
+  {
+    abstr6;
+  }
+}
+
+class Abstract1
+{
+  interface
+  {
+    String foo1;
+  }
+  
+  interface MyInterf1
+  {
+    abstr1
+    {
+    }
+  }
+  
+  interface MyInterf2
+  {
+    abstr2
+    {
+    }
+  }
+  
+  interface MyInterf3
+  {
+    abstr3
+    {
+    }
+  }
+  
+  interface MyInterf4
+  {
+    abstr4
+    {
+    }
+  }
+  
+  interface MyInterf5
+  {
+    abstr5
+    {
+    }
+  }
+  
+  interface MyInterf6
+  {
+    abstr6
+    {
+    }
+  }
+}
+
+class Abstract2
+{
+  interface
+  {
+    String foo2;
+  }
+}
+
+class A
+{
+  interface
+  {
+    A()
+    {
+    }
+  }
+  
+  interface Abstract1
+  {
+    String foo1
+    {
+      return "A1";
+    }
+  }
+  
+  interface Abstract2
+  {
+    String foo2
+    {
+      return "A2";
+    }
+  }
+}
+
+class B
+{
+  interface
+  {
+    B()
+    {
+    }
+  }
+  
+  interface Abstract1
+  {
+    String foo1
+    {
+      return "B1";
+    }
+  }
+  
+  interface Abstract2
+  {
+    String foo2
+    {
+      return "B2";
+    }
+  }
+}
+
+class C
+{
+  interface
+  {
+    C()
+    {
+    }
+  }
+  
+  interface Abstract1
+  {
+    String foo1
+    {
+      return "C1";
+    }
+  }
+  
+  interface Abstract2
+  {
+    String foo2
+    {
+      return "C2";
+    }
+  }
+}
+
+class D
+{ 
+  interface
+  {
+    D()
+    {
+    }
+  }
+  
+  interface Abstract1
+  {
+    String foo1
+    {
+      return "D1";
+    }
+  }
+  
+  interface Abstract2
+  {
+    String foo2
+    {
+      return "D2";
+    }
+  }
+}
+
+class MyTask
+{
+  data
+  {
+    A a;
+    B b;
+    C c;
+    D d;
+    Abstract1 abstr1;
+    Abstract2 abstr2;
+    RandomGenerator rand;
+  }
+  
+  interface
+  {
+    MyTask
+    {
+      Task();
+      
+      rand = new RandomGenerator();
+      a = new A();
+      b = new B();
+      c = new C();
+      d = new D();
+    }
+    
+    Boolean assert(String i, String j)
+    {
+      if(i != j)
+      {
+        (new Console()).println("FAIL assert('" + i + "', '" + j + "')");
+        return false;
+      }
+      
+      //out.println("OK");
+      return true;
+    }
+    
+    String setRandomAbstr
+    {
+      Integer j = ((rand as Integer) % 4).abs();
+      
+      if(j == 0)
+      {
+        abstr1 = a;
+        abstr2 = a;
+        return "A";
+      }
+      if(j == 1)
+      {
+        abstr1 = b;
+        abstr2 = b;
+        return "B";
+      }
+      if(j == 2)
+      {
+        abstr1 = c;
+        abstr2 = c;
+        return "C";
+      }
+      if(j == 3)
+      {
+        abstr1 = d;
+        abstr2 = d;
+        return "D";
+      }
+      
+      (new Console()).println("Unable to set random abstr1: j == " + j);
+      return "";
+    }
+  }
+  
+  interface Task
+  {
+    run
+    {
+      abstr1 = a;
+      abstr2 = a;
+      Boolean succ = true;
+      String expected = "A";
+      Integer i = 0;
+      
+      while(succ && i < 5000)
+      {
+        succ = assert(abstr1.foo1(), expected + "1");
+        succ = assert(abstr2.foo2(), expected + "2");
+        expected = setRandomAbstr();
+        i += 1;
+      }
+    }
+  }
+}
+
+class Main
+{
+  interface EntryPoint
+  {
+    run
+    {
+      Console out = new Console();
+      Timer timer = new Timer();
+      Integer i = 0;
+      Integer count = 10;
+      
+      while(i < count)
+      {
+        MyTask t1 = new MyTask();
+        MyTask t2 = new MyTask();
+        MyTask t3 = new MyTask();
+        MyTask t4 = new MyTask();
+        MyTask t5 = new MyTask();
+        MyTask t6 = new MyTask();
+        MyTask t7 = new MyTask();
+        MyTask t8 = new MyTask();
+        MyTask t9 = new MyTask();
+        MyTask t10 = new MyTask();
+        MyTask t11 = new MyTask();
+        MyTask t12 = new MyTask();
+        MyTask t13 = new MyTask();
+        MyTask t14 = new MyTask();
+        MyTask t15 = new MyTask();
+        MyTask t16 = new MyTask();
+        
+        t1.schedule();
+        t2.schedule();
+        t3.schedule();
+        t4.schedule();
+        t5.schedule();
+        t6.schedule();
+        t7.schedule();
+        t8.schedule();
+        t9.schedule();
+        t10.schedule();
+        t11.schedule();
+        t12.schedule();
+        t13.schedule();
+        t14.schedule();
+        t15.schedule();
+        t16.schedule();
+        
+        t1.await();
+        t2.await();
+        t3.await();
+        t4.await();
+        t5.await();
+        t6.await();
+        t7.await();
+        t8.await();
+        t9.await();
+        t10.await();
+        t11.await();
+        t12.await();
+        t13.await();
+        t14.await();
+        t15.await();
+        t16.await();
+        
+        i += 1;
+      }
+      
+      out.print("Took: " + timer.stop());
+    }
+  }
+}

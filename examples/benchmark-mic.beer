@@ -1,0 +1,184 @@
+class MyTask
+{
+  interface
+  {
+    MyTask
+    {
+      Task();
+    }
+    
+    foo1
+    {
+      foo2();
+      foo3();
+      foo4();
+      foo5();
+      foo6();
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo2
+    {
+      foo3();
+      foo4();
+      foo5();
+      foo6();
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo3
+    {
+      foo4();
+      foo5();
+      foo6();
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo4
+    {
+      foo5();
+      foo6();
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo5
+    {
+      foo6();
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo6
+    {
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo7
+    {
+      foo8();
+      foo9();
+      foo10();
+    }
+    
+    foo8
+    {
+      foo9();
+      foo10();
+    }
+    
+    foo9
+    {
+      foo10();
+    }
+    
+    foo10
+    {
+    }
+  }
+  
+  interface Task
+  {
+    run
+    {
+      foo1();
+      foo2();
+      foo3();
+      foo4();
+      foo5();
+      foo6();
+      foo7();
+      foo8();
+      foo9();
+      foo10();
+    }
+  }
+}
+
+class Main
+{
+	interface EntryPoint
+	{
+		run
+		{
+      Console out = new Console();
+      Timer timer = new Timer();
+      Integer i = 0;
+      Integer count = 100;
+      
+      while(i < count)
+      {
+  			MyTask t1 = new MyTask();
+        MyTask t2 = new MyTask();
+        MyTask t3 = new MyTask();
+        MyTask t4 = new MyTask();
+        MyTask t5 = new MyTask();
+        MyTask t6 = new MyTask();
+        MyTask t7 = new MyTask();
+        MyTask t8 = new MyTask();
+        MyTask t9 = new MyTask();
+        MyTask t10 = new MyTask();
+        MyTask t11 = new MyTask();
+        MyTask t12 = new MyTask();
+        MyTask t13 = new MyTask();
+        MyTask t14 = new MyTask();
+        MyTask t15 = new MyTask();
+        MyTask t16 = new MyTask();
+        
+        t1.schedule();
+        t2.schedule();
+        t3.schedule();
+        t4.schedule();
+        t5.schedule();
+        t6.schedule();
+        t7.schedule();
+        t8.schedule();
+        t9.schedule();
+        t10.schedule();
+        t11.schedule();
+        t12.schedule();
+        t13.schedule();
+        t14.schedule();
+        t15.schedule();
+        t16.schedule();
+        
+        t1.await();
+        t2.await();
+        t3.await();
+        t4.await();
+        t5.await();
+        t6.await();
+        t7.await();
+        t8.await();
+        t9.await();
+        t10.await();
+        t11.await();
+        t12.await();
+        t13.await();
+        t14.await();
+        t15.await();
+        t16.await();
+        
+        i += 1;
+      }
+      
+      out.print("Took: " + timer.stop());
+		}
+	}
+}
