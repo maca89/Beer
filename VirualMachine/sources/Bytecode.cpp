@@ -926,6 +926,10 @@ BEER_BC_LABEL(INSTR_STACK_INVOKE):
 	BEER_BC_RETURN();
 
 BEER_BC_LABEL(INSTR_RETURN):
+#ifdef BEER_DEBUG_SAFE_POINTS
+	thread->getVM()->startSafePoint();
+	cout << "[Artificial SafePoint marked in RETURN]\n";
+#endif
 	thread->closeFrame();
 	BEER_BC_RETURN();
 

@@ -66,17 +66,13 @@ namespace Beer
 		void startSafePoint();
 		void stopSafePoint();
 
-		TaskQueue* getActiveQueue();
-		TaskQueue* getDoneQueue();
-		TaskQueue* getScheduledQueue();
-		WaitingTaskQueue* getWaitingQueue();
-
 		void updateFramesClass(Class* klass);
 
 		// tasks
 		void addTask(Task* task);
 		void done(Task* task);
 		void wait(Task* who, Task* whatFor);
+		TaskQueue* getActiveQueue();
 
 		// threads
 		void addIdle(WorkerThread* thread);

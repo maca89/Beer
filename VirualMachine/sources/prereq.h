@@ -377,6 +377,9 @@ namespace Beer
 	//#define BEER_PROFILE_MONOCACHES
 	//#define BEER_PROFILE_POLYCACHES
 
+	// debugging
+	//#define BEER_DEBUG_SAFE_POINTS
+
 
 	// usually bytecode/virutal-runtime related errors
 	// without these checks runtime should be faster, but less error-prone

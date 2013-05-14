@@ -214,6 +214,12 @@ int __cdecl main(int argc, const char** argv)
 	Settings settings;
 	if(!loadSettings(argc, argv, settings)) return 1;
 
+	if(true) // TODO: macro BEER_SINGLE_THREADED vs BEER_MULTI_THREADED
+	{
+		settings.manualThreads = true;
+		settings.threadsCount = 1;
+	}
+
 	uint32 numberOfThreads = settings.manualThreads ? settings.threadsCount : numberOfProcessors;
 	//cout << "Threads: " << numberOfThreads << "\n";
 

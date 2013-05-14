@@ -217,6 +217,16 @@ void Debugger::printCallStack(Thread* thread, Frame* frame)
 	cout << std::endl;
 }
 
+void Debugger::printObject(Object* object)
+{
+	Frame* frame = getFrame();
+	BEER_STACK_CHECK();
+
+	StackRef<Object> oo(frame, frame->stackPush(object));
+	printObject(oo);
+	frame->stackPop(); // pop oo
+}
+
 void Debugger::printObject(StackRef<Object> object)
 {
 	Frame* frame = getFrame();

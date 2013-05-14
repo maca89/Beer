@@ -36,7 +36,7 @@ namespace Beer
 		void init(Heap* heap, Class* frameClass);
 		void updateMovedPointers(GenerationalGC* gc);
 		
-		INLINE Frame* getFrame() { DBG_ASSERT(mTopFrame != NULL, BEER_WIDEN("No stack frame")); return mTopFrame; }
+		INLINE Frame* getFrame() { return mTopFrame; }
 		INLINE bool hasFrame() { return mTopFrame != NULL; }
 		Frame* openFrame();
 		void closeFrame();

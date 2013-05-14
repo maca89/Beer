@@ -8,6 +8,7 @@
 #include "FrameInspector.h"
 #include "GenerationalGC.h"
 #include "ThreadSafeOutput.h"
+#include "Debugger.h"
 
 using namespace Beer;
 
@@ -19,6 +20,68 @@ using namespace Beer;
 #define SCHEDULER_DEBUG(msg)
 #endif // BEER_SCHEDULER_VERBOSE
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef BEER_DEBUG_SAFE_POINTS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct PrintTraverser : TraverseObjectReceiver
+{
+	int deep;
+
+	PrintTraverser(int deep = 1)
+		: deep(deep)
+	{
+	}
+
+	virtual void traverseObjectPtr(Object** ptrToObject)
+	{
+		Object* object = *ptrToObject;
+		cout << object << "\n";
+		
+		if(object == NULL || Object::isInlineValue(object))
+		{
+			// nothing
+		}
+		else if(deep > 3)
+		{
+			cout << "...\n";
+		}
+		else
+		{
+			object->getType()->getTraverser()(&PrintTraverser(deep + 1), object->getType(), object);
+		}
+	}
+
+
+};
+
+void traverse(Object* object)
+{
+	cout << "[Object " << object << "]\n";
+	object->getType()->getTraverser()(&PrintTraverser(), object->getType(), object);
+}
+
+void traverse(TaskScheduler::TaskQueue* queue, Debugger* debugger)
+{
+	for (TaskScheduler::TaskQueue::iterator it = queue->begin(); it != queue->end(); it++)
+	{
+		cout << "[Task " << *it << "]\n";
+		traverse(*it);
+		cout << "\n";
+
+		debugger->printFrameStack((*it)->getContext()->getFrame());
+	}
+}
+
+void mytest(TaskScheduler* scheduler, Debugger* debugger)
+{
+	traverse(scheduler->getActiveQueue(), debugger);
+	int a = 0;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#endif // BEER_DEBUG_SAFE_POINTS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TaskScheduler::TaskScheduler()
 	: mVM(NULL), mGC(NULL), mSafePoint(false), mThreadIdleEvents(NULL), mRunning(false), mThreadsCount(0)
@@ -200,7 +263,11 @@ void TaskScheduler::safePoint()
 
 		index = newIndex;
 	}
-	
+
+#ifdef BEER_DEBUG_SAFE_POINTS
+	mytest(this, mVM->getDebugger());
+	stopSafePoint();
+#else 
 	// signalize GC
 	mGC->threadsSuspended();
 
@@ -209,8 +276,8 @@ void TaskScheduler::safePoint()
 	{
 		Sleep(SCHEDULER_TIME_FRAME);
 	}
-
-	//stopSafePoint();
+#endif // BEER_DEBUG_SAFE_POINTS
+	
 	afterSafePoint();
 }
 

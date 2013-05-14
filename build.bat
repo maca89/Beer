@@ -1,1 +1,2 @@
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe Beer.sln /t:Rebuild /p:Configuration="VM - Debug"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe Beer.sln /t:Rebuild /p:Configuration="C - Release"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe Beer.sln /t:Rebuild /p:Configuration="VM - Release"

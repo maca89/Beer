@@ -43,7 +43,7 @@ void FrameInspector::nextInnerFrame()
 {
 	if(mFrame->hasInnerFrame())
 	{
-		mFrame->getInnerFrame();
+		mFrame = mFrame->getInnerFrame();
 	}
 	else
 	{
