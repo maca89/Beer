@@ -1,3 +1,5 @@
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=angrykarl&url=https://github.com/maca89/Beer&title=Beer&language=&tags=github&category=software)
+
 ----  COMPILATION  ----
 Compiler and VirtualMachine are both written in Visual Studio 2012. To compile the project without VS2012 you need MSBuild and VC++ Redistributable.
 
