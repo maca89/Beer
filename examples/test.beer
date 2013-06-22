@@ -1,0 +1,68 @@
+class Wheel
+{
+  data
+  {
+    Integer mSize;
+  }
+  
+  interface
+  {
+    Wheel(Integer size)
+    {
+      mSize = size;
+    }
+  }
+}
+
+class Car
+{
+  data
+  {
+    Wheel mWheelFL;
+    Wheel mWheelFR;
+    Wheel mWheelRL;
+    Wheel mWheelRR;
+  }
+  
+  interface
+  {
+    Car()
+    {
+      mWheelFL = new Wheel(15);
+      mWheelFR = new Wheel(15);
+      mWheelRL = new Wheel(15);
+      mWheelRR = new Wheel(15);
+    }
+  }  
+}
+
+class Main
+{
+  interface EntryPoint
+  {
+    run
+    {
+      Console c = new Console();
+      Integer i = 0;
+      Integer to = 50000;
+      Integer mod = 37;
+      
+      Integer check = 42;
+      Car car = new Car();
+      //Wheel wh = new Wheel(5);
+      while (i < to)
+      {
+        Wheel w = new Wheel(15);
+        check = check + 50;
+        //Car car = new Car();
+        check = check - 30;
+        //Integer modulo = i % mod;
+        //c.println(i);
+        check = check - 20;
+        i += 1;
+      }
+      
+      c.println(check);
+    }
+  }
+}
