@@ -198,7 +198,10 @@ void printBytecodes(VirtualMachine *vm)
 
 int __cdecl main(int argc, const char** argv)
 {
-	
+	// Memory debugging
+	//_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF );
+	//_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_WNDW );
+
 	//testInteger();
 
 	// set UTF-16 support
@@ -223,9 +226,11 @@ int __cdecl main(int argc, const char** argv)
 	uint32 numberOfThreads = settings.manualThreads ? settings.threadsCount : numberOfProcessors;
 	//cout << "Threads: " << numberOfThreads << "\n";
 
-	//GenerationalGC* gc = new GenerationalGC(32 * 1024 * 1024, 8 * 1024);
-	GenerationalGC* gc = new GenerationalGC(512 * 1024 * 1024, 4 * 1024 * 1024);
-	//GenerationalGC* gc = new GenerationalGC(512 * 1024, 8 * 1024);
+	GenerationalGC* gc = new GenerationalGC(
+		     1024 * 1024, // nursery size 1MB
+		        4 * 1024, // thread private allocation block 4kB
+		16 * 1024 * 1024, // mature gen size 16MB
+		     1024 * 1024); // permanent gen size 1MB
 	
 	ClassFileLoader* classFileLoader = new MyClassFileLoader();
 	VirtualMachine* vm = new VirtualMachine(gc);

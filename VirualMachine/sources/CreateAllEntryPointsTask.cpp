@@ -15,7 +15,6 @@ void BEER_CALL CreateAllEntryPointsTask::init(Thread* thread, StackRef<CreateAll
 void BEER_CALL CreateAllEntryPointsTask::run(Thread* thread, StackRef<CreateAllEntryPointsTask> receiver)
 {
 	Frame* frame = thread->getFrame();
-	BEER_STACK_CHECK();
 
 	StackRef<Class> entryPointClass(frame, frame->stackPush(
 		thread->getVM()->findClass(BEER_WIDEN("EntryPoint"))

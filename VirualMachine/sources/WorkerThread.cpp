@@ -60,7 +60,6 @@ void WorkerThread::work(Task* task)
 	TaskScheduler* scheduler = getVM()->getScheduler();
 
 	setContext(task);
-
 	if(trampoline()) // TODO: context switch
 	{
 		scheduler->done(task);
@@ -92,7 +91,7 @@ void WorkerThread::work()
 		{
 			mContextSwitch = false;
 		}
-		
+
 		if (mExecutionPaused)
 		{
 			mExecutionPaused = false;

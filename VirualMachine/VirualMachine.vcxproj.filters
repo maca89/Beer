@@ -190,9 +190,6 @@
     <ClCompile Include="sources\DefaultBytecodeVerifier.cpp">
       <Filter>Sources\Bytecode</Filter>
     </ClCompile>
-    <ClCompile Include="sources\GCObjectTraverser.cpp">
-      <Filter>Sources\GarbageCollector</Filter>
-    </ClCompile>
     <ClCompile Include="sources\ChildrenForwarder.cpp">
       <Filter>Sources\GarbageCollector</Filter>
     </ClCompile>
@@ -210,6 +207,15 @@
     </ClCompile>
     <ClCompile Include="sources\PerformanceProfiler.cpp">
       <Filter>Sources\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\CopyingGC.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\GCObjectCopier.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\MatureGC.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -393,7 +399,6 @@
     <ClInclude Include="sources\ThreadSafeOutput.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="sources\ForwardPointer.h" />
     <ClInclude Include="sources\StackRef.h">
       <Filter>Headers\Stack</Filter>
     </ClInclude>
@@ -463,9 +468,6 @@
     <ClInclude Include="sources\DefaultBytecodeVerifier.h">
       <Filter>Headers\Bytecode</Filter>
     </ClInclude>
-    <ClInclude Include="sources\GCObjectTraverser.h">
-      <Filter>Headers\GarbageCollector</Filter>
-    </ClInclude>
     <ClInclude Include="sources\ChildrenForwarder.h">
       <Filter>Headers\GarbageCollector</Filter>
     </ClInclude>
@@ -483,6 +485,21 @@
     </ClInclude>
     <ClInclude Include="sources\PerformanceProfiler.h">
       <Filter>Headers\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\CopyingGC.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\IGC.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\RememeberdSet.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\MatureGC.h">
+      <Filter>Headers\GarbageCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\GCObjectCopier.h">
+      <Filter>Headers\GarbageCollector</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

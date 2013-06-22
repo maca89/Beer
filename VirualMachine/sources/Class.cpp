@@ -28,7 +28,7 @@ void BEER_CALL Class::createInstance(Thread* thread, StackRef<Class> receiver, S
 	DBG_ASSERT(receiver->mInstanceStaticSize > 0, BEER_WIDEN("Instance size is zero"));
 
 	ret = thread->getHeap()->alloc<Object>(
-		receiver->mInstanceStaticSize,
+		receiver->mInstanceStaticSize + 56, // temporary workaround
 		Object::OBJECT_CHILDREN_COUNT + receiver->getPropertiesCount()
 	);
 

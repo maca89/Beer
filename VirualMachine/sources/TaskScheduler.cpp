@@ -315,7 +315,7 @@ void TaskScheduler::addTask(Task* task)
 	{
 		throw SchedulerException(BEER_WIDEN("Awaiting task cannot be scheduled"));
 	}
-
+		
 	mActive.push(task);
 }
 
@@ -351,6 +351,7 @@ void TaskScheduler::wait(Task* who, Task* whatFor)
 void TaskScheduler::afterSafePoint()
 {
 	updateFramesPointers();
+	mGC->afterCollection();
 }
 
 void TaskScheduler::updateFramesPointers()

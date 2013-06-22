@@ -76,6 +76,9 @@ namespace Beer
 	#define __WFILE__ __FILE__
 #endif // BEER_MULTIBYTE_STRINGS
 
+//#define BEER_HEAP_CHECK()
+#define BEER_HEAP_CHECK() if (!_CrtCheckMemory()) __asm { int 3 }
+
 	static void* memcpy(void* dest, const void* source, uint64 length)
 	{
 		return ::memcpy(dest, source, static_cast<uint32>(length)); //TODO: custom function
@@ -341,7 +344,7 @@ namespace Beer
 	#ifdef BEER_DEBUG_MODE
 		#define BEER_DEBUG_ASSERTS_ON
 		//#define BEER_MEMORY_DEBUGGING
-		//#define BEER_GC_DEBUGGING
+		#define BEER_GC_DEBUGGING
 		#define BEER_STACK_DEBUGGING
 		#define BEER_BC_DEBUGGING
 	#endif // BEER_DEBUG_MODE

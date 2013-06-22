@@ -8,34 +8,45 @@ using namespace Beer;
 
 FixedHeap::~FixedHeap()
 {
-	::free(mMemory);
+}
+
+void FixedHeap::clear()
+{
+	mFilled = 0;
+	::memset(mMemStart, 0, mSize);
 }
 
 void FixedHeap::init()
 {
-	mMemory = reinterpret_cast<byte*>(::malloc(mSize));
+	::memset(mMemStart, 0, mSize);
 }
 
-Object* FixedHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
+Object* FixedHeap::alloc(uint32 staticSize, uint32 childrenCount)
 {
-	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount + sizeof(GCObject));
+	uint32 size = calcSize(staticSize, childrenCount);
 
-	if (!canAlloc(size)) return NULL;
+	if (!canAlloc(size))
+	{
+		return NULL;
+	}
 
-	Object* obj = reinterpret_cast<Object*>(mMemory + mFilled + sizeof(GCObject));
+	Object* obj = reinterpret_cast<Object*>(mMemStart + mFilled + sizeof(GCObject));
 
 	mFilled += size;
 
-	initObject(obj, staticSize, size);
+	initObject(obj, size, staticSize);
 	
 	return obj;
 }
 
 byte* FixedHeap::alloc(size_t size)
 {
-	if (!canAlloc(size)) return NULL;
+	if (!canAlloc(size))
+	{
+		return NULL;
+	}
 
-	byte* obj = mMemory + mFilled;
+	byte* obj = mMemStart + mFilled;
 
 	mFilled += size;
 

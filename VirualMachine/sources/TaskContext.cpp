@@ -23,9 +23,7 @@ void TaskContext::init(Heap* heap, Class* frameClass)
 	mTopFrame = NULL;
 	mHeap = heap;
 	mFrameClass = frameClass;
-
 	// just a temporary solution, TODO
-	
 	//mRootFrame = allocFrame(NULL, 250, 0);
 	mTopFrame = allocFrame(NULL, 30, 2);
 	//frame->setFrameOffset(2);
@@ -48,7 +46,6 @@ Frame* TaskContext::allocFrame(Frame* previousFrame, uint32 stackSize, uint32 ar
 		{
 			throw NotEnoughMemoryException(BEER_WIDEN("Not enough memory to allocate Frame"));
 		}
-
 		void* bp = reinterpret_cast<byte*>(frame) + frameLength - sizeof(Frame*);
 		*reinterpret_cast<Frame**>(bp) = previousFrame;
 		new(frame) Frame(bp, argsCount, stackSize, DEFAULT_FRAME_SPACE);

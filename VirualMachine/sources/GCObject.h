@@ -1,10 +1,11 @@
 #pragma once
 
 #include "prereq.h"
-#include "Object.h"
 
 namespace Beer
 {
+	class Object;
+
 	#pragma pack(push, 1)
 	class GCObject
 	{
@@ -18,34 +19,34 @@ namespace Beer
 		};
 
 	protected:
-		size_t mSize;
-		Object* mPtrFlag; // 30 bits of forward pointer (works for pointers aligned on 4 bytes) and 2 bits for flag
+		uint32 mSize;
+		uint32 mData; // 30 bits of forward pointer (works for pointers aligned on 4 bytes) and 2 bits for flag or age
 
 	public:
 
-		INLINE size_t getSize() const
+		INLINE uint32 getSize() const
 		{
 			return mSize;
 		}
 
-		INLINE void setSize(size_t size)
+		INLINE void setSize(uint32 size)
 		{
 			mSize = size;
 		}
 
-		INLINE void clearPtrFlag()
+		INLINE void clearData()
 		{
-			mPtrFlag = NULL;
+			mData = 0;
 		}
 
 		INLINE GCFlag getFlag() const
 		{
-			return static_cast<GCFlag>(reinterpret_cast<ptrdiff_t>(mPtrFlag) & 0x00000003); // last 2 bits are flag
+			return static_cast<GCFlag>(mData & 0x00000003); // last 2 bits are flag
 		}
 
 		INLINE void setFlag(GCFlag flag)
 		{
-			mPtrFlag = reinterpret_cast<Object*>(reinterpret_cast<ptrdiff_t>(getPtr()) | flag);
+			mData = reinterpret_cast<uint32>(getPtr()) | flag;
 		}
 
 		INLINE bool hasFlag(GCFlag flag) const
@@ -53,23 +54,40 @@ namespace Beer
 			return getFlag() == flag;
 		}
 
-		INLINE Object* getPtr() const
+		INLINE uint32 getAge() const
 		{
-			return reinterpret_cast<Object*>(reinterpret_cast<ptrdiff_t>(mPtrFlag) & 0xFFFFFFFC); // first 30 bits are forward pointer
+			return static_cast<uint32>(mData & 0x00000003); // last 2 bits are age
 		}
 
-		INLINE void setPtr(Object* ptr)
+		INLINE void setAge(uint32 age) 
 		{
-			DBG_ASSERT((reinterpret_cast<ptrdiff_t>(ptr) & 0x3) == 0, BEER_WIDEN("Pointer is not aligned to 4 bytes"));
+			DBG_ASSERT(age < 4, BEER_WIDEN("Age of object cannot be more than 3"));
 
-			mPtrFlag = reinterpret_cast<Object*>(reinterpret_cast<ptrdiff_t>(ptr) | getFlag()); 
+			mData = reinterpret_cast<uint32>(getPtr()) | age;
+		}
+
+		INLINE bool isForwarded() const
+		{
+			return getPtr() != NULL;
+		}
+
+		INLINE GCObject* getPtr() const
+		{
+			return reinterpret_cast<GCObject*>(mData & 0xFFFFFFFC); // first 30 bits are forward pointer
+		}
+
+		INLINE void setPtr(GCObject* ptr)
+		{
+			DBG_ASSERT((reinterpret_cast<uint32>(ptr) & 0x3) == 0, BEER_WIDEN("Pointer is not aligned to 4 bytes"));
+
+			mData = reinterpret_cast<uint32>(ptr) | getFlag(); 
 		}
 
 		INLINE Object* forward()
 		{
-			Object* fwd = getPtr();
+			GCObject* fwd = getPtr();
 
-			return fwd ? fwd : getObject();
+			return fwd ? fwd->getObject() : getObject();
 		}
 
 		INLINE Object* getObject()
@@ -82,10 +100,15 @@ namespace Beer
 			return reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(obj) - sizeof(GCObject));
 		}
 
+		INLINE GCObject* nextObject()
+		{
+			return reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(this) + mSize);
+		}
+
 		INLINE static void init(Object* obj, size_t size)
 		{
 			GCObject* gcObj = GCObject::get(obj);
-			gcObj->clearPtrFlag();
+			gcObj->clearData();
 			gcObj->setSize(size);
 		}
 	};

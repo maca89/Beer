@@ -29,9 +29,9 @@ void NotifyHeap::init()
 	mMemory = reinterpret_cast<byte*>(::malloc(mInitSize));
 }
 
-Object* NotifyHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
+Object* NotifyHeap::alloc(uint32 staticSize, uint32 childrenCount)
 {
-	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount + sizeof(GCObject));
+	uint32 size = calcSize(staticSize, childrenCount);
 
 	if (!canAlloc(size)) return NULL;
 

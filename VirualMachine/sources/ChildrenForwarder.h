@@ -9,6 +9,9 @@ namespace Beer
 
 	class ChildrenForwarder : protected TraverseObjectReceiver
 	{
+	protected:
+
+
 	public:
 
 		void forward(GCObject* gcObj);

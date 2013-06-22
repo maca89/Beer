@@ -22,6 +22,7 @@
     <ClCompile Include="sources\AlignedHeap.cpp" />
     <ClCompile Include="sources\AllocationBlock.cpp" />
     <ClCompile Include="sources\BytecodeBuilder.cpp" />
+    <ClCompile Include="sources\CopyingGC.cpp" />
     <ClCompile Include="sources\CreateAllEntryPointsTask.cpp" />
     <ClCompile Include="sources\DefaultBytecodeLinker.cpp" />
     <ClCompile Include="sources\DefaultBytecodeVerifier.cpp" />
@@ -29,9 +30,10 @@
     <ClCompile Include="sources\FixedHeap.cpp" />
     <ClCompile Include="sources\Frame.cpp" />
     <ClCompile Include="sources\FrameInspector.cpp" />
-    <ClCompile Include="sources\GCObjectTraverser.cpp" />
+    <ClCompile Include="sources\GCObjectCopier.cpp" />
     <ClCompile Include="sources\GenerationalGC.cpp" />
     <ClCompile Include="sources\InitVMTask.cpp" />
+    <ClCompile Include="sources\MatureGC.cpp" />
     <ClCompile Include="sources\MetaClass.cpp" />
     <ClCompile Include="sources\MultipassBytecodeOptimiser.cpp" />
     <ClCompile Include="sources\Mutex.cpp" />
@@ -96,7 +98,9 @@
     <ClCompile Include="sources\WorkerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sources\GCObjectTraverser.h" />
+    <ClInclude Include="sources\MatureGC.h" />
+    <ClInclude Include="sources\CopyingGC.h" />
+    <ClInclude Include="sources\GCObjectCopier.h" />
     <ClInclude Include="sources\AllocationBlock.h" />
     <ClInclude Include="sources\ArrayStack.h" />
     <ClInclude Include="sources\Boolean.h" />
@@ -110,11 +114,11 @@
     <ClInclude Include="sources\DynamicHeap.h" />
     <ClInclude Include="sources\FixedHeap.h" />
     <ClInclude Include="sources\Float.h" />
-    <ClInclude Include="sources\ForwardPointer.h" />
     <ClInclude Include="sources\FrameInspector.h" />
     <ClInclude Include="sources\GCObject.h" />
     <ClInclude Include="sources\GenerationalGC.h" />
     <ClInclude Include="sources\Heap.h" />
+    <ClInclude Include="sources\IGC.h" />
     <ClInclude Include="sources\InitVMTask.h" />
     <ClInclude Include="sources\MemoryAllocator.h" />
     <ClInclude Include="sources\MetaClass.h" />
@@ -140,6 +144,7 @@
     <ClInclude Include="sources\CreateOneEntryPointTask.h" />
     <ClInclude Include="sources\ChildrenForwarder.h" />
     <ClInclude Include="sources\PerformanceProfiler.h" />
+    <ClInclude Include="sources\RememeberdSet.h" />
     <ClInclude Include="sources\TaskContext.h" />
     <ClInclude Include="sources\TaskScheduler.h" />
     <ClInclude Include="sources\SynchronizationEvent.h" />

@@ -1,89 +1,178 @@
 #include "stdafx.h"
 #include "NurseryGC.h"
-
+#include "FixedHeap.h"
 #include "AllocationBlock.h"
-#include "VirtualMachine.h"
-#include "GCObjectTraverser.h"
+#include "GenerationalGC.h"
+#include "TaskScheduler.h"
+#include "GCObjectCopier.h"
+#include "GCObject.h"
+#include "Object.h"
+#include "Class.h"
+#include "TraverseObjectReceiver.h"
 
 using namespace Beer;
 
-NurseryGC::NurseryGC(GenerationalGC* gc, size_t initSize, size_t blockSize)
-	:	mGC(gc),
-	mVM(NULL),
-	mBlockSize(blockSize),
-	mCollectionCount(0)
+NurseryGC::NurseryGC(GenerationalGC* gc, uint32 size, uint32 blockSize)
 {
-	mAlloc = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.85f), this);
-	mCollect = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.85f), this);
-	mPromote = new NurseryHeap(initSize, static_cast<size_t>(initSize * 0.85f), this);
+	mGC = gc;
 
-	::InitializeCriticalSection(&mCS);
-	mThreadsSuspendedEvent = ::CreateEvent(NULL, false, false, NULL);
+	mMemStart = new byte[size * 2];
+	mMemEnd = mMemStart + size * 2;
 
-	if (!mThreadsSuspendedEvent)
-	{
-		throw GCException(BEER_WIDEN("Could not create event object"));
-	}
+	mFrom = new FixedHeap(mMemStart, size);
+	mFrom->init();
 
-	run();
+	mTo = new FixedHeap(mMemStart + size, size);
+	mTo->init();
+
+	mBlockSize = blockSize;
 }
 
 NurseryGC::~NurseryGC()
 {
-	delete mAlloc;
-	delete mCollect;
-	delete mPromote;
-
-	::DeleteCriticalSection(&mCS);
-	::CloseHandle(mThreadsSuspendedEvent);
+	delete mMemStart;
+	delete mFrom;
+	delete mTo;
 }
 
-void NurseryGC::init(VirtualMachine* vm)
+byte* NurseryGC::alloc(uint32 size)
 {
-	mVM = vm;
+	BlockingMutex mutex(&mMutex);
 
-	mAlloc->init();
-	mCollect->init();
-	mPromote->init();
+	byte* obj = mFrom->alloc(size);
+
+	if (!obj)
+	{
+		mGC->nurseryFull();
+
+		obj = mTo->alloc(size);
+
+		if (!obj)
+		{
+			// this is a problem - try allocate from mature heap
+			throw NotEnoughMemoryException(BEER_WIDEN("Not enough memory"));
+		}
+	}
+
+	return obj;
+}
+
+byte* NurseryGC::allocHeap(uint32 size)
+{
+	BlockingMutex mutex(&mMutex);
+
+	byte* obj = mFrom->alloc(size);
+
+#ifdef BEER_GC_STATS
+	if (obj) mGC->mStats.mAllocatedNursery += size;
+#endif
+
+	if (!obj) mGC->nurseryFull();
+
+	return obj;
 }
 
 Heap* NurseryGC::createHeap()
 {
-	AllocationBlock * block = new AllocationBlock(mBlockSize, this);
-	block->init();
+	BlockingMutex mutex(&mMutex);
+
+	AllocationBlock* block = new AllocationBlock(this, mBlockSize, static_cast<uint32>(mBlockSize));
+	mBlocks.push_back(block);
 	return block;
 }
 
-void NurseryGC::thresholdReached(Heap* heap, size_t threshold)
+void NurseryGC::collect(TaskScheduler* scheduler, RememberedSet* remSet)
 {
-	mVM->startSafePoint();
-}
+	GCObjectCopier copier(mGC, mFrom, mTo, mGC->getMatureGC());
+	copier.traverseObjects(scheduler, remSet);
 
-void NurseryGC::threadsSuspended()
-{
-	::SetEvent(mThreadsSuspendedEvent);
-}
-
-void NurseryGC::work()
-{
-	while (true)
+	for (BlockList::iterator it = mBlocks.begin(); it != mBlocks.end(); it++)
 	{
-		DWORD res = ::WaitForSingleObject(mThreadsSuspendedEvent, INFINITE);
+		(*it)->invalidate();
+	}
 
-		if (res == WAIT_OBJECT_0)
+	FixedHeap* temp = mFrom;
+	mFrom = mTo;
+	mTo = temp;
+
+	mGC->restartThreads();
+}
+
+
+#ifdef BEER_GC_DEBUGGING
+
+class Trav : public TraverseObjectReceiver
+{
+protected:
+
+	Object* mObj;
+
+public:
+
+	Trav(Object* obj)
+		:	mObj(obj)
+	{
+	}
+
+	virtual void traverseObjectPtr(Object** ptrToObject)
+	{
+		if (*ptrToObject == mObj)
 		{
-			switchHeaps();
-
-			GCObjectTraverser traverser(mCollect, mGC->getMatureHeap());
-			traverser.traverseObjects(mVM->getScheduler());
-
-			mVM->stopSafePoint();
-
-			mCollectionCount++;
-		}
-		else
-		{
-			throw GCException(BEER_WIDEN("Waiting for thread suspended event failed"));
+			DBG_ASSERT(false, BEER_WIDEN("a pointer was left out"));
 		}
 	}
+};
+
+#endif
+
+void NurseryGC::afterCollection()
+{
+#ifdef BEER_GC_DEBUGGING
+	{
+		GCObject* obj = reinterpret_cast<GCObject*>(mFrom->getMemory());
+
+		for (; mFrom->isAllocObject(obj); obj = obj->nextObject())
+		{
+			DBG_ASSERT(obj->getPtr() == NULL, BEER_WIDEN("obj should not have forwarding pointer"));
+			DBG_ASSERT(obj->getObject()->getType() != NULL, BEER_WIDEN("obj should have type"));
+			DBG_ASSERT(obj->getSize() == sizeof(GCObject) +
+				obj->getObject()->getStaticSize() +
+				(Object::OBJECT_CHILDREN_COUNT + obj->getObject()->getType()->getPropertiesCount()) * sizeof(Object*), BEER_WIDEN("object size is not right"));
+		}
+	}
+
+	{
+		Object** obj = reinterpret_cast<Object**>(mFrom->getMemory());
+
+		while (mFrom->contains((byte*)obj))
+		{
+			if (mTo->contains((byte*)*obj))
+			{
+				GCObject* parent = reinterpret_cast<GCObject*>(mFrom->getMemory());
+
+				while (reinterpret_cast<Object**>(parent) < obj && reinterpret_cast<Object**>(reinterpret_cast<byte*>(parent) + parent->getSize()) < obj)
+				{
+					parent = reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(parent) + parent->getSize());
+				}
+
+				Trav trav(*obj);
+
+				parent->getObject()->getType()->getTraverser()(&trav, parent->getObject()->getType(), parent->getObject());
+
+				GCObject* child = reinterpret_cast<GCObject*>(mTo->getMemory());
+
+				while (reinterpret_cast<Object*>(parent) < *obj && reinterpret_cast<Object*>(reinterpret_cast<byte*>(parent) + parent->getSize()) < *obj)
+				{
+					child = reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(parent) + parent->getSize());
+				}
+
+				DBG_ASSERT(false, BEER_WIDEN("pointers from from-space into to-space"));
+			}
+			obj++;
+		}
+	}
+
+#endif
+
+	mTo->clear();
 }

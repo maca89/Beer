@@ -44,7 +44,6 @@ void BEER_CALL InitVMTask::work(Thread* thread, StackRef<InitVMTask> receiver)
 
 	thread->getVM()->setMetaClass(metaClass);
 
-
 	// create Method class
 	String* methodClassName = thread->getPermanentHeap()->alloc<String>(
 		static_cast<uint32>(sizeof(String) + sizeof(String::CharacterData) * (6 + 1)), // 6 for "Method", 1 for "\0"

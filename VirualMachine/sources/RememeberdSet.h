@@ -1,48 +1,132 @@
 #pragma once
+
 #include "prereq.h"
-#include <list>
-#include <Windows.h>
+#include <map>
 
 namespace Beer
 {
+	class GCObject;
 	class Object;
-
-	typedef std::list<Object*> Objects;
-
+	
 	class RememberedSet
 	{
-	protected:
-
-		Objects mRoots;
-		CRITICAL_SECTION mCS;
-
 	public:
 
+		struct References
+		{
+		public:
+
+			typedef std::set<Object**>::iterator iterator;
+
+		protected:
+
+			std::set<Object**> mRefs;
+
+		public:
+
+			References(Object** ref)
+			{
+				mRefs.insert(ref);
+			}
+
+			size_t count() const
+			{
+				return mRefs.size();
+			}
+
+			void addReference(Object** ref)
+			{
+				mRefs.insert(ref);
+			}
+
+			void removeReference(Object** ref)
+			{
+				mRefs.erase(ref);
+			}
+
+			INLINE iterator begin()
+			{
+				return mRefs.begin();
+			}
+
+			INLINE iterator end()
+			{
+				return mRefs.end();
+			}
+		};
+
+		typedef std::map<GCObject*, References*>::iterator iterator;
+
+	protected:
+
+		std::map<GCObject*, References*> mSet;
+
+	public:
+		
 		INLINE RememberedSet()
 		{
-			InitializeCriticalSection(&mCS);
 		}
 
 		INLINE ~RememberedSet()
 		{
-			DeleteCriticalSection(&mCS);
 		}
 
-		INLINE Objects * getRoots()
+		void add(GCObject* obj, Object** ref)
 		{
-			return &mRoots;
+			iterator it = mSet.find(obj);
+
+			if (it == mSet.end())
+			{
+				it->second->addReference(ref);
+			}
+			else
+			{
+				mSet[obj] = new References(ref);
+			}
 		}
 
-		INLINE void clear()
+		void remove(GCObject* obj)
 		{
-			mRoots.clear(); 
+			iterator it = mSet.find(obj);
+
+			if (it == mSet.end())
+			{
+				delete it->second;
+			}
+
+			mSet.erase(it);
 		}
 
-		INLINE void add(Object* obj)
+		void remove(GCObject* obj, Object** ref)
 		{
-			EnterCriticalSection(&mCS);
-			mRoots.push_back(obj);
-			LeaveCriticalSection(&mCS);
+			iterator it = mSet.find(obj);
+
+			if (it == mSet.end())
+			{
+				it->second->removeReference(ref);
+
+				if (it->second->count() == 0)
+				{
+					delete it->second;
+
+					mSet.erase(it);
+				}
+			}			
+		}
+
+		INLINE iterator begin()
+		{
+			return mSet.begin();
+		}
+
+		INLINE iterator end()
+		{
+			return mSet.end();
+		}
+
+		INLINE void erase(const iterator& it)
+		{
+			mSet.erase(it);
 		}
 	};
-}
+};

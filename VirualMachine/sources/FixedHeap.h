@@ -8,35 +8,64 @@ namespace Beer
 	{
 	protected:
 
-		size_t mSize;
-		byte* mMemory;
-		size_t mFilled;
+		uint32 mSize;
+		uint32 mFilled;
+
+		byte* mMemStart;
+		byte* mMemEnd;
 
 	public:
 
-		INLINE FixedHeap(size_t size)
-			:	mSize(size),
-				mMemory(NULL),
-				mFilled(0)
+		INLINE FixedHeap(byte* memStart, uint32 size)
+			:	Heap(),
+				mSize(size),				
+				mFilled(0),
+				mMemStart(memStart),
+				mMemEnd(memStart + size)
 		{ }
 
 		virtual ~FixedHeap();
 
-		INLINE size_t getSize() const
+		INLINE uint32 getSize() const
 		{
 			return mSize;
 		}
 
+		INLINE bool contains(void* ptr) const
+		{
+			return ptr >= mMemStart && ptr < mMemEnd;
+		}
+
+		INLINE byte* getMemory() const
+		{
+			return mMemStart;
+		}
+
+		INLINE uint32 getFilled() const
+		{
+			return mFilled;
+		}
+
+		void clear();
+
 		virtual void init();
 		
-		virtual Object* alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset = 0);
+		virtual Object* alloc(uint32 staticSize, uint32 childrenCount);
 		virtual byte* alloc(uint32 size);
 
-		//virtual void free(Object* obj);
+		INLINE GCObject* firstObject()
+		{
+			return reinterpret_cast<GCObject*>(mMemStart);
+		}
+
+		INLINE bool isAllocObject(GCObject* obj)
+		{
+			return reinterpret_cast<byte*>(obj) >= mMemStart && reinterpret_cast<byte*>(obj) < mMemStart + mFilled;
+		}
 
 	protected:
 
-		INLINE bool canAlloc(size_t size)
+		INLINE bool canAlloc(uint32 size)
 		{
 			return mFilled + size <= mSize;
 		}

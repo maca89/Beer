@@ -2,29 +2,65 @@
 
 #include "prereq.h"
 #include "NurseryGC.h"
+#include "MatureGC.h"
 #include "Frame.h"
 #include "Object.h"
 #include "StackRef.h"
 #include "RememeberdSet.h"
 #include "DynamicHeap.h"
 #include "FixedHeap.h"
+#include "Mutex.h"
+
+
+#define BEER_GC_STATS
 
 namespace Beer
 {
+	class GCObject;
+	class VirtualMachine;
 	class AllocationBlock;
 
-	typedef DynamicHeap MatureHeap;
-	typedef FixedHeap PermanentHeap;
+	typedef FixedHeap MatureHeap;
+	typedef FixedHeap PermanentHeap;	
+
 
 	class GenerationalGC
 	{
 	public:
 
 		enum State {
-			GC_ALLOC,
-			GC_COLLECT
+			INACTIVE,
+			NURSERY_COLL_PENDING,
+			NURSERY_COLL_RUNNING,
+			MATURE_COLL_PENDING,
+			MATURE_COLL_RUNNING
 		};
 
+		
+
+#ifdef BEER_GC_STATS
+
+		struct Statistics
+		{
+			uint32 mNurseryCollections;
+			uint32 mMatureCollections;
+			uint32 mPromoted;
+			uint32 mAllocatedNursery;
+			uint32 mAllocatedMature;
+
+
+			Statistics()
+				:	mNurseryCollections(0),
+					mMatureCollections(0),
+					mPromoted(0),
+					mAllocatedNursery(0),
+					mAllocatedMature(0)
+			{ }
+
+		} mStats;
+
+#endif
+		
 	public:
 
 		typedef uint32 ReferenceId;
@@ -34,19 +70,24 @@ namespace Beer
 
 		State mState;
 
-		NurseryGC* mNurseryGC;
+		VirtualMachine* mVM;
 
-		MatureHeap* mMature;
+		NurseryGC* mNurseryGC;
+		MatureGC* mMatureGC;
+
+		byte* mMemPermStart;
 		PermanentHeap* mPermanent;
-		CRITICAL_SECTION mMatureCS;
-		CRITICAL_SECTION mPermanentCS;
+
 		ReferenceVector mReferences;
 		ReferenceId mReferencesNext;
-		RememberedSet mRS;
+
+		RememberedSet mRemSet;
+
+		CriticalSection mStateMutex;
 
 	public:
 
-		GenerationalGC(size_t nurserySize, size_t blockSize);
+		GenerationalGC(uint32 nurserySize, uint32 blockSize, uint32 matureSize, uint32 permanentSize);
 
 		~GenerationalGC();
 
@@ -55,9 +96,9 @@ namespace Beer
 			return mState;
 		}
 
-		INLINE Heap* getMatureHeap()
+		INLINE MatureGC* getMatureGC()
 		{
-			return mMature;
+			return mMatureGC;
 		}
 
 		INLINE Heap* getPermanentHeap()
@@ -67,14 +108,12 @@ namespace Beer
 
 		void init(VirtualMachine* vm);
 
-		INLINE Heap* createHeap()
+		INLINE virtual Heap* createHeap()
 		{
 			return mNurseryGC->createHeap();
 		}
 
-		Object* alloc(uint32 staticSize, uint32 childrenCount = 0, int32 preOffset = 0);
-
-		void collect();
+		void nurseryFull();
 
 		INLINE Object* translate(const ReferenceId& id)
 		{
@@ -103,13 +142,6 @@ namespace Beer
 			return mReferencesNext++;
 		}
 
-		/*INLINE void setFrameChild(StackRef<StackFrame> frame, Object* object, int64 index)
-		{
-		}
-
-		INLINE void getFrameChild(StackRef<StackFrame> frame, int64 index)
-		{
-		}*/
 
 		INLINE Object* getIdentity(Object* object)
 		{
@@ -169,6 +201,22 @@ namespace Beer
 				}
 			}
 #endif
+
+			if (mMatureGC->contains(reinterpret_cast<byte*>(receiver.get())))
+			{
+				Object** ref = &receiver->getChildren()[index];
+
+				if (mNurseryGC->contains(reinterpret_cast<byte*>(*ref)))
+				{
+					mRemSet.remove(GCObject::get(*ref), ref);
+				}
+
+				if (mNurseryGC->contains(reinterpret_cast<byte*>(child.get())))
+				{
+					mRemSet.add(GCObject::get(child.get()), ref);
+				}
+			}
+
 			receiver->getChildren()[index] = *child;
 		}
 
@@ -177,11 +225,10 @@ namespace Beer
 			
 		}
 
-		// call this when all threads are suspended
-		INLINE void threadsSuspended()
-		{
-			mNurseryGC->threadsSuspended();
-		}
+		void threadsSuspended();
+
+		void restartThreads();
+		void afterCollection();
 	};
 
 	template <class T>

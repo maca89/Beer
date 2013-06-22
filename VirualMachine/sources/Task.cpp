@@ -11,14 +11,13 @@ using namespace Beer;
 
 void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task> ret)
 {
-	receiver->mContext = TaskContext();
+	new (&receiver->mContext) TaskContext();
 	receiver->mTaskFlags = 0;
 
 	// init task context
 	{
 		TaskContext* context = receiver->getContext();
 		context->init(thread->getHeap(), thread->getVM()->getFrameClass());
-
 		Frame* frame = context->getFrame();
 	
 		StackRef<Method> new_receiver(frame, frame->stackPush(*receiver)); // push receiver

@@ -35,18 +35,16 @@ bool Thread::trampoline()
 
 	bool hf = hasFrame();
 	bool iep = isExecutionPaused();
-		
+	
 	while(hasFrame() && !isExecutionPaused())
 	{
 		Frame* frame = getFrame();
 		StackRef<Method> method(frame, Frame::INDEX_METHOD);
-		
 		if(method.isNull())
 		{
 			closeFrame();
 			continue;
 		}
-
 		try
 		{
 		#ifdef BEER_DEBUG_MODE
@@ -58,7 +56,6 @@ bool Thread::trampoline()
 			timer.start();
 			MethodReflection* oldMethod = method;
 		#endif // BEER_MEASURE_PERFORMANCE
-
 			method->invoke(this);
 
 		#ifdef BEER_MEASURE_PERFORMANCE
@@ -73,7 +70,6 @@ bool Thread::trampoline()
 			}
 		}
 	}
-
 	//mVM->getDebugger()->ended();
 	return !hasFrame();
 }

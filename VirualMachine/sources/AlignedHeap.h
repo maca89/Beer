@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 #include "prereq.h"
 #include "FixedHeap.h"
 
@@ -24,4 +24,4 @@ namespace Beer
 			return !pointer || tmp == 0;
 		}
 	};
-}
+}*/

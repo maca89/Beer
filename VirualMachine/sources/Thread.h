@@ -6,6 +6,7 @@
 #include "Float.h"
 #include "String.h"
 #include "GenerationalGC.h"
+#include "Task.h"
 #include "TaskContext.h"
 #include "SynchronizationEvent.h"
 

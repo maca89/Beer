@@ -1,12 +1,12 @@
 #include "stdafx.h"
-#include "AlignedHeap.h"
+/*#include "AlignedHeap.h"
 
 //#include <Windows.h>
 
 using namespace Beer;
 
 AlignedHeap::AlignedHeap(unsigned char bitSize)
-	:	FixedHeap(1 << bitSize),
+	:	FixedHeap(1 << bitSize, FixedHeap::MATURE_HEAP),
 		mBitSize(bitSize)
 {
 }
@@ -23,4 +23,4 @@ void AlignedHeap::init()
 #ifdef BEER_MEMORY_DEBUGGING
 	ZeroMemory(mMemory, mSize);
 #endif
-}
+}*/

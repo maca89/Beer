@@ -39,7 +39,7 @@ namespace Beer
 
 	public:
 
-		INLINE static void initObject(Object* obj, uint32 staticSize, uint32 size)
+		INLINE static void initObject(Object* obj, uint32 size, uint32 staticSize)
 		{
 			memset(obj, 0, size);
 			obj->setStaticSize(staticSize);

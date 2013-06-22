@@ -23,7 +23,7 @@ void DynamicHeap::init()
 	if (!mHandle) throw NotEnoughMemoryException(BEER_WIDEN("Cannot create private heap"));
 }
 
-Object* DynamicHeap::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
+Object* DynamicHeap::alloc(uint32 staticSize, uint32 childrenCount)
 {
 	uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount + sizeof(GCObject));
 

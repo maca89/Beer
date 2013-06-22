@@ -1,78 +1,59 @@
 #pragma once
 
 #include "prereq.h"
-#include "NativeThread.h"
-#include "NotifyHeap.h"
-#include <queue>
-#include "TaskScheduler.h"
+#include "Mutex.h"
+#include "FixedHeap.h"
 
 namespace Beer
 {	
-	class VirtualMachine;
+	class AllocationBlock;
+	class TaskScheduler;
 	class GenerationalGC;
+	class RememberedSet;
 
-	class NurseryGC : public NativeThread, public HeapThresholdNotify
+	class NurseryGC
 	{
 	protected:
 
-		typedef NotifyHeap NurseryHeap;
+		typedef std::list<AllocationBlock*> BlockList;
 
 	protected:
 
-		VirtualMachine* mVM;
 		GenerationalGC* mGC;
-		NurseryHeap* mAlloc;
-		NurseryHeap* mCollect;
-		NurseryHeap* mPromote;
-		size_t mHeapSize;
-		size_t mBlockSize;
-		size_t mCollectionCount;
-		CRITICAL_SECTION mCS;
-		HANDLE mThreadsSuspendedEvent;
+
+		byte* mMemStart; 
+		byte* mMemEnd;
+
+		FixedHeap* mFrom;
+		FixedHeap* mTo;
+
+		uint32 mBlockSize;
+
+		BlockList mBlocks;
+
+		CriticalSection mMutex;
 
 	public:
-
-		NurseryGC(GenerationalGC* gc, size_t initSize, size_t blockSize);
+		
+		NurseryGC(GenerationalGC* gc, uint32 size, uint32 blockSize);
 		~NurseryGC();
 
-		void init(VirtualMachine* vm);
-
-		INLINE Heap* getAllocHeap()
+		INLINE GenerationalGC* getGenerationalGC()
 		{
-			return mAlloc;
+			return mGC;
 		}
 
-		Heap* createHeap();		
+		byte* alloc(uint32 size);
+		byte* allocHeap(uint32 size);
+		Heap* createHeap();
 
-		INLINE byte* alloc(uint32 size)
+		void collect(TaskScheduler* scheduler, RememberedSet* remSet);
+
+		void afterCollection();
+
+		INLINE bool contains(byte* ptr)
 		{
-			::EnterCriticalSection(&mCS);
-			byte* mem = mAlloc->alloc(size);
-			::LeaveCriticalSection(&mCS);
-
-			return mem;
-		}
-
-		// not used
-		void collect();
-
-		// heap threshold notification
-		void thresholdReached(Heap* heap, size_t threshold);
-
-		void threadsSuspended();
-			
-	protected:
-
-		virtual void work();
-
-		INLINE void switchHeaps()
-		{
-			NurseryHeap* temp = mAlloc;
-			mAlloc = mPromote;
-			mPromote = mCollect;
-			mCollect = temp;
-
-			mAlloc->clear();
+			return ptr >= mMemStart && ptr < mMemEnd;
 		}
 	};
-}
+};

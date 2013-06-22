@@ -1,53 +1,65 @@
 #include "stdafx.h"
 #include "AllocationBlock.h"
-
 #include "NurseryGC.h"
+
+#include "GenerationalGC.h"
 
 using namespace Beer;
 
 void AllocationBlock::init()
 {
-	mMemory = mGC->alloc(mSize);
-	mFilled = 0;
+	mMemory = mGC->allocHeap(mSize);
+	mFilled = mMemory ? 0 : mSize;
 }
 
-Object * AllocationBlock::alloc(uint32 staticSize, uint32 childrenCount, int32 preOffset)
+Object * AllocationBlock::alloc(uint32 staticSize, uint32 childrenCount)
 {
-	Object * obj = FixedHeap::alloc(staticSize, childrenCount, preOffset);
+	Object* obj = NULL;
 
-	if (!obj)
+	uint32 size = calcSize(staticSize, childrenCount);
+
+	if (isLargeObject(size))
 	{
-		uint32 size = roundSize(staticSize + sizeof(Object*) * childrenCount + sizeof(GCObject));
-		
-		if (size > mLargeObject)
-		{
-			obj = reinterpret_cast<Object*>(mGC->alloc(size));
-
-			initObject(obj, staticSize, size);
-		}
-		else
-		{
-			init();
-			obj = FixedHeap::alloc(staticSize, childrenCount, preOffset);
-		}
-
-		if (!obj) throw NotEnoughMemoryException(BEER_WIDEN("Cannot allocate"));
+		obj = reinterpret_cast<Object*>(mGC->alloc(size) + sizeof(GCObject));
+	}
+	else
+	{
+		obj = reinterpret_cast<Object*>(alloc(size) + sizeof(GCObject));
 	}
 
+	//obj = reinterpret_cast<Object*>(alloc(size) + sizeof(GCObject));
+	
+	initObject(obj, size, staticSize);
+	
 	return obj;
 }
 
 byte* AllocationBlock::alloc(uint32 size)
 {
-	byte* obj = FixedHeap::alloc(size);
+	//return new byte[size];
 
-	if (!obj)
+	if (!canAlloc(size))
 	{
 		init();
-		obj = FixedHeap::alloc(size);
 
-		if (!obj) throw NotEnoughMemoryException(BEER_WIDEN("Cannot allocate"));
+		if (!canAlloc(size))
+		{
+			return mGC->alloc(size);
+		}
 	}
 
+#ifdef BEER_GC_STATS
+	mGC->getGenerationalGC()->mStats.mAllocatedNursery += size;
+#endif
+
+	byte* obj = mMemory + mFilled;
+	
+	mFilled += size;
+
 	return obj;
+}
+
+void AllocationBlock::invalidate()
+{
+	mFilled = mSize;
 }
