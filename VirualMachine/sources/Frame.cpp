@@ -20,10 +20,24 @@ void Frame::FrameTraverser(TraverseObjectReceiver* receiver, Class* klass, Objec
 	{
 		Frame* frame = insp.getFrame();
 
+		/*if(frame == (Frame*)0xCCCCCCCC)
+		{
+			int a = 0;
+		}*/
+
 		while(insp.hasObject())
 		{
-			Object* object = insp.getObject();
-			receiver->traverseObjectPtr(&object); // !!! should not pass real Object** because pointer updates after safe point is not ready for this !!!
+			/*Object* object = ;
+
+			if(object == (Object*)0xCCCCCCCC)
+			{
+				int a = 0;
+			}
+
+
+			cout << ""*/
+			// not sure if getObjectPtr is right choice
+			receiver->traverseObjectPtr(insp.getObjectPtr()); // !!! should not pass real Object** because pointer updates after safe point is not ready for this !!!
 			insp.nextObject();
 		}
 

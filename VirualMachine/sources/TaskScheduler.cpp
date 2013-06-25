@@ -12,7 +12,7 @@
 
 using namespace Beer;
 
-#define BEER_SCHEDULER_VERBOSE
+//#define BEER_SCHEDULER_VERBOSE
 
 #ifdef BEER_SCHEDULER_VERBOSE
 #define SCHEDULER_DEBUG(msg) { stringstream ss; ss << "Scheduler: " << msg << "\n"; ThreadSafeOutput(cout) << ss.str(); }
