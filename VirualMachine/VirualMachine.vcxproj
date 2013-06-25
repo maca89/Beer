@@ -78,6 +78,7 @@
     <ClCompile Include="sources\Property.cpp" />
     <ClCompile Include="sources\RandomGenerator.cpp" />
     <ClCompile Include="sources\CreateOneEntryPointTask.cpp" />
+    <ClCompile Include="sources\RememberedSet.cpp" />
     <ClCompile Include="sources\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EXE – Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='LIB – Debug|Win32'">Create</PrecompiledHeader>

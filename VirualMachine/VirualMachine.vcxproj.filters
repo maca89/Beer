@@ -217,6 +217,9 @@
     <ClCompile Include="sources\MatureGC.cpp">
       <Filter>Sources\GarbageCollector</Filter>
     </ClCompile>
+    <ClCompile Include="sources\RememberedSet.cpp">
+      <Filter>Sources\GarbageCollector</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\AlignedHeap.h">

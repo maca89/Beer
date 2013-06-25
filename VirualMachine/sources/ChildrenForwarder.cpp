@@ -9,8 +9,9 @@ using namespace Beer;
 
 void ChildrenForwarder::forward(GCObject* gcObj)
 {
-	Object* obj = gcObj->forward();
+	DBG_ASSERT(!gcObj->getPtr(), BEER_WIDEN("forwarded object can not have forwarding pointer"));
 
+	Object* obj = gcObj->getObject();
 	Class* type = obj->getType();
 
 	DBG_ASSERT(type != NULL, BEER_WIDEN("Type of object is NULL"));

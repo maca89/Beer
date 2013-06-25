@@ -37,9 +37,7 @@ namespace Beer
 				off = 0; // no need
 			}*/
 
-			T* ret = static_cast<T*>(alloc(staticSize, childrenCount));
-
-			return ret;
+			return static_cast<T*>(alloc(staticSize, childrenCount));
 		}
 
 		virtual Object* alloc(uint32 staticSize, uint32 childrenCount) = 0;

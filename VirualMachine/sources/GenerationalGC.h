@@ -36,6 +36,11 @@ namespace Beer
 			MATURE_COLL_RUNNING
 		};
 
+		enum Generation {
+			GEN_NURSERY,
+			GEN_MATURE
+		};
+
 		
 
 #ifdef BEER_GC_STATS
@@ -81,7 +86,7 @@ namespace Beer
 		ReferenceVector mReferences;
 		ReferenceId mReferencesNext;
 
-		RememberedSet mRemSet;
+		RememberedSet* mRemSet;
 
 		CriticalSection mStateMutex;
 
@@ -112,8 +117,6 @@ namespace Beer
 		{
 			return mNurseryGC->createHeap();
 		}
-
-		void nurseryFull();
 
 		INLINE Object* translate(const ReferenceId& id)
 		{
@@ -202,18 +205,18 @@ namespace Beer
 			}
 #endif
 
-			if (mMatureGC->contains(reinterpret_cast<byte*>(receiver.get())))
+			if (mMatureGC->contains(reinterpret_cast<byte*>(*receiver)))
 			{
 				Object** ref = &receiver->getChildren()[index];
 
-				if (mNurseryGC->contains(reinterpret_cast<byte*>(*ref)))
+				if (mNurseryGC->contains(*ref))
 				{
-					mRemSet.remove(GCObject::get(*ref), ref);
+					mRemSet->remove(GCObject::get(*ref), ref);
 				}
 
-				if (mNurseryGC->contains(reinterpret_cast<byte*>(child.get())))
+				if (mNurseryGC->contains(child.get()))
 				{
-					mRemSet.add(GCObject::get(child.get()), ref);
+					mRemSet->add(GCObject::get(*child), ref, GCObject::get(*receiver));
 				}
 			}
 
@@ -225,9 +228,11 @@ namespace Beer
 			
 		}
 
+		void startCollection(Generation gen);
+		void stopCollection(Generation gen);
+
 		void threadsSuspended();
 
-		void restartThreads();
 		void afterCollection();
 	};
 

@@ -12,6 +12,8 @@
 
 using namespace Beer;
 
+const uint32 NurseryGC::PromotionAge = 3;
+
 NurseryGC::NurseryGC(GenerationalGC* gc, uint32 size, uint32 blockSize)
 {
 	mGC = gc;
@@ -43,7 +45,7 @@ byte* NurseryGC::alloc(uint32 size)
 
 	if (!obj)
 	{
-		mGC->nurseryFull();
+		mGC->startCollection(GenerationalGC::GEN_NURSERY); // temporary to start mature collection
 
 		obj = mTo->alloc(size);
 
@@ -67,7 +69,7 @@ byte* NurseryGC::allocHeap(uint32 size)
 	if (obj) mGC->mStats.mAllocatedNursery += size;
 #endif
 
-	if (!obj) mGC->nurseryFull();
+	if (!obj) mGC->startCollection(GenerationalGC::GEN_NURSERY); // temporary to start mature collection
 
 	return obj;
 }
@@ -83,25 +85,102 @@ Heap* NurseryGC::createHeap()
 
 void NurseryGC::collect(TaskScheduler* scheduler, RememberedSet* remSet)
 {
-	GCObjectCopier copier(mGC, mFrom, mTo, mGC->getMatureGC());
-	copier.traverseObjects(scheduler, remSet);
+	mRemSet = remSet;
 
-	for (BlockList::iterator it = mBlocks.begin(); it != mBlocks.end(); it++)
+	MatureGC* matureGC = mGC->getMatureGC();
+	GCObject* nurseryGCObj = mTo->firstObject();
+	GCObject* matureGCObj = matureGC->firstObject();
+
+	TaskScheduler::TaskQueue* queue = scheduler->getActiveQueue();
+
+	for (TaskScheduler::TaskQueue::iterator it = queue->begin(); it != queue->end(); it++)
 	{
-		(*it)->invalidate();
+		copy(GCObject::get(*it));
 	}
 
-	FixedHeap* temp = mFrom;
-	mFrom = mTo;
-	mTo = temp;
+	for (RememberedSet::iterator it = remSet->begin(); it != remSet->end(); )
+	{
+		copy(it->first);
 
-	mGC->restartThreads();
+		if (matureGC->contains(it->first->forward()))
+		{
+			remSet->erase(it++); // if was object moved, remove it from rememebered set
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	while (mTo->allocated(nurseryGCObj) || matureGC->allocated(matureGCObj))
+	{
+		for (; mTo->allocated(nurseryGCObj); nurseryGCObj = nurseryGCObj->nextObject())
+		{
+			Object* obj = nurseryGCObj->getObject();
+			Class* type = obj->getType();
+
+			type->getTraverser()(this, type, obj);
+
+			mForwarder.forward(nurseryGCObj);
+		}
+
+		for (; matureGC->allocated(matureGCObj); matureGCObj = matureGCObj->nextObject())
+		{
+			Object* obj = matureGCObj->getObject();
+			Class* type = obj->getType();
+
+			type->getTraverser()(this, type, obj);
+
+			mForwarder.forward(matureGCObj);
+		}
+	}
+
+	switchHeaps();
+	mGC->stopCollection(GenerationalGC::GEN_NURSERY);
+}
+
+void NurseryGC::copy(GCObject* gcObj)
+{
+	GCObject* newGCObj = NULL;
+
+	if (gcObj->getAge() < NurseryGC::PromotionAge)
+	{
+		newGCObj = reinterpret_cast<GCObject*>(mTo->alloc(gcObj->getSize()));
+	}
+	else
+	{
+#ifdef BEER_GC_STATS
+		mGC->mStats.mPromoted++;
+#endif
+		newGCObj = reinterpret_cast<GCObject*>(mTo->alloc(gcObj->getSize()));
+
+		mRemSet->remove(gcObj);
+	}
+
+	::memcpy(newGCObj, gcObj, gcObj->getSize());
+
+	gcObj->setPtr(newGCObj);
+
+	if (gcObj->getAge() < NurseryGC::PromotionAge)
+	{
+		newGCObj->setAge(gcObj->getAge() + 1);
+	}
+}
+
+void NurseryGC::traverseObjectPtr(Object** ptrToObject)
+{
+	Object* obj = *ptrToObject;
+
+	if (isTraced(obj) && !GCObject::get(obj)->isForwarded())
+	{
+		copy(GCObject::get(obj));
+	}
 }
 
 
 #ifdef BEER_GC_DEBUGGING
 
-class Trav : public TraverseObjectReceiver
+class NurseryGCDebugTraverser : public TraverseObjectReceiver
 {
 protected:
 
@@ -109,7 +188,7 @@ protected:
 
 public:
 
-	Trav(Object* obj)
+	NurseryGCDebugTraverser(Object* obj)
 		:	mObj(obj)
 	{
 	}
@@ -131,43 +210,34 @@ void NurseryGC::afterCollection()
 	{
 		GCObject* obj = reinterpret_cast<GCObject*>(mFrom->getMemory());
 
-		for (; mFrom->isAllocObject(obj); obj = obj->nextObject())
+		for (; mFrom->allocated(obj); obj = obj->nextObject())
 		{
 			DBG_ASSERT(obj->getPtr() == NULL, BEER_WIDEN("obj should not have forwarding pointer"));
 			DBG_ASSERT(obj->getObject()->getType() != NULL, BEER_WIDEN("obj should have type"));
-			DBG_ASSERT(obj->getSize() == sizeof(GCObject) +
-				obj->getObject()->getStaticSize() +
-				(Object::OBJECT_CHILDREN_COUNT + obj->getObject()->getType()->getPropertiesCount()) * sizeof(Object*), BEER_WIDEN("object size is not right"));
 		}
 	}
 
 	{
 		Object** obj = reinterpret_cast<Object**>(mFrom->getMemory());
 
-		while (mFrom->contains((byte*)obj))
+		while (mFrom->allocated(obj))
 		{
-			if (mTo->contains((byte*)*obj))
+			if (mTo->allocated(*obj))
 			{
-				GCObject* parent = reinterpret_cast<GCObject*>(mFrom->getMemory());
+				GCObject* parent = mFrom->firstObject();
 
-				while (reinterpret_cast<Object**>(parent) < obj && reinterpret_cast<Object**>(reinterpret_cast<byte*>(parent) + parent->getSize()) < obj)
+				while (reinterpret_cast<Object**>(parent->nextObject()) < obj)
 				{
-					parent = reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(parent) + parent->getSize());
+					parent = parent->nextObject();
 				}
 
-				Trav trav(*obj);
+				NurseryGCDebugTraverser traverser(*obj);
 
-				parent->getObject()->getType()->getTraverser()(&trav, parent->getObject()->getType(), parent->getObject());
-
-				GCObject* child = reinterpret_cast<GCObject*>(mTo->getMemory());
-
-				while (reinterpret_cast<Object*>(parent) < *obj && reinterpret_cast<Object*>(reinterpret_cast<byte*>(parent) + parent->getSize()) < *obj)
-				{
-					child = reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(parent) + parent->getSize());
-				}
+				parent->getObject()->getType()->getTraverser()(&traverser, parent->getObject()->getType(), parent->getObject());
 
 				DBG_ASSERT(false, BEER_WIDEN("pointers from from-space into to-space"));
 			}
+			
 			obj++;
 		}
 	}
@@ -176,3 +246,12 @@ void NurseryGC::afterCollection()
 
 	mTo->clear();
 }
+
+void NurseryGC::invalidateBlocks()
+{
+	for (BlockList::iterator it = mBlocks.begin(); it != mBlocks.end(); it++)
+	{
+		(*it)->invalidate();
+	}
+}
+

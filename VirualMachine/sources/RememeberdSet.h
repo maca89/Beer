@@ -12,21 +12,26 @@ namespace Beer
 	{
 	public:
 
-		struct References
+		struct ReferenceMap
 		{
 		public:
 
-			typedef std::set<Object**>::iterator iterator;
+			typedef std::map<Object**, GCObject*>::iterator iterator;
+			typedef std::map<Object**, GCObject*>::const_iterator const_iterator;
 
 		protected:
 
-			std::set<Object**> mRefs;
+			std::map<Object**, GCObject*> mRefs;
 
 		public:
 
-			References(Object** ref)
+			ReferenceMap()
 			{
-				mRefs.insert(ref);
+			}
+
+			ReferenceMap(Object** reference, GCObject* referent)
+			{
+				mRefs[reference] = referent;
 			}
 
 			size_t count() const
@@ -34,9 +39,9 @@ namespace Beer
 				return mRefs.size();
 			}
 
-			void addReference(Object** ref)
+			void addReference(Object** reference, GCObject* referent)
 			{
-				mRefs.insert(ref);
+				mRefs[reference] = referent;
 			}
 
 			void removeReference(Object** ref)
@@ -53,13 +58,16 @@ namespace Beer
 			{
 				return mRefs.end();
 			}
+
+			ReferenceMap* forwardMap() const;
 		};
 
-		typedef std::map<GCObject*, References*>::iterator iterator;
+		typedef std::map<GCObject*, ReferenceMap*>::iterator iterator;
+		typedef std::map<GCObject*, ReferenceMap*>::const_iterator const_iterator;
 
 	protected:
 
-		std::map<GCObject*, References*> mSet;
+		std::map<GCObject*, ReferenceMap*> mSet;
 
 	public:
 		
@@ -71,17 +79,17 @@ namespace Beer
 		{
 		}
 
-		void add(GCObject* obj, Object** ref)
+		void add(GCObject* obj, Object** reference, GCObject* referent)
 		{
 			iterator it = mSet.find(obj);
 
 			if (it == mSet.end())
 			{
-				it->second->addReference(ref);
+				it->second->addReference(reference, referent);
 			}
 			else
 			{
-				mSet[obj] = new References(ref);
+				mSet[obj] = new ReferenceMap(reference, referent);
 			}
 		}
 
@@ -128,5 +136,8 @@ namespace Beer
 		{
 			mSet.erase(it);
 		}
+
+		RememberedSet* forwardObjects();
+		RememberedSet* forwardSet() const;		
 	};
 };

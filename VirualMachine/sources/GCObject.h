@@ -105,11 +105,16 @@ namespace Beer
 			return reinterpret_cast<GCObject*>(reinterpret_cast<byte*>(this) + mSize);
 		}
 
+		INLINE bool isNull()
+		{
+			return mSize == 0;
+		}
+
 		INLINE static void init(Object* obj, size_t size)
 		{
 			GCObject* gcObj = GCObject::get(obj);
-			gcObj->clearData();
 			gcObj->setSize(size);
+			gcObj->clearData();			
 		}
 	};
 	#pragma pack(pop)

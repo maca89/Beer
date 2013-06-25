@@ -58,7 +58,7 @@ namespace Beer
 			return reinterpret_cast<GCObject*>(mMemStart);
 		}
 
-		INLINE bool isAllocObject(GCObject* obj)
+		INLINE bool allocated(void* obj)
 		{
 			return reinterpret_cast<byte*>(obj) >= mMemStart && reinterpret_cast<byte*>(obj) < mMemStart + mFilled;
 		}

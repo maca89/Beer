@@ -23,10 +23,10 @@ void GCObjectCopier::traverseObjects(TaskScheduler* scheduler, RememberedSet* re
 	{
 		copy(it->first);
 
-		for (RememberedSet::References::iterator rit = it->second->begin(); rit != it->second->end(); rit)
+		/*for (RememberedSet::References::iterator rit = it->second->begin(); rit != it->second->end(); rit)
 		{
 			**rit = GCObject::get(**rit)->forward(); // forward all references to object
-		}
+		}*/
 
 		if (mMatureGC->contains(it->first->forward()))
 		{
@@ -41,7 +41,7 @@ void GCObjectCopier::traverseObjects(TaskScheduler* scheduler, RememberedSet* re
 
 	while (nurseryGCObj->getSize() > 0/* || matureGCObj->getSize() > 0*/)
 	{
-		for (; mTo->isAllocObject(nurseryGCObj); nurseryGCObj = nurseryGCObj->nextObject())
+		for (; mTo->allocated(nurseryGCObj); nurseryGCObj = nurseryGCObj->nextObject())
 		{
 			Object* obj = nurseryGCObj->getObject();
 
@@ -64,13 +64,13 @@ void GCObjectCopier::traverseObjects(TaskScheduler* scheduler, RememberedSet* re
 
 	GCObject* obj = reinterpret_cast<GCObject*>(mTo->getMemory());
 
-	for (; mTo->isAllocObject(obj); obj = obj->nextObject())
+	for (; mTo->allocated(obj); obj = obj->nextObject())
 	{
 		DBG_ASSERT(obj->getPtr() == NULL, BEER_WIDEN("obj should not have forwarding pointer"));
 		DBG_ASSERT(obj->getObject()->getType() != NULL, BEER_WIDEN("obj should have type"));
-		DBG_ASSERT(obj->getSize() == sizeof(GCObject) +
+		/*DBG_ASSERT(obj->getSize() == sizeof(GCObject) +
 			obj->getObject()->getStaticSize() +
-			(Object::OBJECT_CHILDREN_COUNT + obj->getObject()->getType()->getPropertiesCount()) * sizeof(Object*), BEER_WIDEN("object size is not right"));
+			(Object::OBJECT_CHILDREN_COUNT + obj->getObject()->getType()->getPropertiesCount()) * sizeof(Object*), BEER_WIDEN("object size is not right"));*/
 	}
 
 #endif
@@ -80,7 +80,7 @@ void GCObjectCopier::copy(GCObject* gcObj)
 {
 	GCObject* newGCObj = NULL;
 
-	if (gcObj->getAge() < mPromotionAge)
+	if (gcObj->getAge() < NurseryGC::PromotionAge)
 	{
 		newGCObj = reinterpret_cast<GCObject*>(mTo->alloc(gcObj->getSize()));
 	}
