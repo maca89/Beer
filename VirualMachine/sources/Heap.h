@@ -56,7 +56,23 @@ namespace Beer
 		// TODO: round to 4 bytes
 		INLINE uint32 roundSize(uint32 size)
 		{
-			return size + (size & 1); // rounds size to the closest bigger even number
+			switch (size % 4)
+			{
+				case 0:
+					return size;
+
+				case 1:
+					return size + 3;
+
+				case 2:
+					return size + 2;
+
+				case 3:
+					return size + 1;
+
+				default:
+					return size;
+			}
 		}
 		
 		INLINE uint32 calcSize(uint32 staticSize, uint32 childrenCount)

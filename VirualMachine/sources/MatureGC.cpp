@@ -108,9 +108,6 @@ void MatureGC::collect(TaskScheduler* scheduler, RememberedSet* remSet)
 		{
 			DBG_ASSERT(obj->getPtr() == NULL, BEER_WIDEN("obj should not have forwarding pointer"));
 			DBG_ASSERT(obj->getObject()->getType() != NULL, BEER_WIDEN("obj should have type"));
-			DBG_ASSERT(obj->getSize() == sizeof(GCObject) +
-				obj->getObject()->getStaticSize() +
-				(Object::OBJECT_CHILDREN_COUNT + obj->getObject()->getType()->getPropertiesCount()) * sizeof(Object*), BEER_WIDEN("object size is not right"));
 		}
 
 	}
@@ -121,9 +118,6 @@ void MatureGC::collect(TaskScheduler* scheduler, RememberedSet* remSet)
 		{
 			DBG_ASSERT(obj->getPtr() == NULL, BEER_WIDEN("obj should not have forwarding pointer"));
 			DBG_ASSERT(obj->getObject()->getType() != NULL, BEER_WIDEN("obj should have type"));
-			DBG_ASSERT(obj->getSize() == sizeof(GCObject) +
-				obj->getObject()->getStaticSize() +
-				(Object::OBJECT_CHILDREN_COUNT + obj->getObject()->getType()->getPropertiesCount()) * sizeof(Object*), BEER_WIDEN("object size is not right"));
 		}
 	}
 #endif
