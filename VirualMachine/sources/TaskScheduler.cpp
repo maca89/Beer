@@ -12,7 +12,7 @@
 
 using namespace Beer;
 
-//#define BEER_SCHEDULER_VERBOSE
+#define BEER_SCHEDULER_VERBOSE
 
 #ifdef BEER_SCHEDULER_VERBOSE
 #define SCHEDULER_DEBUG(msg) { stringstream ss; ss << "Scheduler: " << msg << "\n"; ThreadSafeOutput(cout) << ss.str(); }
@@ -311,6 +311,8 @@ void TaskScheduler::addIdle(WorkerThread* thread)
 
 void TaskScheduler::addTask(Task* task)
 {
+	SCHEDULER_DEBUG("Added task " << task);
+
 	if(task->isAwaiting())
 	{
 		throw SchedulerException(BEER_WIDEN("Awaiting task cannot be scheduled"));
@@ -321,6 +323,7 @@ void TaskScheduler::addTask(Task* task)
 
 void TaskScheduler::done(Task* task)
 {
+	SCHEDULER_DEBUG("Done task " << task);
 	task->markCompleted();
 
 	Task* awaiting = NULL;
@@ -339,6 +342,8 @@ Task* TaskScheduler::getSomeWork()
 
 void TaskScheduler::wait(Task* who, Task* whatFor)
 {
+	SCHEDULER_DEBUG("Await " << who << " for " << whatFor);
+
 	if(who->isAwaiting())
 	{
 		throw SchedulerException(BEER_WIDEN("Task is already awaiting"));
@@ -359,21 +364,24 @@ void TaskScheduler::updateFramesPointers()
 	updateFramesPointers(mActive);
 }
 
-Task* TaskScheduler::updateFramesPointers(Task* task)
+Task* TaskScheduler::updateFramesPointers(Task* oldTask)
 {
-	task = static_cast<Task*>(mGC->getIdentity(task));
+	SCHEDULER_DEBUG("Updating task " << oldTask << " moved to " << static_cast<Task*>(mGC->getIdentity(oldTask)));
+	Task* newTask = static_cast<Task*>(mGC->getIdentity(oldTask));
 
-	if(task->getContext()->hasFrame())
+	if(newTask->getContext()->hasFrame())
 	{
 		WorkerThread* thread = mIdleThreads.pop();
-		thread->setContext(task);
+		thread->setContext(newTask);
 
-		task->getContext()->updateMovedPointers(mGC);
+		newTask->getContext()->updateMovedPointers(mGC);
 
 		mIdleThreads.push(thread);
 	}
 
-	return task;
+	updateFramesPointers(*newTask->getAwaitingQueue());
+
+	return newTask;
 }
 
 void TaskScheduler::updateFramesPointers(TaskQueue& queue)
@@ -391,7 +399,7 @@ void TaskScheduler::updateFramesPointers(TaskQueue& queue)
 	}
 }
 
-void TaskScheduler::updateFramesPointers(WaitingTaskQueue& queue)
+/*void TaskScheduler::updateFramesPointers(WaitingTaskQueue& queue)
 {
 	WaitingTaskQueue newQueue;
 
@@ -407,7 +415,7 @@ void TaskScheduler::updateFramesPointers(WaitingTaskQueue& queue)
 	{
 		queue.push(newQueue.pop());
 	}
-}
+}*/
 
 void TaskScheduler::updateFramesClass(Class* klass)
 {

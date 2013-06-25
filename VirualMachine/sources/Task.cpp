@@ -40,6 +40,7 @@ void BEER_CALL Task::init(Thread* thread, StackRef<Task> receiver, StackRef<Task
 	receiver->unmarkFailed();
 
 	ret = receiver;
+	//cout << "Created Task " << *ret << "\n";
 }
 
 void BEER_CALL Task::schedule(Thread* thread, StackRef<Task> receiver)
@@ -141,16 +142,17 @@ void Task::TaskInstanceTraverser(TraverseObjectReceiver* receiver, Class* klass,
 	if(context->hasFrame())
 	{
 		FrameInspector insp;
-		insp.start(context->getFrame());
+		insp.start(context->getFrame(), context->getFramePtr());
 		
 		while(insp.hasFrame())
 		{
 			Frame* frame = insp.getFrame();
+			Frame* framePtr = insp.getFrame(); // !!! should not pass real Object** because pointer updates after safe point is not ready for this !!!
 
 			if(frame->isHeapAllocated())
 			{
-				Object* o = frame;
-				receiver->traverseObjectPtr(&o);
+				//Object* o = frame;
+				receiver->traverseObjectPtr(reinterpret_cast<Object**>(&frame));
 				//TODO: fix pointers here
 			}
 

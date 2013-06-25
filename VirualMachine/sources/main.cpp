@@ -227,7 +227,7 @@ int __cdecl main(int argc, const char** argv)
 	//cout << "Threads: " << numberOfThreads << "\n";
 
 	GenerationalGC* gc = new GenerationalGC(
-		     1024 * 1024, // nursery size 1MB
+		     384/*1024*/ * 1024, // nursery size 1MB
 		        4 * 1024, // thread private allocation block 4kB
 		16 * 1024 * 1024, // mature gen size 16MB
 		     1024 * 1024); // permanent gen size 1MB

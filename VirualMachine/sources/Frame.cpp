@@ -22,7 +22,8 @@ void Frame::FrameTraverser(TraverseObjectReceiver* receiver, Class* klass, Objec
 
 		while(insp.hasObject())
 		{
-			receiver->traverseObjectPtr(insp.getObjectPtr());
+			Object* object = insp.getObject();
+			receiver->traverseObjectPtr(&object); // !!! should not pass real Object** because pointer updates after safe point is not ready for this !!!
 			insp.nextObject();
 		}
 

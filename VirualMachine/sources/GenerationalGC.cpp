@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GenerationalGC.h"
 #include "VirtualMachine.h"
-#include "CopyingGC.h"
+//#include "CopyingGC.h"
 #include "AllocationBlock.h"
 #include "DynamicHeap.h"
 

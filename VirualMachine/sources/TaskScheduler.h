@@ -90,7 +90,7 @@ namespace Beer
 		void updateFramesPointers();
 		Task* updateFramesPointers(Task* task);
 		void updateFramesPointers(TaskQueue& queue);
-		void updateFramesPointers(WaitingTaskQueue& queue);
+		//void updateFramesPointers(WaitingTaskQueue& queue);
 		Frame* updateFramePointers(Frame* frame);
 
 		void updateFramesClass(WaitingTaskQueue& queue, Class* klass);

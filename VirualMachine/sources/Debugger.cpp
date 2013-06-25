@@ -6,6 +6,7 @@
 #include "Property.h"
 #include "Class.h"
 #include "Pair.h"
+#include "FrameInspector.h"
 
 using namespace Beer;
 
@@ -124,97 +125,147 @@ void Debugger::printMethodSignature(StackRef<Method> method)
 	
 }
 
-void Debugger::printCallStack(Thread* thread, Frame* frame)
+void Debugger::printCallStack(Thread* thread, Frame* topFrame)
 {
 	cout << "[CallStack]" << std::endl;
 
-	typedef std::vector<Frame*> FrameVector;
-	uint32 framesMax = 5;
-	uint32 frameCounter = 0;
-	uint32 framei = 0;
-	FrameVector myframes(framesMax);
+	FrameInspector insp;
 
-	cout << "*Not implemented*\n";
-	return;
+	int64 framei = 0;
 
-	Frame* frames = NULL;//thread->getThreadContext()->getRootFrame();
-	for(framei; framei < frames->stackLength(); framei++)
+	// find frame index
+	insp.start(topFrame);
+	while(insp.hasFrame())
 	{
-		Frame* otherFrame = frames->stackTop<Frame>(framei);
-		if(otherFrame == frame)
-		{
-			break;
-		}
-
-		// print a couple of first frames
-		if(framei < framesMax)
-		{
-			cout << std::setw(4);
-			cout << std::setfill(BEER_WIDEN(' ')) << "+" << framei << " ";
-			
-			StackRef<Method> receiver(otherFrame, -2);
-			StackRef<Method> method(otherFrame, -1);
-		
-			if(!method.isNull())
-			{
-				printCalledMethodSignature(otherFrame, receiver, method);
-			}
-			else
-			{
-				cout << "no method";
-			}
-			cout << std::endl;
-		}
-		
-		frameCounter = (frameCounter + 1) % framesMax;
-		myframes[frameCounter] = otherFrame;
+		framei++;
+		insp.nextFrame();
 	}
 
-	// print a couple of last frames
-	if(framei >= framesMax)
+	// not a top frame
+	if(framei != thread->getThreadContext()->getFramesCount() - 1)
 	{
 		cout << std::setw(4);
-		cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
+		cout << std::setfill(BEER_WIDEN(' ')) << "...\n";
+	}
 
-		for(uint32 i = 0; i < framesMax; i++)
+	// print call stack
+	insp.start(topFrame);
+	while(insp.hasFrame())
+	{
+		Frame* frame = insp.getFrame();
+
+		cout << std::setw(4);
+		cout << std::setfill(BEER_WIDEN(' ')) << "+" << framei << " ";
+
+		StackRef<Method> receiver(frame, Frame::INDEX_RECEIVER);
+		StackRef<Method> method(frame, Frame::INDEX_METHOD);
+
+		if(!method.isNull())
 		{
-			Frame* otherFrame = myframes[(frameCounter + i + 1) % framesMax];
-			
-			StackRef<Method> receiver(otherFrame, -2);
-			StackRef<Method> method(otherFrame, -1);
-
-			cout << std::setw(4);
-			cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei - i) << " ";
-		
-			if(!method.isNull())
-			{
-				printCalledMethodSignature(otherFrame, receiver, method);
-			}
-			else
-			{
-				cout << "no method";
-			}
-			cout << std::endl;
+			printCalledMethodSignature(frame, receiver, method);
 		}
+		else
+		{
+			cout << "no method";
+		}
+		cout << "\n";
+
+		framei--;
+		insp.nextFrame();
 	}
 
-	// print the last frame
-	StackRef<Method> receiver(frame, -2);
-	StackRef<Method> method(frame, -1);
 
-	cout << std::setw(4);
-	cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei) << " ";
+	return;
+
+	{
+		typedef std::vector<Frame*> FrameVector;
+		uint32 framesMax = 5;
+		uint32 frameCounter = 0;
+		uint32 framei = 0;
+		FrameVector myframes(framesMax);
+
+		//cout << "*Not implemented*\n";
+		return;
+
+		Frame* frames = NULL;//thread->getThreadContext()->getRootFrame();
+		for(framei; framei < frames->stackLength(); framei++)
+		{
+			Frame* otherFrame = frames->stackTop<Frame>(framei);
+			if(otherFrame == topFrame)
+			{
+				break;
+			}
+
+			// print a couple of first frames
+			if(framei < framesMax)
+			{
+				cout << std::setw(4);
+				cout << std::setfill(BEER_WIDEN(' ')) << "+" << framei << " ";
+			
+				StackRef<Method> receiver(otherFrame, -2);
+				StackRef<Method> method(otherFrame, -1);
 		
-	if(!method.isNull())
-	{
-		printCalledMethodSignature(frame, receiver, method);
-	}
-	else
-	{
-		cout << "no method";
-	}
+				if(!method.isNull())
+				{
+					printCalledMethodSignature(otherFrame, receiver, method);
+				}
+				else
+				{
+					cout << "no method";
+				}
+				cout << std::endl;
+			}
+		
+			frameCounter = (frameCounter + 1) % framesMax;
+			myframes[frameCounter] = otherFrame;
+		}
 
-	cout << std::endl;
+		// print a couple of last frames
+		if(framei >= framesMax)
+		{
+			cout << std::setw(4);
+			cout << std::setfill(BEER_WIDEN(' ')) << "..." << std::endl;
+
+			for(uint32 i = 0; i < framesMax; i++)
+			{
+				Frame* otherFrame = myframes[(frameCounter + i + 1) % framesMax];
+			
+				StackRef<Method> receiver(otherFrame, -2);
+				StackRef<Method> method(otherFrame, -1);
+
+				cout << std::setw(4);
+				cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei - i) << " ";
+		
+				if(!method.isNull())
+				{
+					printCalledMethodSignature(otherFrame, receiver, method);
+				}
+				else
+				{
+					cout << "no method";
+				}
+				cout << std::endl;
+			}
+		}
+
+		// print the last frame
+		StackRef<Method> receiver(topFrame, -2);
+		StackRef<Method> method(topFrame, -1);
+
+		cout << std::setw(4);
+		cout << std::setfill(BEER_WIDEN(' ')) << "+" << (framei) << " ";
+		
+		if(!method.isNull())
+		{
+			printCalledMethodSignature(topFrame, receiver, method);
+		}
+		else
+		{
+			cout << "no method";
+		}
+
+		cout << std::endl;
+	}
 }
 
 void Debugger::printObject(Object* object)

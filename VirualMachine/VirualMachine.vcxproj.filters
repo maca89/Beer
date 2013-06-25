@@ -208,9 +208,6 @@
     <ClCompile Include="sources\PerformanceProfiler.cpp">
       <Filter>Sources\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="sources\CopyingGC.cpp">
-      <Filter>Sources\GarbageCollector</Filter>
-    </ClCompile>
     <ClCompile Include="sources\GCObjectCopier.cpp">
       <Filter>Sources\GarbageCollector</Filter>
     </ClCompile>

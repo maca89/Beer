@@ -22,7 +22,6 @@
     <ClCompile Include="sources\AlignedHeap.cpp" />
     <ClCompile Include="sources\AllocationBlock.cpp" />
     <ClCompile Include="sources\BytecodeBuilder.cpp" />
-    <ClCompile Include="sources\CopyingGC.cpp" />
     <ClCompile Include="sources\CreateAllEntryPointsTask.cpp" />
     <ClCompile Include="sources\DefaultBytecodeLinker.cpp" />
     <ClCompile Include="sources\DefaultBytecodeVerifier.cpp" />

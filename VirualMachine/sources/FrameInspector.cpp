@@ -12,7 +12,7 @@ using namespace Beer;
 
 
 FrameInspector::FrameInspector()
-	: mFrame(NULL), mFrameStackNext(0)
+	: mFrame(NULL), mFrameStackNext(0), mFramePtr(NULL)
 {
 }
 
@@ -22,9 +22,15 @@ FrameInspector::~FrameInspector()
 
 void FrameInspector::start(Frame* frame)
 {
+	start(frame, NULL);
+}
+
+void FrameInspector::start(Frame* frame, Frame** framePtr)
+{
 	mFrame = frame;
 	mFrameStackNext = 0;
 	mLevel = 0;
+	mFramePtr = framePtr;
 }
 
 void FrameInspector::nextFrame()
@@ -35,7 +41,7 @@ void FrameInspector::nextFrame()
 	}
 	else
 	{
-		start(*reinterpret_cast<Frame**>(mFrame->bp()));
+		start(*reinterpret_cast<Frame**>(mFrame->bp()), reinterpret_cast<Frame**>(mFrame->bp()));
 	}
 }
 
@@ -59,6 +65,11 @@ bool FrameInspector::hasFrame()
 Frame* FrameInspector::getFrame()
 {
 	return mFrame;
+}
+
+Frame** FrameInspector::getFramePtr()
+{
+	return mFramePtr;
 }
 
 void FrameInspector::nextObject()

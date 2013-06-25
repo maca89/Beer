@@ -39,6 +39,13 @@ bool Thread::trampoline()
 	while(hasFrame() && !isExecutionPaused())
 	{
 		Frame* frame = getFrame();
+
+		bool dbg = false;
+		if(dbg)
+		{
+			mVM->getDebugger()->printCallStack(this, frame);
+		}
+
 		StackRef<Method> method(frame, Frame::INDEX_METHOD);
 		if(method.isNull())
 		{

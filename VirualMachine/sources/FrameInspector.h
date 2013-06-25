@@ -13,6 +13,7 @@ namespace Beer
 
 	protected:
 		Frame* mFrame;
+		Frame** mFramePtr;
 		uint32 mFrameStackNext;
 		int32 mLevel;
 
@@ -21,6 +22,7 @@ namespace Beer
 		~FrameInspector();
 
 		void start(Frame* frame);
+		void start(Frame* frame, Frame** framePtr);
 
 		void nextObject();
 		bool hasObject();
@@ -32,6 +34,7 @@ namespace Beer
 		void nextInnerFrame();
 		bool hasFrame();
 		Frame* getFrame();
+		Frame** getFramePtr();
 
 		static void debugPrintFrame(Thread* thread, Frame* frame);
 		static void debugPrintFrames(Thread* thread);

@@ -51,8 +51,10 @@ void BEER_CALL CreateAllEntryPointsTask::run(Thread* thread, StackRef<CreateAllE
 			thread->createInstance(createEntryPointTaskClass, task);
 			
 			CreateOneEntryPointTask::init_Class(thread, task, klass, task);
-			CreateOneEntryPointTask::run(thread, task);
-			// TODO: schedule task
+			//CreateOneEntryPointTask::run(thread, task);
+
+			thread->getVM()->getScheduler()->addTask(*task);
+			//thread->getVM()->getScheduler()->wait(*receiver, *task);
 
 			frame->stackPop(); // pop task
 		}

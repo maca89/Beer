@@ -37,11 +37,13 @@ namespace Beer
 		void updateMovedPointers(GenerationalGC* gc);
 		
 		INLINE Frame* getFrame() { return mTopFrame; }
+		INLINE Frame** getFramePtr() { return &mTopFrame; }
 		INLINE bool hasFrame() { return mTopFrame != NULL; }
 		Frame* openFrame();
 		void closeFrame();
 		Frame* getPreviousFrame();
 		void updateFramesClass(Class* klass);
+		int64 getFramesCount() const;
 
 		// TODO: get rid of these
 		INLINE void setHeap(Heap* value) { mHeap = value; }
@@ -64,6 +66,11 @@ namespace Beer
 		}
 
 		return NULL;
+	}
+
+	INLINE int64 TaskContext::getFramesCount() const
+	{
+		return mFramesCount;
 	}
 
 };

@@ -344,7 +344,7 @@ namespace Beer
 	#ifdef BEER_DEBUG_MODE
 		#define BEER_DEBUG_ASSERTS_ON
 		//#define BEER_MEMORY_DEBUGGING
-		#define BEER_GC_DEBUGGING
+		//#define BEER_GC_DEBUGGING
 		#define BEER_STACK_DEBUGGING
 		#define BEER_BC_DEBUGGING
 	#endif // BEER_DEBUG_MODE
@@ -367,7 +367,7 @@ namespace Beer
 
 	// optimalizations
 	#define BEER_INLINE_OPTIMALIZATION
-	#define BEER_INLINE_FRAMES
+	//#define BEER_INLINE_FRAMES
 	#define BEER_MIC_OPTIMIZATION
 	#define BEER_PIC_OPTIMIZATION
 

@@ -3,14 +3,23 @@
 #include "StackRef.h"
 #include "Method.h"
 #include "Frame.h"
-
+#include "ThreadSafeOutput.h"
 
 using namespace Beer;
+
+//#define BEER_TASKCONTEXT_VERBOSE
+
+#ifdef BEER_TASKCONTEXT_VERBOSE
+#define TASKCONTEXT_DEBUG(msg) { stringstream ss; ss << "TaskContext: " << msg << "\n"; ThreadSafeOutput(cout) << ss.str(); }
+#else
+#define TASKCONTEXT_DEBUG(msg)
+#endif // BEER_SCHEDULER_VERBOSE
+
 
 TaskContext::TaskContext()
 	: mHeap(NULL), /*mRootFrame(NULL),*/ mTopFrame(NULL), mFramesCount(0), mFrameClass(NULL)
 {
-	
+	//cout << "TaskContext " << this << " allocated on heap\n";
 }
 
 TaskContext::~TaskContext()
@@ -239,7 +248,7 @@ void TaskContext::updateMovedPointers(GenerationalGC* gc)
 Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
 {
 	Frame* frameUpdated = frame;
-	//cout << "-------- updating frame #" << frame << " " << (frame->isStackAllocated() ? "[stack allocated]" : "[heap allocated]") << "\n";
+	TASKCONTEXT_DEBUG("Updating frame #" << frame << " " << (frame->isStackAllocated() ? "[stack allocated]" : "[heap allocated]"));
 
 	if(frame->isStackAllocated())
 	{
@@ -255,20 +264,28 @@ Frame* TaskContext::updateFramePointers(GenerationalGC* gc, Frame* frame)
 	else // heap allocated
 	{
 		frameUpdated = static_cast<Frame*>(gc, gc->getIdentity(frame));
-		
+		TASKCONTEXT_DEBUG("Was moved to   #" << frameUpdated);
+
 		int64 offset = (reinterpret_cast<byte*>(frameUpdated->bp()) - reinterpret_cast<byte*>(frame));
-		void* newBp = reinterpret_cast<byte*>(frameUpdated) + offset;
+		void* newBp = reinterpret_cast<byte*>(frameUpdated) + offset;	
+		
+		TASKCONTEXT_DEBUG("bp changed from #" << frameUpdated->bp() << " to #" << newBp);
+		frameUpdated->bp(newBp);
 
 		Frame* prevFrame = frameUpdated->previousFrame();
 		
 		if(prevFrame)
 		{
+			TASKCONTEXT_DEBUG("Has previous frame #" << prevFrame);
 			Frame* prevFrameUpdated = updateFramePointers(gc, prevFrame);
-			*reinterpret_cast<Frame**>(newBp) = prevFrameUpdated;
+			TASKCONTEXT_DEBUG("(*bp) changed from #" << (*reinterpret_cast<void**>(frameUpdated->bp())) << " to #" << prevFrameUpdated);
+			*reinterpret_cast<Frame**>(frameUpdated->bp()) = prevFrameUpdated; // maybe OK
 		}
-
-		//cout << "updated bp from #" << frameUpdated->bp() << " to #" << newBp << "\n";
-		frameUpdated->bp(newBp);
+		else
+		{
+			TASKCONTEXT_DEBUG("Has no previous frame");
+			//*reinterpret_cast<Frame**>(newBp) = NULL; // maybe OK
+		}
 	}
 
 	return frameUpdated;
