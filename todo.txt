@@ -1,0 +1,88 @@
+todo:
+- optimize floats
+- optimize negative integers
+- používat fce z StrSafe.h
+- libicu, libiconv pro mb <=> wcs
+- move Bytecode to GC
+- add String::+(Object) operator and call Object::String() within
+- fix String::createInstance
+- fix Array::createInstance
+- count method->maxStack from bc
+- priorities for tasks
+- default value for value types
+- Null class for 0x00000000
+- Mark all created of returned-to frames as GC_DIRTY, so that GC have to scan them (old frames mark through return address fn)
+- Copy Frame to Heap if referenced by task (async call)
+- Classes created by MetaClass::createInstance()
+- Use FrameInspector in Debugger
+- Bytecode as Object; Bytecode class; Bytecode traversing
+- Thread as Object; Thread class; Thread traversing
+- move instruction dump from Bytecode elsewhere
+- Cache a couple of frames in Pool (per Thread)
+- EntryPoint flag for Class (only for classes with non-abstract run method)
+- safe point at backward jumps
+- No selector in method
+- Abstract createInstance throwing an exception for abstract classes
+- Abstract function throwing an exception for abstract methods
+- Thread-safe lazy load of classes
+- no thread inheriting in VM, Debugger
+- entry point task ctor
+- make class library thread-safe and extract it from VM
+- fix pointers to tasks
+- fix pointers to awaiting tasks
+
+
+bytecode optimalization:
+- adaptive optimizing - monitor execution of code and optimize most used bytecode (hot spot, 10-20% that is executed 80-90% of time)
+- Evaluate constant expressions
+- Remove unnecessary field accesses and method calls
+- Remove unnecessary branches
+- Remove unnecessary comparisons and instanceof tests
+- Remove unused code blocks
+- Merge identical code blocks
+- Reduce variable allocation
+- Remove write-only fields and unused method parameters
+- Inline constant fields, method parameters, and return values
+- Inline methods that are short or only called once
+- Simplify tail recursion calls
+- Merge classes and interfaces
+- Make methods private, static, and final when possible
+- Make classes static and final when possible
+- Replace interfaces that have single implementations
+- Variable peephole optimizations
+- Arithmetic peephole optimizations, like replacing ...*2 by ... << 1
+- Remove local variables
+- Branch peephole optimization
+- Remove unused classes and class elements
+- Moving constant expressions out of loops
+- Static method inlining
+- Virtual method inlining
+- Flow analysis
+- stack analysis
+- BC verifications:
+  - Known instructions
+  - Valid jump addresses
+  - Jumps to the same address should have allways the same (valid) stack
+  - Valid referenced pool data
+  - Class cannot subclass a sealed class
+  - No creating of a new instance of an abstract class
+- INVOKE of known method may reference method from class table by an index
+- inlining of VIRTUAL_INVOKE calls and of INTERFACE_INVOKE calls (inline several methods withing the call and resolve by instance at run)
+- translate INSTR_NEW as createInstance call
+- Escape analysis to allocated object on Stack instead of Heap (Especially value types)
+- use ASSIGN_THIS and LOAD_THIS
+
+připomínky:
+- dědění od objectu by mělo být v classfile & bytecode
+- v bc volat kontruktory pro Object, vm toto volání odstraní
+
+Kompilátor:
+- maxstack
+- utf-8 stringy
+- null
+- push_char je jen 8bit
+
+GC:
+- set child (use in PolymorphicCache::init)
+
+changes:
